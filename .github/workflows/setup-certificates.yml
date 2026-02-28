@@ -32,7 +32,8 @@ jobs:
             "key_id": "$ASC_KEY_ID",
             "issuer_id": "$ASC_ISSUER_ID",
             "key": $(echo "$ASC_PRIVATE_KEY" | python3 -c "import sys,json; print(json.dumps(sys.stdin.read()))"),
-            "is_key_content_base64": false
+            "is_key_content_base64": false,
+            "in_house": false
           }
           KEYEOF
 
