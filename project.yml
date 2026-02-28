@@ -45,6 +45,19 @@ targets:
       properties:
         ANTHROPIC_API_KEY: $(ANTHROPIC_API_KEY)
         OPENAI_API_KEY: $(OPENAI_API_KEY)
+        CFBundleIconName: AppIcon
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        NSHealthShareUsageDescription: "FuelLift reads your step count and active calories to adjust your daily calorie budget."
+        NSHealthUpdateUsageDescription: "FuelLift writes your meals, workouts, and body weight to Apple Health."
+        NSCameraUsageDescription: "FuelLift uses your camera to scan food and barcodes for instant calorie tracking."
+        NSPhotoLibraryUsageDescription: "FuelLift uses your photo library to log food photos and progress pictures."
+        UIBackgroundModes:
+          - remote-notification
     dependencies:
       - package: Firebase
         product: FirebaseAuth
