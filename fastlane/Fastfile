@@ -29,7 +29,7 @@ platform :ios do
       scheme: "FuelLift",
       export_method: "app-store",
       clean: true,
-      xcargs: "OPENAI_API_KEY='#{ENV["OPENAI_API_KEY"]}'"
+      xcargs: "OPENAI_API_KEY='#{ENV["OPENAI_API_KEY"]}' ANTHROPIC_API_KEY='#{ENV["ANTHROPIC_API_KEY"]}'"
     )
 
     upload_to_testflight(

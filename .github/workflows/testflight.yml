@@ -38,7 +38,31 @@ jobs:
       - name: Create GoogleService-Info.plist
         env:
           GOOGLE_SERVICE_INFO: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}
-        run: echo "$GOOGLE_SERVICE_INFO" > FuelLift/Resources/GoogleService-Info.plist
+        run: |
+          if [ -n "$GOOGLE_SERVICE_INFO" ]; then
+            echo "$GOOGLE_SERVICE_INFO" > FuelLift/Resources/GoogleService-Info.plist
+          else
+            cat > FuelLift/Resources/GoogleService-Info.plist << 'PLIST'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>CLIENT_ID</key>
+            <string>placeholder</string>
+            <key>GOOGLE_APP_ID</key>
+            <string>1:000000000000:ios:0000000000000000000000</string>
+            <key>GCM_SENDER_ID</key>
+            <string>000000000000</string>
+            <key>API_KEY</key>
+            <string>placeholder</string>
+            <key>PROJECT_ID</key>
+            <string>placeholder</string>
+            <key>BUNDLE_ID</key>
+            <string>com.fuellift.app</string>
+          </dict>
+          </plist>
+          PLIST
+          fi
 
       - name: Resolve SPM dependencies
         run: |
@@ -55,4 +79,5 @@ jobs:
           APP_STORE_CONNECT_API_KEY_KEY: ${{ secrets.ASC_PRIVATE_KEY }}
           DEVELOPMENT_TEAM: ${{ secrets.DEVELOPMENT_TEAM }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: bundle exec fastlane beta
