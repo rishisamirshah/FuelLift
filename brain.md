@@ -1,6 +1,6 @@
 # FuelLift Brain - Complete Project Context
 
-> Last updated: 2026-02-28 (v2 update)
+> Last updated: 2026-02-28 (v3 — CI/CD + TestFlight live)
 > Auto-maintained by "Update all" task
 
 ---
@@ -10,10 +10,12 @@
 **FuelLift** is an iOS fitness + nutrition tracking app combining calorie/macro logging (like Cal-AI) with strength training (like Strong). Built with SwiftUI, SwiftData, Firebase, HealthKit, and OpenAI. Premium Cal AI + Strong aesthetic with system-adaptive light/dark mode.
 
 - **Bundle ID:** com.fuellift.app
-- **Min iOS:** 17.0 | **Swift:** 5.9 | **Xcode:** 15.4+
+- **Min iOS:** 17.0 | **Swift:** 5.9 | **Xcode:** 16.2
 - **Build System:** XcodeGen (`project.yml` → `.xcodeproj`)
 - **Local Storage:** SwiftData | **Remote:** Firebase (currently disabled for local dev)
-- **CI/CD:** Fastlane → TestFlight | GitHub Actions
+- **CI/CD:** GitHub Actions → Fastlane → TestFlight (fully automated, push to `main` deploys)
+- **Code Signing:** Fastlane Match (manual, app-store type) | Certs stored in private git repo
+- **Branches:** `main` (triggers CI), `development` (synced)
 
 ---
 
@@ -38,7 +40,7 @@ FuelLift/
 ├── Services/               # Singletons (8 files)
 ├── Utilities/              # Theme, Extensions, Constants, ImagePicker
 │   └── Components/         # 9 shared UI components
-└── Resources/              # Info.plist, Entitlements, Assets
+└── Resources/              # Info.plist, Entitlements, Assets.xcassets (AppIcon)
 ```
 
 ---
@@ -244,6 +246,17 @@ BadgeViewModel checks conditions → awardBadge() → confetti + toast.
 
 ### Build: `xcodegen generate` then `xcodebuild -scheme FuelLift ...`
 
+### CI/CD Pipeline (GitHub Actions → TestFlight)
+- **Trigger:** Push to `main` or manual workflow_dispatch
+- **Runner:** macos-14, Xcode 16.2
+- **Flow:** Checkout → XcodeGen → Ruby/Fastlane → GoogleService-Info.plist (placeholder) → SPM resolve → Fastlane beta lane
+- **Fastlane beta lane:** setup_ci → App Store Connect API key → Match (readonly) → increment_build_number (timestamp) → build_app → upload_to_testflight
+- **Signing:** Manual code signing on FuelLift target only (SPM packages use automatic). Match profile: "match AppStore com.fuellift.app"
+- **Workflows:** `testflight.yml` (auto deploy), `setup-certificates.yml` (one-time cert generation)
+- **Required GitHub Secrets:** ASC_KEY_ID, ASC_ISSUER_ID, ASC_PRIVATE_KEY, MATCH_PASSWORD, MATCH_GIT_URL, MATCH_GIT_AUTH, DEVELOPMENT_TEAM, ANTHROPIC_API_KEY, OPENAI_API_KEY
+- **App Icon:** Placeholder solid green 1024x1024 PNG (single-size format, Xcode generates all sizes)
+- **Encryption compliance:** ITSAppUsesNonExemptEncryption=false (auto-skips compliance prompt)
+
 ---
 
 ## Current Dev Status
@@ -255,12 +268,21 @@ BadgeViewModel checks conditions → awardBadge() → confetti + toast.
 - **Claude AI:** Anthropic API integrated for: workout planner, food description analysis, plan refinement (multi-turn), AI calorie calculator (key in Constants.swift).
 - **HealthKit:** Active (requires device support).
 - **UI:** Premium Cal AI + Strong aesthetic. System-adaptive light/dark with in-app dark mode toggle. All Theme design tokens.
-- **Build:** Compiles cleanly (0 errors).
+- **Build:** Compiles cleanly (0 errors). CI/CD fully operational — push to `main` auto-deploys to TestFlight.
+- **TestFlight:** Live, internal testing group set up with testers.
 
 ### Known Warnings
 - HKWorkout init deprecated iOS 17 (HealthKitService)
 - Unused StorageReference (StorageService)
 - Unused credential variable (AuthService)
+- "All interface orientations must be supported unless the app requires full screen" (build warning, non-blocking)
+
+### Recently Implemented (v3 — CI/CD)
+- **TestFlight pipeline** — Fully automated: push to main → GitHub Actions → Fastlane → TestFlight (~15 min)
+- **One-time cert setup workflow** — `setup-certificates.yml` generates Match certs without needing a Mac locally
+- **App icon asset catalog** — Created Assets.xcassets with placeholder AppIcon (single-size 1024x1024)
+- **Info.plist metadata** — Added all required keys: CFBundleIconName, UILaunchScreen, orientations, health descriptions, encryption compliance
+- **Per-target code signing** — Manual signing only on FuelLift target; SPM packages use automatic signing (fixes "conflicting provisioning settings")
 
 ### Recently Implemented (v2)
 - **UserProfile auto-creation** — RootView creates default profile on launch when auth bypassed (fixes all toggle bugs)
@@ -292,5 +314,5 @@ BadgeViewModel checks conditions → awardBadge() → confetti + toast.
 | Components | 9 |
 | Services | 10 |
 | Utilities | 4 |
-| Resources | 3 |
+| Resources | 5 |
 | **Total Swift** | **93** |
