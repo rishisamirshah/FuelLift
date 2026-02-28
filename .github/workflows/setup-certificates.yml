@@ -48,7 +48,8 @@ jobs:
             app_identifier:"com.fuellift.app" \
             git_url:"$MATCH_GIT_URL" \
             api_key_path:"/tmp/asc_key.json" \
-            readonly:false
+            readonly:false \
+            force:true
 
       - name: Cleanup
         if: always()
