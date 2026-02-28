@@ -36,10 +36,10 @@ targets:
       - FuelLift
     settings:
       base:
-        INFOPLIST_FILE: FuelLift/Resources/Info.plist
         PRODUCT_BUNDLE_IDENTIFIER: com.fuellift.app
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
     info:
+      path: FuelLift/Resources/Info.plist
       properties:
         ANTHROPIC_API_KEY: $(ANTHROPIC_API_KEY)
         OPENAI_API_KEY: $(OPENAI_API_KEY)
