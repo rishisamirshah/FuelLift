@@ -30,7 +30,9 @@ enum AppConstants {
     static let defaultWaterGoalML: Int = 2500
 
     // MARK: - Anthropic (Claude AI)
-    static let anthropicAPIKey = ""
+    static var anthropicAPIKey: String {
+        Bundle.main.infoDictionary?["ANTHROPIC_API_KEY"] as? String ?? ""
+    }
     static let anthropicBaseURL = "https://api.anthropic.com/v1/messages"
     static let anthropicModel = "claude-sonnet-4-6"
 
