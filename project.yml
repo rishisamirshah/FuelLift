@@ -58,6 +58,7 @@ targets:
         NSPhotoLibraryUsageDescription: "FuelLift uses your photo library to log food photos and progress pictures."
         UIBackgroundModes:
           - remote-notification
+        ITSAppUsesNonExemptEncryption: false
     dependencies:
       - package: Firebase
         product: FirebaseAuth
