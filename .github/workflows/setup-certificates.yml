@@ -1,0 +1,57 @@
+name: One-Time Setup — Generate Signing Certificates
+
+on:
+  workflow_dispatch:
+
+jobs:
+  setup:
+    runs-on: macos-14
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2"
+          bundler-cache: true
+
+      - name: Install Fastlane
+        run: bundle install
+
+      - name: Create API key JSON
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_PRIVATE_KEY: ${{ secrets.ASC_PRIVATE_KEY }}
+        run: |
+          cat > /tmp/asc_key.json << KEYEOF
+          {
+            "key_id": "$ASC_KEY_ID",
+            "issuer_id": "$ASC_ISSUER_ID",
+            "key": $(echo "$ASC_PRIVATE_KEY" | python3 -c "import sys,json; print(json.dumps(sys.stdin.read()))"),
+            "is_key_content_base64": false
+          }
+          KEYEOF
+
+      - name: Generate certificates and provisioning profiles
+        env:
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
+          MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_AUTH }}
+        run: |
+          bundle exec fastlane run match \
+            type:"appstore" \
+            app_identifier:"com.fuellift.app" \
+            git_url:"$MATCH_GIT_URL" \
+            api_key_path:"/tmp/asc_key.json" \
+            readonly:false
+
+      - name: Cleanup
+        if: always()
+        run: rm -f /tmp/asc_key.json
+
+      - name: Confirm success
+        run: echo "Signing certificates and provisioning profiles created and stored in your certificates repo."
