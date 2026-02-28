@@ -1,4 +1,5 @@
 import Foundation
+import FirebaseCore
 import FirebaseAuth
 import AuthenticationServices
 import CryptoKit
@@ -10,7 +11,8 @@ final class AuthService {
     private init() {}
 
     var currentUser: User? {
-        Auth.auth().currentUser
+        guard FirebaseApp.app() != nil else { return nil }
+        return Auth.auth().currentUser
     }
 
     var isAuthenticated: Bool {
@@ -68,6 +70,7 @@ final class AuthService {
     // MARK: - Sign Out
 
     func signOut() throws {
+        guard FirebaseApp.app() != nil else { return }
         try Auth.auth().signOut()
     }
 
@@ -79,13 +82,18 @@ final class AuthService {
 
     // MARK: - Auth State Listener
 
-    func addStateListener(_ callback: @escaping (User?) -> Void) -> AuthStateDidChangeListenerHandle {
-        Auth.auth().addStateDidChangeListener { _, user in
+    func addStateListener(_ callback: @escaping (User?) -> Void) -> AuthStateDidChangeListenerHandle? {
+        guard FirebaseApp.app() != nil else {
+            callback(nil)
+            return nil
+        }
+        return Auth.auth().addStateDidChangeListener { _, user in
             callback(user)
         }
     }
 
     func removeStateListener(_ handle: AuthStateDidChangeListenerHandle) {
+        guard FirebaseApp.app() != nil else { return }
         Auth.auth().removeStateDidChangeListener(handle)
     }
 }

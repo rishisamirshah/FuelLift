@@ -6,33 +6,40 @@ struct WorkoutShareView: View {
     @State private var shareImage: UIImage?
 
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: Theme.spacingLG) {
             // Shareable card
             shareCard
-                .padding(.horizontal)
+                .padding(.horizontal, Theme.spacingLG)
 
-            HStack(spacing: 16) {
+            HStack(spacing: Theme.spacingLG) {
                 ShareLink(item: workoutSummaryText) {
                     Label("Share Text", systemImage: "square.and.arrow.up")
+                        .font(.subheadline.bold())
                         .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color(.systemGray6))
-                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                        .padding(Theme.spacingMD)
+                        .background(Color.appCardBackground)
+                        .foregroundStyle(Color.appTextPrimary)
+                        .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusMD))
                 }
 
                 if let image = shareImage {
                     ShareLink(item: Image(uiImage: image), preview: SharePreview("FuelLift Workout", image: Image(uiImage: image))) {
                         Label("Share Image", systemImage: "photo")
+                            .font(.subheadline.bold())
                             .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(.orange)
+                            .padding(Theme.spacingMD)
+                            .background(Color.appAccent)
                             .foregroundStyle(.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 14))
+                            .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusMD))
                     }
                 }
             }
-            .padding(.horizontal)
+            .padding(.horizontal, Theme.spacingLG)
+
+            Spacer()
         }
+        .padding(.top, Theme.spacingLG)
+        .screenBackground()
         .navigationTitle("Share Workout")
         .onAppear {
             renderShareImage()
@@ -40,49 +47,66 @@ struct WorkoutShareView: View {
     }
 
     private var shareCard: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: Theme.spacingMD) {
+            // Header
             HStack {
                 Image(systemName: "flame.fill")
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(Color.appAccent)
                 Text("FuelLift")
-                    .font(.caption.bold())
-                    .foregroundStyle(.orange)
+                    .font(.system(size: Theme.captionSize, weight: .bold))
+                    .foregroundStyle(Color.appAccent)
                 Spacer()
                 Text(workout.date.shortFormatted)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .font(.system(size: Theme.captionSize))
+                    .foregroundStyle(Color.appTextSecondary)
             }
 
             Text(workout.name)
-                .font(.title2.bold())
+                .font(.system(size: Theme.headlineSize, weight: .bold))
+                .foregroundStyle(Color.appTextPrimary)
 
-            HStack(spacing: 24) {
+            // Stats row
+            HStack(spacing: Theme.spacingXXL) {
                 statBlock(value: workout.durationFormatted, label: "Duration")
                 statBlock(value: "\(workout.totalSets)", label: "Sets")
                 statBlock(value: "\(Int(workout.totalVolume)) kg", label: "Volume")
             }
+            .padding(.vertical, Theme.spacingSM)
 
             if !workout.exerciseNames.isEmpty {
                 Divider()
-                VStack(alignment: .leading, spacing: 4) {
+                    .overlay(Color.appCardSecondary)
+
+                VStack(alignment: .leading, spacing: Theme.spacingXS) {
                     ForEach(workout.exerciseNames, id: \.self) { name in
-                        Text("- \(name)")
-                            .font(.caption)
+                        HStack(spacing: Theme.spacingSM) {
+                            Circle()
+                                .fill(Color.appAccent)
+                                .frame(width: 4, height: 4)
+                            Text(name)
+                                .font(.system(size: Theme.captionSize))
+                                .foregroundStyle(Color.appTextSecondary)
+                        }
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
-        .padding()
-        .background(Color(.systemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-        .shadow(color: .black.opacity(0.1), radius: 8, y: 4)
+        .cardStyle()
+        .overlay(
+            RoundedRectangle(cornerRadius: Theme.cornerRadiusLG)
+                .stroke(Color.appAccent.opacity(0.2), lineWidth: 1)
+        )
     }
 
     private func statBlock(value: String, label: String) -> some View {
-        VStack(spacing: 2) {
-            Text(value).font(.headline)
-            Text(label).font(.caption2).foregroundStyle(.secondary)
+        VStack(spacing: Theme.spacingXS) {
+            Text(value)
+                .font(.headline)
+                .foregroundStyle(Color.appTextPrimary)
+            Text(label)
+                .font(.system(size: Theme.miniSize))
+                .foregroundStyle(Color.appTextTertiary)
         }
     }
 

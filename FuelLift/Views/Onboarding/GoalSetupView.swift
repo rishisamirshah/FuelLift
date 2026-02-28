@@ -19,62 +19,87 @@ struct GoalSetupView: View {
     @State private var proteinGoal = "\(AppConstants.defaultProteinGoal)"
 
     @State private var isSaving = false
+    @State private var isCalculatingAI = false
+    @State private var aiReasoning: String?
 
     private let genders = ["Male", "Female", "Other"]
     private let activityLevels = ["Sedentary", "Light", "Moderate", "Active", "Very Active"]
     private let goals = ["Lose Fat", "Maintain", "Build Muscle"]
 
     var body: some View {
-        VStack(spacing: 24) {
-            ProgressView(value: Double(step + 1), total: 3)
-                .tint(.orange)
-                .padding(.horizontal)
+        VStack(spacing: Theme.spacingXXL) {
+            // Progress indicator
+            HStack(spacing: Theme.spacingSM) {
+                ForEach(0..<3) { i in
+                    Capsule()
+                        .fill(i <= step ? Color.appAccent : Color.appCardSecondary)
+                        .frame(height: 4)
+                }
+            }
+            .padding(.horizontal, Theme.spacingXXL)
+            .padding(.top, Theme.spacingLG)
 
             TabView(selection: $step) {
-                // Step 1: Body Info
                 bodyInfoStep.tag(0)
-                // Step 2: Goal
                 goalStep.tag(1)
-                // Step 3: Macros
                 macroStep.tag(2)
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
 
             // Navigation buttons
-            HStack(spacing: 16) {
+            HStack(spacing: Theme.spacingLG) {
                 if step > 0 {
-                    Button("Back") {
+                    Button {
                         withAnimation { step -= 1 }
+                    } label: {
+                        Text("Back")
+                            .font(.headline)
+                            .foregroundStyle(Color.appTextSecondary)
+                            .frame(maxWidth: .infinity)
+                            .padding(Theme.spacingMD)
+                            .background(Color.appCardBackground)
+                            .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusMD))
                     }
-                    .buttonStyle(.bordered)
                 }
 
-                Spacer()
-
                 if step < 2 {
-                    Button("Next") {
+                    Button {
                         withAnimation { step += 1 }
+                    } label: {
+                        Text("Next")
+                            .font(.headline)
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(Theme.spacingMD)
+                            .background(Color.appAccent)
+                            .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusMD))
                     }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.orange)
                 } else {
                     Button {
                         Task { await saveProfile() }
                     } label: {
                         if isSaving {
                             ProgressView()
+                                .tint(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding(Theme.spacingMD)
                         } else {
                             Text("Finish Setup")
+                                .font(.headline)
+                                .foregroundStyle(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding(Theme.spacingMD)
                         }
                     }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.orange)
+                    .background(Color.appAccent)
+                    .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusMD))
                     .disabled(isSaving)
                 }
             }
-            .padding(.horizontal, 24)
-            .padding(.bottom, 24)
+            .padding(.horizontal, Theme.spacingXXL)
+            .padding(.bottom, Theme.spacingXXL)
         }
+        .screenBackground()
         .navigationTitle("Setup")
         .navigationBarBackButtonHidden()
     }
@@ -82,92 +107,146 @@ struct GoalSetupView: View {
     // MARK: - Steps
 
     private var bodyInfoStep: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: Theme.spacingXL) {
             Text("About You")
-                .font(.title2.bold())
+                .font(.system(size: Theme.headlineSize, weight: .bold))
+                .foregroundStyle(Color.appTextPrimary)
 
-            Picker("Gender", selection: $gender) {
-                ForEach(genders, id: \.self) { Text($0) }
-            }
-            .pickerStyle(.segmented)
-
-            HStack(spacing: 16) {
-                LabeledField(label: "Age", text: $age, placeholder: "25", keyboard: .numberPad)
-                LabeledField(label: "Height (cm)", text: $heightCM, placeholder: "175", keyboard: .decimalPad)
-            }
-
-            LabeledField(label: "Weight (kg)", text: $weightKG, placeholder: "75", keyboard: .decimalPad)
-
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Activity Level")
-                    .font(.subheadline.bold())
-                Picker("Activity", selection: $activityLevel) {
-                    ForEach(activityLevels, id: \.self) { Text($0) }
+            VStack(spacing: Theme.spacingLG) {
+                Picker("Gender", selection: $gender) {
+                    ForEach(genders, id: \.self) { Text($0) }
                 }
-                .pickerStyle(.menu)
+                .pickerStyle(.segmented)
+
+                HStack(spacing: Theme.spacingLG) {
+                    ThemedField(label: "Age", text: $age, placeholder: "25", keyboard: .numberPad)
+                    ThemedField(label: "Height (cm)", text: $heightCM, placeholder: "175", keyboard: .decimalPad)
+                }
+
+                ThemedField(label: "Weight (kg)", text: $weightKG, placeholder: "75", keyboard: .decimalPad)
+
+                VStack(alignment: .leading, spacing: Theme.spacingSM) {
+                    Text("Activity Level")
+                        .font(.system(size: Theme.captionSize, weight: .semibold))
+                        .foregroundStyle(Color.appTextSecondary)
+                    Picker("Activity", selection: $activityLevel) {
+                        ForEach(activityLevels, id: \.self) { Text($0) }
+                    }
+                    .pickerStyle(.menu)
+                    .tint(Color.appAccent)
+                }
             }
+            .cardStyle()
 
             Spacer()
         }
-        .padding(.horizontal, 24)
+        .padding(.horizontal, Theme.spacingXXL)
     }
 
     private var goalStep: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: Theme.spacingXL) {
             Text("What's Your Goal?")
-                .font(.title2.bold())
+                .font(.system(size: Theme.headlineSize, weight: .bold))
+                .foregroundStyle(Color.appTextPrimary)
 
-            ForEach(goals, id: \.self) { g in
-                Button {
-                    goal = g
-                    recalculateCalories()
-                } label: {
-                    HStack {
-                        VStack(alignment: .leading) {
-                            Text(g)
-                                .font(.headline)
-                            Text(goalDescription(g))
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+            VStack(spacing: Theme.spacingMD) {
+                ForEach(goals, id: \.self) { g in
+                    Button {
+                        goal = g
+                        recalculateCalories()
+                    } label: {
+                        HStack {
+                            VStack(alignment: .leading, spacing: Theme.spacingXS) {
+                                Text(g)
+                                    .font(.headline)
+                                    .foregroundStyle(Color.appTextPrimary)
+                                Text(goalDescription(g))
+                                    .font(.system(size: Theme.captionSize))
+                                    .foregroundStyle(Color.appTextSecondary)
+                            }
+                            Spacer()
+                            if goal == g {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundStyle(Color.appAccent)
+                                    .font(.title3)
+                            }
                         }
-                        Spacer()
-                        if goal == g {
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundStyle(.orange)
-                        }
+                        .padding(Theme.spacingLG)
+                        .background(goal == g ? Color.appAccent.opacity(0.1) : Color.appCardBackground)
+                        .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusMD))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: Theme.cornerRadiusMD)
+                                .stroke(goal == g ? Color.appAccent : Color.clear, lineWidth: 1.5)
+                        )
                     }
-                    .padding()
-                    .background(goal == g ? Color.orange.opacity(0.1) : Color(.systemGray6))
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
             }
 
             Spacer()
         }
-        .padding(.horizontal, 24)
+        .padding(.horizontal, Theme.spacingXXL)
     }
 
     private var macroStep: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: Theme.spacingXL) {
             Text("Daily Targets")
-                .font(.title2.bold())
+                .font(.system(size: Theme.headlineSize, weight: .bold))
+                .foregroundStyle(Color.appTextPrimary)
 
             Text("We've calculated targets based on your info. Adjust if needed.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .font(.system(size: Theme.bodySize))
+                .foregroundStyle(Color.appTextSecondary)
                 .multilineTextAlignment(.center)
 
-            LabeledField(label: "Calories (kcal)", text: $calorieGoal, placeholder: "2000", keyboard: .numberPad)
-            LabeledField(label: "Protein (g)", text: $proteinGoal, placeholder: "150", keyboard: .numberPad)
+            VStack(spacing: Theme.spacingLG) {
+                ThemedField(label: "Calories (kcal)", text: $calorieGoal, placeholder: "2000", keyboard: .numberPad)
+                ThemedField(label: "Protein (g)", text: $proteinGoal, placeholder: "150", keyboard: .numberPad)
+            }
+            .cardStyle()
+
+            // AI Calculate button
+            Button {
+                Task { await calculateWithAI() }
+            } label: {
+                HStack(spacing: Theme.spacingSM) {
+                    if isCalculatingAI {
+                        ProgressView()
+                            .tint(.white)
+                    } else {
+                        Image(systemName: "wand.and.stars")
+                    }
+                    Text("AI Calculate")
+                        .font(.system(size: Theme.bodySize, weight: .semibold))
+                }
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, Theme.spacingMD)
+                .background(Color.appAccent)
+                .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusMD))
+            }
+            .disabled(isCalculatingAI)
+
+            if let reasoning = aiReasoning {
+                DisclosureGroup("AI Reasoning") {
+                    Text(reasoning)
+                        .font(.system(size: Theme.captionSize))
+                        .foregroundStyle(Color.appTextSecondary)
+                }
+                .font(.system(size: Theme.captionSize, weight: .semibold))
+                .foregroundStyle(Color.appTextSecondary)
+                .padding(Theme.spacingMD)
+                .background(Color.appCardBackground)
+                .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusSM))
+            }
 
             Text("Carbs and fat will auto-fill based on remaining calories.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+                .font(.system(size: Theme.captionSize))
+                .foregroundStyle(Color.appTextTertiary)
 
             Spacer()
         }
-        .padding(.horizontal, 24)
+        .padding(.horizontal, Theme.spacingXXL)
     }
 
     // MARK: - Logic
@@ -179,6 +258,26 @@ struct GoalSetupView: View {
         case "Build Muscle": return "Calorie surplus for muscle growth"
         default: return ""
         }
+    }
+
+    private func calculateWithAI() async {
+        isCalculatingAI = true
+        do {
+            let result = try await ClaudeService.shared.calculateNutritionGoals(
+                gender: gender,
+                age: Int(age) ?? 25,
+                heightCM: Double(heightCM) ?? 175,
+                weightKG: Double(weightKG) ?? 75,
+                activityLevel: activityLevel,
+                goal: goal
+            )
+            calorieGoal = String(result.calories)
+            proteinGoal = String(result.proteinG)
+            aiReasoning = result.reasoning
+        } catch {
+            aiReasoning = "Error: \(error.localizedDescription)"
+        }
+        isCalculatingAI = false
     }
 
     private func recalculateCalories() {
@@ -232,7 +331,6 @@ struct GoalSetupView: View {
 
         do {
             try await FirestoreService.shared.createUserProfile(profileData)
-            // Also save locally
             let uid = AuthService.shared.currentUser?.uid ?? UUID().uuidString
             let localProfile = UserProfile(id: uid)
             localProfile.calorieGoal = cal
@@ -255,21 +353,28 @@ struct GoalSetupView: View {
     }
 }
 
-// MARK: - Reusable Field
+// MARK: - Themed Field
 
-struct LabeledField: View {
+struct ThemedField: View {
     let label: String
     @Binding var text: String
     var placeholder: String = ""
     var keyboard: UIKeyboardType = .default
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: Theme.spacingSM) {
             Text(label)
-                .font(.subheadline.bold())
+                .font(.system(size: Theme.captionSize, weight: .semibold))
+                .foregroundStyle(Color.appTextSecondary)
             TextField(placeholder, text: $text)
                 .keyboardType(keyboard)
-                .textFieldStyle(.roundedBorder)
+                .padding(Theme.spacingMD)
+                .background(Color.appCardSecondary)
+                .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusSM))
+                .foregroundStyle(Color.appTextPrimary)
         }
     }
 }
+
+// Keep the old name as a typealias for compatibility
+typealias LabeledField = ThemedField

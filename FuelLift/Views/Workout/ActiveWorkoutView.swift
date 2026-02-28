@@ -7,57 +7,67 @@ struct ActiveWorkoutView: View {
     @State private var showExercisePicker = false
     @State private var showFinishConfirm = false
     @State private var showCancelConfirm = false
+    @State private var showCompletion = false
 
     var body: some View {
         NavigationStack {
             ZStack(alignment: .bottom) {
                 ScrollView {
-                    VStack(spacing: 16) {
+                    VStack(spacing: Theme.spacingLG) {
                         // Timer bar
-                        HStack {
+                        HStack(spacing: Theme.spacingSM) {
                             Image(systemName: "timer")
+                                .foregroundStyle(Color.appAccent)
                             Text(viewModel.elapsedFormatted)
-                                .font(.title3.monospacedDigit().bold())
+                                .font(.system(size: Theme.subheadlineSize, weight: .bold, design: .monospaced))
+                                .foregroundStyle(Color.appTextPrimary)
                             Spacer()
                         }
-                        .padding(.horizontal)
+                        .padding(.horizontal, Theme.spacingLG)
 
                         // PR alerts
                         ForEach(viewModel.newPRs, id: \.self) { exerciseName in
-                            HStack {
+                            HStack(spacing: Theme.spacingSM) {
                                 Image(systemName: "trophy.fill")
-                                    .foregroundStyle(.yellow)
+                                    .foregroundStyle(Color.appPRWeight)
                                 Text("New PR on \(exerciseName)!")
-                                    .font(.subheadline.bold())
+                                    .font(.system(size: Theme.captionSize, weight: .bold))
+                                    .foregroundStyle(Color.appTextPrimary)
                             }
-                            .padding(10)
+                            .padding(Theme.spacingMD)
                             .frame(maxWidth: .infinity)
-                            .background(.yellow.opacity(0.15))
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
-                            .padding(.horizontal)
+                            .background(Color.appPRWeight.opacity(0.15))
+                            .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusSM))
+                            .padding(.horizontal, Theme.spacingLG)
+                            .transition(.scale.combined(with: .opacity))
                         }
+                        .animation(.spring(response: 0.4, dampingFraction: 0.7), value: viewModel.newPRs)
 
                         // Exercise groups
                         ForEach(viewModel.exerciseGroups.indices, id: \.self) { groupIndex in
                             exerciseGroupCard(groupIndex: groupIndex)
                         }
 
-                        // Add exercise button
+                        // Add exercise
                         Button {
                             showExercisePicker = true
                         } label: {
-                            Label("Add Exercise", systemImage: "plus.circle.fill")
-                                .font(.headline)
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color(.systemGray6))
-                                .clipShape(RoundedRectangle(cornerRadius: 14))
+                            HStack(spacing: Theme.spacingSM) {
+                                Image(systemName: "plus.circle.fill")
+                                Text("Add Exercise")
+                            }
+                            .font(.system(size: Theme.subheadlineSize, weight: .semibold))
+                            .foregroundStyle(Color.appAccent)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, Theme.spacingMD)
+                            .background(Color.appCardBackground)
+                            .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusMD))
                         }
-                        .padding(.horizontal)
+                        .padding(.horizontal, Theme.spacingLG)
 
                         Spacer(minLength: 100)
                     }
-                    .padding(.top)
+                    .padding(.top, Theme.spacingSM)
                 }
 
                 // Rest timer overlay
@@ -66,6 +76,7 @@ struct ActiveWorkoutView: View {
                         .transition(.move(edge: .bottom))
                 }
             }
+            .screenBackground()
             .navigationTitle(viewModel.activeWorkout?.name ?? "Workout")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -76,6 +87,7 @@ struct ActiveWorkoutView: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Finish") { showFinishConfirm = true }
                         .bold()
+                        .foregroundStyle(Color.appWorkoutGreen)
                 }
             }
             .sheet(isPresented: $showExercisePicker) {
@@ -86,7 +98,7 @@ struct ActiveWorkoutView: View {
             .alert("Finish Workout?", isPresented: $showFinishConfirm) {
                 Button("Finish", role: .destructive) {
                     viewModel.finishWorkout(context: modelContext)
-                    dismiss()
+                    showCompletion = true
                 }
                 Button("Cancel", role: .cancel) {}
             } message: {
@@ -99,6 +111,15 @@ struct ActiveWorkoutView: View {
                 }
                 Button("Keep Going", role: .cancel) {}
             }
+            .fullScreenCover(isPresented: $showCompletion) {
+                if let data = viewModel.completionData {
+                    WorkoutCompletionView(data: data) {
+                        viewModel.dismissCompletion()
+                        showCompletion = false
+                        dismiss()
+                    }
+                }
+            }
         }
     }
 
@@ -107,87 +128,127 @@ struct ActiveWorkoutView: View {
     private func exerciseGroupCard(groupIndex: Int) -> some View {
         let group = viewModel.exerciseGroups[groupIndex]
 
-        return VStack(alignment: .leading, spacing: 8) {
+        return VStack(alignment: .leading, spacing: Theme.spacingSM) {
             // Header
             HStack {
                 Text(group.exerciseName)
-                    .font(.headline)
+                    .font(.system(size: Theme.subheadlineSize, weight: .bold))
+                    .foregroundStyle(Color.appAccent)
                 Spacer()
                 Button {
                     viewModel.removeExercise(at: groupIndex)
                 } label: {
-                    Image(systemName: "xmark.circle")
-                        .foregroundStyle(.secondary)
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(Color.appTextTertiary)
                 }
             }
 
-            // Set headers
-            HStack {
-                Text("SET").frame(width: 35)
-                Text("PREV").frame(maxWidth: .infinity)
-                Text("KG").frame(width: 70)
-                Text("REPS").frame(width: 60)
-                Text("").frame(width: 40) // checkmark
+            // Column headers
+            HStack(spacing: 0) {
+                Text("SET")
+                    .frame(width: 36, alignment: .center)
+                Text("PREVIOUS")
+                    .frame(maxWidth: .infinity, alignment: .center)
+                Text("LBS")
+                    .frame(width: 72, alignment: .center)
+                Text("REPS")
+                    .frame(width: 56, alignment: .center)
+                Color.clear.frame(width: 40)
             }
-            .font(.caption2.bold())
-            .foregroundStyle(.secondary)
+            .font(.system(size: Theme.miniSize, weight: .bold))
+            .foregroundStyle(Color.appTextTertiary)
+            .padding(.top, Theme.spacingXS)
 
             // Sets
             ForEach(group.sets.indices, id: \.self) { setIndex in
                 setRow(groupIndex: groupIndex, setIndex: setIndex)
             }
 
-            // Add set button
+            // Add set
             Button {
                 viewModel.addSet(to: groupIndex)
             } label: {
-                Label("Add Set", systemImage: "plus")
-                    .font(.caption)
+                HStack(spacing: Theme.spacingXS) {
+                    Image(systemName: "plus")
+                    Text("Add Set")
+                }
+                .font(.system(size: Theme.captionSize, weight: .medium))
+                .foregroundStyle(Color.appAccent)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, Theme.spacingSM)
             }
         }
         .cardStyle()
-        .padding(.horizontal)
+        .padding(.horizontal, Theme.spacingLG)
     }
+
+    // MARK: - Set Row
 
     private func setRow(groupIndex: Int, setIndex: Int) -> some View {
         let set = viewModel.exerciseGroups[groupIndex].sets[setIndex]
+        let isCompleted = set.isCompleted
 
-        return HStack {
-            // Set number
-            Text(set.isWarmup ? "W" : "\(set.setNumber)")
-                .font(.subheadline)
-                .foregroundStyle(set.isWarmup ? .orange : .primary)
-                .frame(width: 35)
+        return VStack(spacing: 0) {
+            HStack(spacing: 0) {
+                // Set number
+                Text(set.isWarmup ? "W" : "\(set.setNumber)")
+                    .font(.system(size: Theme.captionSize, weight: .semibold))
+                    .foregroundStyle(set.isWarmup ? Color.appAccent : Color.appTextPrimary)
+                    .frame(width: 36, alignment: .center)
 
-            // Previous (placeholder)
-            Text("-")
-                .font(.caption)
-                .foregroundStyle(.tertiary)
-                .frame(maxWidth: .infinity)
+                // Previous
+                Text("—")
+                    .font(.system(size: Theme.captionSize))
+                    .foregroundStyle(Color.appTextTertiary)
+                    .frame(maxWidth: .infinity, alignment: .center)
 
-            // Weight
-            TextField("0", value: $viewModel.exerciseGroups[groupIndex].sets[setIndex].weight, format: .number)
-                .keyboardType(.decimalPad)
-                .textFieldStyle(.roundedBorder)
-                .frame(width: 70)
+                // Weight (lbs)
+                TextField("0", value: $viewModel.exerciseGroups[groupIndex].sets[setIndex].weight, format: .number)
+                    .keyboardType(.decimalPad)
+                    .font(.system(size: Theme.captionSize, weight: .medium))
+                    .multilineTextAlignment(.center)
+                    .padding(.vertical, Theme.spacingXS)
+                    .background(Color.appCardSecondary)
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
+                    .frame(width: 72)
 
-            // Reps
-            TextField("0", value: $viewModel.exerciseGroups[groupIndex].sets[setIndex].reps, format: .number)
-                .keyboardType(.numberPad)
-                .textFieldStyle(.roundedBorder)
-                .frame(width: 60)
+                // Reps
+                TextField("0", value: $viewModel.exerciseGroups[groupIndex].sets[setIndex].reps, format: .number)
+                    .keyboardType(.numberPad)
+                    .font(.system(size: Theme.captionSize, weight: .medium))
+                    .multilineTextAlignment(.center)
+                    .padding(.vertical, Theme.spacingXS)
+                    .background(Color.appCardSecondary)
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
+                    .frame(width: 56)
 
-            // Complete button
-            Button {
-                viewModel.completeSet(groupIndex: groupIndex, setIndex: setIndex, context: modelContext)
-            } label: {
-                Image(systemName: set.isCompleted ? "checkmark.circle.fill" : "circle")
-                    .foregroundStyle(set.isCompleted ? (set.isPersonalRecord ? .yellow : .green) : .secondary)
-                    .font(.title3)
+                // Complete
+                Button {
+                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                    viewModel.completeSet(groupIndex: groupIndex, setIndex: setIndex, context: modelContext)
+                } label: {
+                    Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle")
+                        .foregroundStyle(isCompleted ? (set.isPersonalRecord ? Color.appPRWeight : Color.appWorkoutGreen) : Color.appTextTertiary)
+                        .font(.system(size: 22))
+                        .scaleEffect(isCompleted ? 1.0 : 0.9)
+                        .animation(.spring(response: 0.3, dampingFraction: 0.5), value: isCompleted)
+                }
+                .frame(width: 40)
+                .disabled(isCompleted)
             }
-            .frame(width: 40)
-            .disabled(set.isCompleted)
+            .padding(.vertical, Theme.spacingXS)
+            .background(isCompleted ? Color.appWorkoutGreen.opacity(0.06) : Color.clear)
+            .clipShape(RoundedRectangle(cornerRadius: 4))
+
+            // PR badge
+            if set.isPersonalRecord {
+                HStack(spacing: Theme.spacingXS) {
+                    Spacer()
+                    PRBadge(type: .oneRM)
+                    Spacer()
+                }
+                .padding(.top, Theme.spacingXS)
+            }
         }
-        .font(.subheadline)
     }
 }

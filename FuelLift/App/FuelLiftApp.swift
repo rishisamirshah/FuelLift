@@ -1,6 +1,5 @@
 import SwiftUI
 import SwiftData
-import FirebaseCore
 
 @main
 struct FuelLiftApp: App {
@@ -16,7 +15,8 @@ struct FuelLiftApp: App {
             Exercise.self,
             ExerciseSet.self,
             WorkoutRoutine.self,
-            BodyMetric.self
+            BodyMetric.self,
+            Badge.self
         ])
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
         do {
@@ -37,6 +37,10 @@ struct FuelLiftApp: App {
 
 struct RootView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
+    @Environment(\.modelContext) private var modelContext
+    @Query private var profiles: [UserProfile]
+
+    private var profile: UserProfile? { profiles.first }
 
     var body: some View {
         Group {
@@ -53,5 +57,14 @@ struct RootView: View {
             }
         }
         .animation(.easeInOut, value: authViewModel.isAuthenticated)
+        .task {
+            if profiles.isEmpty {
+                let profile = UserProfile(id: UUID().uuidString, displayName: "User", email: "")
+                profile.hasCompletedOnboarding = true
+                modelContext.insert(profile)
+                try? modelContext.save()
+            }
+        }
+        .preferredColorScheme(profile?.darkModeEnabled == true ? .dark : nil)
     }
 }

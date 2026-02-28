@@ -1,6 +1,19 @@
 import SwiftUI
 import SwiftData
 
+// MARK: - Workout Completion Data
+
+struct WorkoutCompletionData: Identifiable {
+    let id = UUID()
+    let workoutName: String
+    let duration: String
+    let totalVolume: Double
+    let totalSets: Int
+    let exerciseCount: Int
+    let personalRecords: [String]
+    let workoutNumber: Int
+}
+
 @MainActor
 final class WorkoutViewModel: ObservableObject {
     @Published var activeWorkout: Workout?
@@ -10,6 +23,7 @@ final class WorkoutViewModel: ObservableObject {
     @Published var restTimeRemaining: Int = 0
     @Published var showRestTimer = false
     @Published var newPRs: [String] = []  // exercise names with new PRs
+    @Published var completionData: WorkoutCompletionData?
 
     private var timer: Timer?
     private var restTimer: Timer?
@@ -44,6 +58,19 @@ final class WorkoutViewModel: ObservableObject {
         guard let workout = activeWorkout else { return }
 
         stopTimer()
+
+        // Capture stats BEFORE clearing state
+        let capturedName = workout.name
+        let capturedDuration = elapsedFormatted
+        let capturedVolume = exerciseGroups.flatMap(\.sets)
+            .filter { $0.isCompleted && !$0.isWarmup }
+            .reduce(0.0) { $0 + $1.volume }
+        let capturedSets = exerciseGroups.flatMap(\.sets)
+            .filter { $0.isCompleted && !$0.isWarmup }.count
+        let capturedExerciseCount = exerciseGroups.count
+        let capturedPRs = newPRs
+
+        // Save workout
         workout.durationSeconds = elapsedSeconds
         workout.isCompleted = true
         workout.encodeExerciseGroups(exerciseGroups)
@@ -59,9 +86,31 @@ final class WorkoutViewModel: ObservableObject {
         // Save individual sets for PR tracking
         saveSetsForPRTracking(context: context)
 
+        // Count total completed workouts
+        let descriptor = FetchDescriptor<Workout>(
+            predicate: #Predicate { $0.isCompleted }
+        )
+        let workoutCount = (try? context.fetchCount(descriptor)) ?? 1
+
+        // Set completion data for celebration screen
+        completionData = WorkoutCompletionData(
+            workoutName: capturedName,
+            duration: capturedDuration,
+            totalVolume: capturedVolume,
+            totalSets: capturedSets,
+            exerciseCount: capturedExerciseCount,
+            personalRecords: capturedPRs,
+            workoutNumber: workoutCount
+        )
+
+        // Clear active state
         activeWorkout = nil
         exerciseGroups = []
         newPRs = []
+    }
+
+    func dismissCompletion() {
+        completionData = nil
     }
 
     func cancelWorkout() {

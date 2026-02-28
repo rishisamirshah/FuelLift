@@ -1,21 +1,27 @@
 import Foundation
+import FirebaseCore
 import FirebaseFirestore
 import FirebaseAuth
 
 final class FirestoreService {
     static let shared = FirestoreService()
-    private let db = Firestore.firestore()
+
+    private var db: Firestore? {
+        guard FirebaseApp.app() != nil else { return nil }
+        return Firestore.firestore()
+    }
 
     private init() {}
 
     private var currentUserId: String? {
-        Auth.auth().currentUser?.uid
+        guard FirebaseApp.app() != nil else { return nil }
+        return Auth.auth().currentUser?.uid
     }
 
     // MARK: - User Profile
 
     func createUserProfile(_ data: [String: Any]) async throws {
-        guard let uid = currentUserId else { throw AuthError.noCurrentUser }
+        guard let uid = currentUserId, let db else { return }
         var profileData = data
         profileData["createdAt"] = FieldValue.serverTimestamp()
         profileData["updatedAt"] = FieldValue.serverTimestamp()
@@ -23,12 +29,13 @@ final class FirestoreService {
     }
 
     func fetchUserProfile(userId: String) async throws -> [String: Any]? {
+        guard let db else { return nil }
         let doc = try await db.collection(AppConstants.Collections.users).document(userId).getDocument()
         return doc.data()
     }
 
     func updateUserProfile(_ fields: [String: Any]) async throws {
-        guard let uid = currentUserId else { throw AuthError.noCurrentUser }
+        guard let uid = currentUserId, let db else { return }
         var data = fields
         data["updatedAt"] = FieldValue.serverTimestamp()
         try await db.collection(AppConstants.Collections.users).document(uid).updateData(data)
@@ -37,7 +44,7 @@ final class FirestoreService {
     // MARK: - FCM Token
 
     func updateFCMToken(_ token: String) async {
-        guard let uid = currentUserId else { return }
+        guard let uid = currentUserId, let db else { return }
         try? await db.collection(AppConstants.Collections.users).document(uid).updateData([
             "fcmToken": token
         ])
@@ -46,7 +53,7 @@ final class FirestoreService {
     // MARK: - Food Entries
 
     func saveFoodEntry(_ data: [String: Any]) async throws -> String {
-        guard let uid = currentUserId else { throw AuthError.noCurrentUser }
+        guard let uid = currentUserId, let db else { return "" }
         var entryData = data
         entryData["userId"] = uid
         entryData["createdAt"] = FieldValue.serverTimestamp()
@@ -55,7 +62,7 @@ final class FirestoreService {
     }
 
     func fetchFoodEntries(for date: Date) async throws -> [[String: Any]] {
-        guard let uid = currentUserId else { throw AuthError.noCurrentUser }
+        guard let uid = currentUserId, let db else { return [] }
         let startOfDay = Calendar.current.startOfDay(for: date)
         let endOfDay = Calendar.current.date(byAdding: .day, value: 1, to: startOfDay)!
 
@@ -74,13 +81,14 @@ final class FirestoreService {
     }
 
     func deleteFoodEntry(id: String) async throws {
+        guard let db else { return }
         try await db.collection(AppConstants.Collections.foodEntries).document(id).delete()
     }
 
     // MARK: - Workouts
 
     func saveWorkout(_ data: [String: Any]) async throws -> String {
-        guard let uid = currentUserId else { throw AuthError.noCurrentUser }
+        guard let uid = currentUserId, let db else { return "" }
         var workoutData = data
         workoutData["userId"] = uid
         workoutData["createdAt"] = FieldValue.serverTimestamp()
@@ -89,7 +97,7 @@ final class FirestoreService {
     }
 
     func fetchWorkouts(limit: Int = 50) async throws -> [[String: Any]] {
-        guard let uid = currentUserId else { throw AuthError.noCurrentUser }
+        guard let uid = currentUserId, let db else { return [] }
 
         let snapshot = try await db.collection(AppConstants.Collections.workouts)
             .whereField("userId", isEqualTo: uid)
@@ -107,7 +115,7 @@ final class FirestoreService {
     // MARK: - Groups
 
     func createGroup(name: String, description: String) async throws -> String {
-        guard let uid = currentUserId else { throw AuthError.noCurrentUser }
+        guard let uid = currentUserId, let db else { return "" }
         let data: [String: Any] = [
             "name": name,
             "description": description,
@@ -120,7 +128,7 @@ final class FirestoreService {
     }
 
     func fetchUserGroups() async throws -> [[String: Any]] {
-        guard let uid = currentUserId else { throw AuthError.noCurrentUser }
+        guard let uid = currentUserId, let db else { return [] }
 
         let snapshot = try await db.collection(AppConstants.Collections.groups)
             .whereField("memberIds", arrayContains: uid)
@@ -134,7 +142,7 @@ final class FirestoreService {
     }
 
     func joinGroup(groupId: String) async throws {
-        guard let uid = currentUserId else { throw AuthError.noCurrentUser }
+        guard let uid = currentUserId, let db else { return }
         try await db.collection(AppConstants.Collections.groups).document(groupId).updateData([
             "memberIds": FieldValue.arrayUnion([uid])
         ])
@@ -143,7 +151,7 @@ final class FirestoreService {
     // MARK: - Friends
 
     func sendFriendRequest(toUserId: String) async throws {
-        guard let uid = currentUserId else { throw AuthError.noCurrentUser }
+        guard let uid = currentUserId, let db else { return }
         let data: [String: Any] = [
             "fromUserId": uid,
             "toUserId": toUserId,
@@ -154,7 +162,7 @@ final class FirestoreService {
     }
 
     func fetchFriends() async throws -> [[String: Any]] {
-        guard let uid = currentUserId else { throw AuthError.noCurrentUser }
+        guard let uid = currentUserId, let db else { return [] }
 
         let sentSnapshot = try await db.collection(AppConstants.Collections.friendships)
             .whereField("fromUserId", isEqualTo: uid)

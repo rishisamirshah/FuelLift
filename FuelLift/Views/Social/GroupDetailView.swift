@@ -8,52 +8,135 @@ struct GroupDetailView: View {
     private var memberIds: [String] { groupData["memberIds"] as? [String] ?? [] }
     private var groupId: String { groupData["id"] as? String ?? "" }
 
+    @State private var copiedCode = false
+
     var body: some View {
-        List {
-            Section {
-                VStack(alignment: .leading, spacing: 8) {
+        ScrollView {
+            VStack(spacing: Theme.spacingLG) {
+                // Group header
+                VStack(spacing: Theme.spacingMD) {
+                    ZStack {
+                        Circle()
+                            .fill(Color.appAccent.opacity(0.15))
+                            .frame(width: 64, height: 64)
+                        Image(systemName: "person.3.fill")
+                            .font(.system(size: 28))
+                            .foregroundStyle(Color.appAccent)
+                    }
+
                     Text(groupName)
-                        .font(.title2.bold())
+                        .font(.system(size: Theme.headlineSize, weight: .bold))
+                        .foregroundStyle(Color.appTextPrimary)
+
                     if !groupDesc.isEmpty {
                         Text(groupDesc)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                            .font(.system(size: Theme.bodySize))
+                            .foregroundStyle(Color.appTextSecondary)
+                            .multilineTextAlignment(.center)
                     }
+
                     Text("\(memberIds.count) members")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .font(.system(size: Theme.captionSize))
+                        .foregroundStyle(Color.appTextTertiary)
                 }
-            }
+                .frame(maxWidth: .infinity)
+                .cardStyle()
 
-            Section("Members") {
-                ForEach(memberIds, id: \.self) { memberId in
+                // Leaderboard preview
+                VStack(spacing: Theme.spacingMD) {
                     HStack {
-                        Image(systemName: "person.circle.fill")
-                            .font(.title3)
-                            .foregroundStyle(.secondary)
-                        Text(memberId.prefix(8) + "...")
-                            .font(.subheadline)
+                        Text("Leaderboard")
+                            .sectionHeaderStyle()
                         Spacer()
+                        NavigationLink {
+                            LeaderboardView(groupId: groupId)
+                        } label: {
+                            Text("View All")
+                                .font(.system(size: Theme.captionSize, weight: .semibold))
+                                .foregroundStyle(Color.appAccent)
+                        }
+                    }
+
+                    NavigationLink {
+                        LeaderboardView(groupId: groupId)
+                    } label: {
+                        HStack(spacing: Theme.spacingMD) {
+                            Image(systemName: "trophy.fill")
+                                .font(.title2)
+                                .foregroundStyle(Color.yellow)
+                            VStack(alignment: .leading, spacing: Theme.spacingXS) {
+                                Text("View Leaderboard")
+                                    .font(.subheadline.bold())
+                                    .foregroundStyle(Color.appTextPrimary)
+                                Text("See who's on top this week")
+                                    .font(.system(size: Theme.captionSize))
+                                    .foregroundStyle(Color.appTextSecondary)
+                            }
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(.caption)
+                                .foregroundStyle(Color.appTextTertiary)
+                        }
+                        .secondaryCardStyle()
+                    }
+                    .buttonStyle(.plain)
+                }
+                .cardStyle()
+
+                // Members
+                VStack(spacing: Theme.spacingMD) {
+                    Text("Members")
+                        .sectionHeaderStyle()
+
+                    ForEach(memberIds, id: \.self) { memberId in
+                        HStack(spacing: Theme.spacingMD) {
+                            ZStack {
+                                Circle()
+                                    .fill(Color.appCardSecondary)
+                                    .frame(width: 36, height: 36)
+                                Image(systemName: "person.circle.fill")
+                                    .font(.title3)
+                                    .foregroundStyle(Color.appTextTertiary)
+                            }
+                            Text(memberId.prefix(8) + "...")
+                                .font(.subheadline)
+                                .foregroundStyle(Color.appTextPrimary)
+                            Spacer()
+                        }
                     }
                 }
-            }
+                .cardStyle()
 
-            Section("Leaderboard") {
-                NavigationLink {
-                    LeaderboardView(groupId: groupId)
-                } label: {
-                    Label("View Leaderboard", systemImage: "trophy")
-                }
-            }
+                // Invite
+                VStack(spacing: Theme.spacingMD) {
+                    Text("Invite Friends")
+                        .sectionHeaderStyle()
 
-            Section("Share") {
-                Button {
-                    UIPasteboard.general.string = groupId
-                } label: {
-                    Label("Copy Invite Code", systemImage: "doc.on.doc")
+                    Button {
+                        UIPasteboard.general.string = groupId
+                        copiedCode = true
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                            copiedCode = false
+                        }
+                    } label: {
+                        HStack {
+                            Image(systemName: copiedCode ? "checkmark.circle.fill" : "doc.on.doc")
+                                .foregroundStyle(copiedCode ? Color.appCaloriesColor : Color.appAccent)
+                            Text(copiedCode ? "Copied!" : "Copy Invite Code")
+                                .font(.subheadline.bold())
+                                .foregroundStyle(Color.appTextPrimary)
+                            Spacer()
+                        }
+                        .secondaryCardStyle()
+                    }
+                    .buttonStyle(.plain)
                 }
+                .cardStyle()
             }
+            .padding(.horizontal, Theme.spacingLG)
+            .padding(.vertical, Theme.spacingSM)
         }
+        .screenBackground()
         .navigationTitle(groupName)
         .navigationBarTitleDisplayMode(.inline)
     }

@@ -18,6 +18,15 @@ packages:
   Firebase:
     url: https://github.com/firebase/firebase-ios-sdk
     from: "11.0.0"
+  Lottie:
+    url: https://github.com/airbnb/lottie-spm
+    from: "4.4.0"
+  SwiftUIShimmer:
+    url: https://github.com/markiv/SwiftUI-Shimmer
+    from: "1.4.0"
+  ConfettiSwiftUI:
+    url: https://github.com/simibac/ConfettiSwiftUI
+    from: "1.1.0"
 
 targets:
   FuelLift:
@@ -39,6 +48,12 @@ targets:
         product: FirebaseStorage
       - package: Firebase
         product: FirebaseMessaging
+      - package: Lottie
+        product: Lottie
+      - package: SwiftUIShimmer
+        product: Shimmer
+      - package: ConfettiSwiftUI
+        product: ConfettiSwiftUI
     entitlements:
       path: FuelLift/Resources/FuelLift.entitlements
       properties:

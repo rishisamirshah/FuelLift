@@ -33,14 +33,14 @@ struct MealHistoryView: View {
                     HStack {
                         VStack(alignment: .leading) {
                             Text(entry.name)
-                                .font(.subheadline)
+                                .font(.system(size: Theme.bodySize))
                             Text("\(entry.calories) kcal · \(entry.servingSize)")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .font(.system(size: Theme.captionSize))
+                                .foregroundStyle(Color.appTextSecondary)
                         }
                         Spacer()
                         Image(systemName: "plus.circle")
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(Color.appAccent)
                     }
                 }
                 .buttonStyle(.plain)

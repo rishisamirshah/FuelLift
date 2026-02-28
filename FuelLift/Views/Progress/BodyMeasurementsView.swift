@@ -7,53 +7,89 @@ struct BodyMeasurementsView: View {
     @State private var showAddSheet = false
 
     var body: some View {
-        List {
-            Section {
+        ScrollView {
+            VStack(spacing: Theme.spacingLG) {
+                // Add button
                 Button {
                     showAddSheet = true
                 } label: {
-                    Label("Add Measurement", systemImage: "plus.circle.fill")
-                        .foregroundStyle(.orange)
+                    HStack(spacing: Theme.spacingSM) {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.system(size: 18))
+                        Text("Add Measurement")
+                            .font(.system(size: Theme.bodySize, weight: .semibold))
+                    }
+                    .foregroundStyle(Color.appAccent)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, Theme.spacingMD)
+                    .background(Color.appAccent.opacity(0.12))
+                    .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusMD))
                 }
-            }
+                .buttonStyle(.plain)
+                .padding(.horizontal, Theme.spacingLG)
 
-            Section("History") {
                 if metrics.isEmpty {
-                    Text("No measurements recorded yet.")
-                        .foregroundStyle(.secondary)
+                    VStack(spacing: Theme.spacingMD) {
+                        Image(systemName: "ruler")
+                            .font(.system(size: 40))
+                            .foregroundStyle(Color.appTextTertiary)
+                        Text("No measurements recorded yet.")
+                            .font(.system(size: Theme.captionSize))
+                            .foregroundStyle(Color.appTextSecondary)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, Theme.spacingHuge)
                 } else {
-                    ForEach(metrics, id: \.id) { metric in
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(metric.date.shortFormatted)
-                                .font(.subheadline.bold())
-                            HStack(spacing: 16) {
-                                if let w = metric.weightKG { measurementLabel("Weight", "\(w.oneDecimal) kg") }
-                                if let bf = metric.bodyFatPercent { measurementLabel("BF%", "\(bf.oneDecimal)%") }
-                                if let chest = metric.chestCM { measurementLabel("Chest", "\(chest.oneDecimal)") }
-                                if let waist = metric.waistCM { measurementLabel("Waist", "\(waist.oneDecimal)") }
+                    VStack(spacing: Theme.spacingMD) {
+                        ForEach(metrics, id: \.id) { metric in
+                            VStack(alignment: .leading, spacing: Theme.spacingSM) {
+                                Text(metric.date.shortFormatted)
+                                    .font(.system(size: Theme.bodySize, weight: .bold))
+                                    .foregroundStyle(Color.appTextPrimary)
+
+                                HStack(spacing: Theme.spacingLG) {
+                                    if let w = metric.weightKG {
+                                        measurementPill("Weight", "\((w * 2.20462).oneDecimal) lbs")
+                                    }
+                                    if let bf = metric.bodyFatPercent {
+                                        measurementPill("BF%", "\(bf.oneDecimal)%")
+                                    }
+                                    if let chest = metric.chestCM {
+                                        measurementPill("Chest", "\((chest / 2.54).oneDecimal)\"")
+                                    }
+                                    if let waist = metric.waistCM {
+                                        measurementPill("Waist", "\((waist / 2.54).oneDecimal)\"")
+                                    }
+                                }
                             }
+                            .cardStyle()
                         }
                     }
-                    .onDelete { indices in
-                        for index in indices {
-                            modelContext.delete(metrics[index])
-                        }
-                        try? modelContext.save()
-                    }
+                    .padding(.horizontal, Theme.spacingLG)
                 }
             }
+            .padding(.vertical, Theme.spacingLG)
         }
+        .screenBackground()
         .navigationTitle("Body Measurements")
         .sheet(isPresented: $showAddSheet) {
             AddMeasurementSheet()
         }
     }
 
-    private func measurementLabel(_ label: String, _ value: String) -> some View {
+    private func measurementPill(_ label: String, _ value: String) -> some View {
         VStack(spacing: 2) {
-            Text(value).font(.caption.bold())
-            Text(label).font(.caption2).foregroundStyle(.secondary)
+            Text(value)
+                .font(.system(size: Theme.bodySize, weight: .bold, design: .rounded))
+                .foregroundStyle(Color.appTextPrimary)
+            Text(label)
+                .font(.system(size: Theme.miniSize))
+                .foregroundStyle(Color.appTextTertiary)
         }
+        .padding(.horizontal, Theme.spacingSM)
+        .padding(.vertical, Theme.spacingXS)
+        .background(Color.appCardSecondary)
+        .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusSM))
     }
 }
 
@@ -73,10 +109,10 @@ struct AddMeasurementSheet: View {
         NavigationStack {
             Form {
                 Section("Body") {
-                    field("Weight (kg)", text: $weight)
+                    field("Weight (lbs)", text: $weight)
                     field("Body Fat %", text: $bodyFat)
                 }
-                Section("Measurements (cm)") {
+                Section("Measurements (inches)") {
                     field("Chest", text: $chest)
                     field("Waist", text: $waist)
                     field("Hips", text: $hips)
@@ -108,13 +144,15 @@ struct AddMeasurementSheet: View {
 
     private func save() {
         let metric = BodyMetric()
-        if let v = Double(weight) { metric.weightKG = v }
+        // Convert lbs to kg for storage
+        if let v = Double(weight) { metric.weightKG = v / 2.20462 }
         if let v = Double(bodyFat) { metric.bodyFatPercent = v }
-        if let v = Double(chest) { metric.chestCM = v }
-        if let v = Double(waist) { metric.waistCM = v }
-        if let v = Double(hips) { metric.hipsCM = v }
-        if let v = Double(biceps) { metric.bicepsCM = v }
-        if let v = Double(thighs) { metric.thighsCM = v }
+        // Convert inches to cm for storage
+        if let v = Double(chest) { metric.chestCM = v * 2.54 }
+        if let v = Double(waist) { metric.waistCM = v * 2.54 }
+        if let v = Double(hips) { metric.hipsCM = v * 2.54 }
+        if let v = Double(biceps) { metric.bicepsCM = v * 2.54 }
+        if let v = Double(thighs) { metric.thighsCM = v * 2.54 }
         modelContext.insert(metric)
         try? modelContext.save()
         dismiss()

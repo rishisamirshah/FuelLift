@@ -22,6 +22,12 @@ extension Date {
     var dayOfWeek: String {
         formatted(.dateTime.weekday(.abbreviated))
     }
+
+    var relativeFormatted: String {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .short
+        return formatter.localizedString(for: self, relativeTo: Date())
+    }
 }
 
 // MARK: - Double
@@ -44,29 +50,54 @@ extension Int {
         formatter.numberStyle = .decimal
         return formatter.string(from: NSNumber(value: self)) ?? "\(self)"
     }
+
+    var ordinalString: String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .ordinal
+        return formatter.string(from: NSNumber(value: self)) ?? "\(self)"
+    }
 }
 
-// MARK: - Color
+// MARK: - Color (Legacy aliases — use Theme colors for new code)
 
 extension Color {
-    static let appOrange = Color.orange
-    static let appGreen = Color.green
-    static let appBlue = Color.blue
-    static let appRed = Color.red
-    static let appProtein = Color.blue
-    static let appCarbs = Color.orange
-    static let appFat = Color.purple
-    static let appCalories = Color.green
-    static let appWater = Color.cyan
+    static let appOrange = Color.appAccent
+    static let appGreen = Color.appCaloriesColor
+    static let appBlue = Color.appProteinColor
+    static let appRed = Color.appFatColor
+    static let appProtein = Color.appProteinColor
+    static let appCarbs = Color.appCarbsColor
+    static let appFat = Color.appFatColor
+    static let appCalories = Color.appCaloriesColor
+    static let appWater = Color.appWaterColor
 }
 
-// MARK: - View
+// MARK: - View Modifiers
 
 extension View {
     func cardStyle() -> some View {
         self
-            .padding()
-            .background(.ultraThinMaterial)
-            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .padding(Theme.spacingLG)
+            .background(Color.appCardBackground)
+            .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusLG))
+    }
+
+    func secondaryCardStyle() -> some View {
+        self
+            .padding(Theme.spacingLG)
+            .background(Color.appCardSecondary)
+            .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusMD))
+    }
+
+    func sectionHeaderStyle() -> some View {
+        self
+            .font(.system(size: 20, weight: .bold))
+            .foregroundStyle(Color.appTextPrimary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    func screenBackground() -> some View {
+        self
+            .background(Color.appBackground)
     }
 }

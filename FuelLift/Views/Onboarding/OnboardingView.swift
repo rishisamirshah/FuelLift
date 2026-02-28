@@ -14,21 +14,30 @@ struct OnboardingView: View {
         VStack(spacing: 0) {
             TabView(selection: $currentPage) {
                 ForEach(pages.indices, id: \.self) { index in
-                    VStack(spacing: 24) {
+                    VStack(spacing: Theme.spacingXXL) {
                         Spacer()
 
-                        Image(systemName: pages[index].icon)
-                            .font(.system(size: 80))
-                            .foregroundStyle(.orange.gradient)
+                        ZStack {
+                            Circle()
+                                .fill(Color.appAccent.opacity(0.15))
+                                .frame(width: 160, height: 160)
 
-                        Text(pages[index].title)
-                            .font(.largeTitle.bold())
+                            Image(systemName: pages[index].icon)
+                                .font(.system(size: 72))
+                                .foregroundStyle(Color.appAccent.gradient)
+                        }
 
-                        Text(pages[index].subtitle)
-                            .font(.body)
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 40)
+                        VStack(spacing: Theme.spacingMD) {
+                            Text(pages[index].title)
+                                .font(.system(size: Theme.titleSize, weight: .bold))
+                                .foregroundStyle(Color.appTextPrimary)
+
+                            Text(pages[index].subtitle)
+                                .font(.system(size: Theme.bodySize))
+                                .foregroundStyle(Color.appTextSecondary)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 40)
+                        }
 
                         Spacer()
                     }
@@ -37,7 +46,7 @@ struct OnboardingView: View {
             }
             .tabViewStyle(.page(indexDisplayMode: .always))
 
-            VStack(spacing: 16) {
+            VStack(spacing: Theme.spacingLG) {
                 if currentPage < pages.count - 1 {
                     Button {
                         withAnimation {
@@ -47,16 +56,16 @@ struct OnboardingView: View {
                         Text("Next")
                             .font(.headline)
                             .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(.orange)
+                            .padding(Theme.spacingMD)
+                            .background(Color.appAccent)
                             .foregroundStyle(.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 14))
+                            .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusLG))
                     }
 
                     Button("Skip") {
                         currentPage = pages.count - 1
                     }
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.appTextSecondary)
                 } else {
                     NavigationLink {
                         GoalSetupView()
@@ -64,16 +73,17 @@ struct OnboardingView: View {
                         Text("Get Started")
                             .font(.headline)
                             .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(.orange)
+                            .padding(Theme.spacingMD)
+                            .background(Color.appAccent)
                             .foregroundStyle(.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 14))
+                            .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusLG))
                     }
                 }
             }
-            .padding(.horizontal, 24)
+            .padding(.horizontal, Theme.spacingXXL)
             .padding(.bottom, 40)
         }
+        .screenBackground()
         .navigationBarBackButtonHidden()
     }
 }

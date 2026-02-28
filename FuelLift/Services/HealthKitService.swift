@@ -43,11 +43,11 @@ final class HealthKitService {
         let startOfDay = Calendar.current.startOfDay(for: Date())
         let predicate = HKQuery.predicateForSamples(withStart: startOfDay, end: Date())
         let descriptor = HKStatisticsQueryDescriptor(
-            predicate: .init(quantityType: stepType, predicate: predicate),
+            predicate: .quantitySample(type: stepType, predicate: predicate),
             options: .cumulativeSum
         )
         let result = try await descriptor.result(for: store)
-        return Int(result?.sumQuantity()?.doubleValue(for: .count()) ?? 0)
+        return Int(result?.sumQuantity()?.doubleValue(for: HKUnit.count()) ?? 0)
     }
 
     // MARK: - Read: Active Calories Burned
@@ -57,11 +57,11 @@ final class HealthKitService {
         let startOfDay = Calendar.current.startOfDay(for: Date())
         let predicate = HKQuery.predicateForSamples(withStart: startOfDay, end: Date())
         let descriptor = HKStatisticsQueryDescriptor(
-            predicate: .init(quantityType: type, predicate: predicate),
+            predicate: .quantitySample(type: type, predicate: predicate),
             options: .cumulativeSum
         )
         let result = try await descriptor.result(for: store)
-        return Int(result?.sumQuantity()?.doubleValue(for: .kilocalorie()) ?? 0)
+        return Int(result?.sumQuantity()?.doubleValue(for: HKUnit.kilocalorie()) ?? 0)
     }
 
     // MARK: - Write: Dietary Energy

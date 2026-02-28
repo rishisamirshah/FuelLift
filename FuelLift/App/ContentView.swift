@@ -1,58 +1,72 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var selectedTab: Tab = .dashboard
+    @State private var selectedTab: Tab = .home
+    @State private var showAddMeal = false
 
     enum Tab: String, CaseIterable {
-        case dashboard = "Dashboard"
-        case nutrition = "Nutrition"
-        case workout = "Workout"
+        case home = "Home"
         case progress = "Progress"
-        case social = "Social"
+        case workout = "Workout"
+        case profile = "Profile"
 
         var icon: String {
             switch self {
-            case .dashboard: return "house.fill"
-            case .nutrition: return "fork.knife"
+            case .home: return "house.fill"
+            case .progress: return "chart.bar.fill"
             case .workout: return "dumbbell.fill"
-            case .progress: return "chart.line.uptrend.xyaxis"
-            case .social: return "person.3.fill"
+            case .profile: return "person.fill"
             }
         }
     }
 
     var body: some View {
-        TabView(selection: $selectedTab) {
-            DashboardView()
-                .tabItem {
-                    Label(Tab.dashboard.rawValue, systemImage: Tab.dashboard.icon)
-                }
-                .tag(Tab.dashboard)
+        ZStack(alignment: .bottomTrailing) {
+            TabView(selection: $selectedTab) {
+                DashboardView()
+                    .tabItem {
+                        Label(Tab.home.rawValue, systemImage: Tab.home.icon)
+                    }
+                    .tag(Tab.home)
 
-            FoodLogView()
-                .tabItem {
-                    Label(Tab.nutrition.rawValue, systemImage: Tab.nutrition.icon)
-                }
-                .tag(Tab.nutrition)
+                ProgressDashboardView()
+                    .tabItem {
+                        Label(Tab.progress.rawValue, systemImage: Tab.progress.icon)
+                    }
+                    .tag(Tab.progress)
 
-            WorkoutListView()
-                .tabItem {
-                    Label(Tab.workout.rawValue, systemImage: Tab.workout.icon)
-                }
-                .tag(Tab.workout)
+                WorkoutListView()
+                    .tabItem {
+                        Label(Tab.workout.rawValue, systemImage: Tab.workout.icon)
+                    }
+                    .tag(Tab.workout)
 
-            ProgressDashboardView()
-                .tabItem {
-                    Label(Tab.progress.rawValue, systemImage: Tab.progress.icon)
-                }
-                .tag(Tab.progress)
+                SettingsView()
+                    .tabItem {
+                        Label(Tab.profile.rawValue, systemImage: Tab.profile.icon)
+                    }
+                    .tag(Tab.profile)
+            }
+            .tint(.orange)
 
-            GroupsListView()
-                .tabItem {
-                    Label(Tab.social.rawValue, systemImage: Tab.social.icon)
-                }
-                .tag(Tab.social)
+            FloatingActionButton {
+                showAddMeal = true
+            }
+            .padding(.trailing, Theme.spacingXL)
+            .padding(.bottom, 60)
         }
-        .tint(.orange)
+        .sheet(isPresented: $showAddMeal) {
+            NavigationStack {
+                FoodLogView()
+                    .navigationTitle("Log Meal")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .topBarLeading) {
+                            Button("Done") { showAddMeal = false }
+                                .foregroundStyle(Color.appAccent)
+                        }
+                    }
+            }
+        }
     }
 }

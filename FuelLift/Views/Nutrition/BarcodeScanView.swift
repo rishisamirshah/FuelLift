@@ -1,5 +1,6 @@
 import SwiftUI
 import AVFoundation
+import AudioToolbox
 
 struct BarcodeScanView: View {
     @ObservedObject var nutritionViewModel: NutritionViewModel
@@ -31,34 +32,46 @@ struct BarcodeScanView: View {
                             dismiss()
                         }
                     )
-                    .padding()
+                    .padding(Theme.spacingLG)
                 } else if scanVM.isAnalyzing {
-                    VStack(spacing: 12) {
+                    VStack(spacing: Theme.spacingMD) {
                         ProgressView()
                             .controlSize(.large)
+                            .tint(Color.appAccent)
                         Text("Looking up product...")
-                            .foregroundStyle(.secondary)
+                            .font(.system(size: Theme.bodySize))
+                            .foregroundStyle(Color.appTextSecondary)
                     }
                 } else {
                     BarcodeScannerView { code in
                         scannedCode = code
                         Task { await scanVM.lookupBarcode(code) }
                     }
+                    .overlay(alignment: .center) {
+                        // Scanner frame overlay
+                        RoundedRectangle(cornerRadius: Theme.cornerRadiusMD)
+                            .stroke(Color.appAccent, lineWidth: 2)
+                            .frame(width: 260, height: 160)
+                    }
                     .overlay(alignment: .bottom) {
                         Text("Point camera at a barcode")
-                            .font(.subheadline)
-                            .padding(12)
-                            .background(.ultraThinMaterial)
+                            .font(.system(size: Theme.bodySize, weight: .medium))
+                            .foregroundStyle(Color.appTextPrimary)
+                            .padding(.horizontal, Theme.spacingLG)
+                            .padding(.vertical, Theme.spacingMD)
+                            .background(Color.appCardBackground.opacity(0.9))
                             .clipShape(Capsule())
                             .padding(.bottom, 40)
                     }
                 }
             }
+            .screenBackground()
             .navigationTitle("Scan Barcode")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Cancel") { dismiss() }
+                        .foregroundStyle(Color.appAccent)
                 }
             }
             .alert("Error", isPresented: $scanVM.showError) {

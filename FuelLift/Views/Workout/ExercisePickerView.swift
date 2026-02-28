@@ -4,15 +4,22 @@ struct ExercisePickerView: View {
     let onSelect: (String) -> Void
     @Environment(\.dismiss) private var dismiss
     @State private var searchText = ""
-    @State private var selectedMuscleGroup: String?
+    @State private var selectedBodyPart: String?
+    @State private var selectedCategory: String?
+    @State private var sortOption = "Name"
 
     private let exercises = ExerciseDefinition.loadAll()
+    private let sortOptions = ["Name", "Frequency", "Last Performed"]
 
     var filteredExercises: [ExerciseDefinition] {
         var result = exercises
 
-        if let group = selectedMuscleGroup {
+        if let group = selectedBodyPart {
             result = result.filter { $0.muscleGroup == group }
+        }
+
+        if let category = selectedCategory {
+            result = result.filter { $0.equipment == category }
         }
 
         if !searchText.isEmpty {
@@ -23,49 +30,112 @@ struct ExercisePickerView: View {
             }
         }
 
-        return result
+        return result.sorted { $0.name < $1.name }
+    }
+
+    var groupedExercises: [(letter: String, items: [ExerciseDefinition])] {
+        Dictionary(grouping: filteredExercises) { exercise in
+            String(exercise.name.prefix(1)).uppercased()
+        }
+        .sorted { $0.key < $1.key }
+        .map { (letter: $0.key, items: $0.value) }
+    }
+
+    var sectionLetters: [String] {
+        groupedExercises.map(\.letter)
     }
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                // Muscle group filter chips
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        FilterChip(title: "All", isSelected: selectedMuscleGroup == nil) {
-                            selectedMuscleGroup = nil
-                        }
+                // Filter row
+                HStack(spacing: Theme.spacingSM) {
+                    Menu {
+                        Button("Any Body Part") { selectedBodyPart = nil }
                         ForEach(ExerciseDefinition.muscleGroups, id: \.self) { group in
-                            FilterChip(title: group, isSelected: selectedMuscleGroup == group) {
-                                selectedMuscleGroup = selectedMuscleGroup == group ? nil : group
-                            }
+                            Button(group) { selectedBodyPart = group }
                         }
-                    }
-                    .padding(.horizontal)
-                    .padding(.vertical, 8)
-                }
-
-                List(filteredExercises) { exercise in
-                    Button {
-                        onSelect(exercise.name)
-                        dismiss()
                     } label: {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(exercise.name)
-                                .font(.subheadline.bold())
-                            HStack(spacing: 8) {
-                                Label(exercise.muscleGroup, systemImage: "figure.strengthtraining.traditional")
-                                Label(exercise.equipment, systemImage: "dumbbell")
+                        filterPill(title: selectedBodyPart ?? "Any Body Part")
+                    }
+
+                    Menu {
+                        Button("Any Category") { selectedCategory = nil }
+                        ForEach(ExerciseDefinition.equipmentTypes, id: \.self) { type in
+                            Button(type) { selectedCategory = type }
+                        }
+                    } label: {
+                        filterPill(title: selectedCategory ?? "Any Category")
+                    }
+
+                    Spacer()
+
+                    Menu {
+                        ForEach(sortOptions, id: \.self) { option in
+                            Button {
+                                sortOption = option
+                            } label: {
+                                HStack {
+                                    Text(option)
+                                    if sortOption == option {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
                             }
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                        }
+                    } label: {
+                        Image(systemName: "arrow.up.arrow.down")
+                            .font(.system(size: Theme.bodySize))
+                            .foregroundStyle(Color.appTextSecondary)
+                    }
+                }
+                .padding(.horizontal, Theme.spacingLG)
+                .padding(.vertical, Theme.spacingSM)
+
+                // Exercise list with section index
+                ScrollViewReader { proxy in
+                    List {
+                        ForEach(groupedExercises, id: \.letter) { letter, items in
+                            Section {
+                                ForEach(items) { exercise in
+                                    Button {
+                                        onSelect(exercise.name)
+                                        dismiss()
+                                    } label: {
+                                        exerciseRow(exercise)
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                            } header: {
+                                Text(letter)
+                                    .font(.system(size: Theme.subheadlineSize, weight: .bold))
+                                    .foregroundStyle(Color.appTextPrimary)
+                            }
+                            .id(letter)
                         }
                     }
-                    .buttonStyle(.plain)
+                    .listStyle(.plain)
+                    .overlay(alignment: .trailing) {
+                        VStack(spacing: 1) {
+                            ForEach(sectionLetters, id: \.self) { letter in
+                                Button {
+                                    withAnimation {
+                                        proxy.scrollTo(letter, anchor: .top)
+                                    }
+                                } label: {
+                                    Text(letter)
+                                        .font(.system(size: 10, weight: .semibold))
+                                        .foregroundStyle(Color.appAccent)
+                                }
+                            }
+                        }
+                        .padding(.trailing, Theme.spacingXS)
+                    }
                 }
             }
+            .screenBackground()
             .searchable(text: $searchText, prompt: "Search exercises")
-            .navigationTitle("Choose Exercise")
+            .navigationTitle("Exercises")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
@@ -74,22 +144,36 @@ struct ExercisePickerView: View {
             }
         }
     }
-}
 
-struct FilterChip: View {
-    let title: String
-    let isSelected: Bool
-    let action: () -> Void
+    // MARK: - Components
 
-    var body: some View {
-        Button(action: action) {
-            Text(title)
-                .font(.caption.bold())
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(isSelected ? Color.orange : Color(.systemGray5))
-                .foregroundStyle(isSelected ? .white : .primary)
-                .clipShape(Capsule())
+    private func filterPill(title: String) -> some View {
+        Text(title)
+            .font(.system(size: Theme.captionSize, weight: .medium))
+            .foregroundStyle(Color.appTextPrimary)
+            .padding(.horizontal, Theme.spacingMD)
+            .padding(.vertical, Theme.spacingSM)
+            .background(Color.appCardBackground)
+            .clipShape(Capsule())
+    }
+
+    private func exerciseRow(_ exercise: ExerciseDefinition) -> some View {
+        HStack(spacing: Theme.spacingMD) {
+            VStack(alignment: .leading, spacing: Theme.spacingXS) {
+                Text(exercise.name)
+                    .font(.system(size: Theme.bodySize, weight: .semibold))
+                    .foregroundStyle(Color.appTextPrimary)
+
+                Text(exercise.muscleGroup)
+                    .font(.system(size: Theme.captionSize))
+                    .foregroundStyle(Color.appTextSecondary)
+            }
+
+            Spacer()
+
+            Text(exercise.equipment)
+                .font(.system(size: Theme.captionSize))
+                .foregroundStyle(Color.appTextTertiary)
         }
     }
 }

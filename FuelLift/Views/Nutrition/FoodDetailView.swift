@@ -13,32 +13,39 @@ struct FoodDetailView: View {
     @State private var servingSize: String = ""
 
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: Theme.spacingLG) {
             // Food name
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: Theme.spacingXS) {
                 Text("Food")
-                    .font(.caption.bold())
-                    .foregroundStyle(.secondary)
+                    .font(.system(size: Theme.captionSize, weight: .bold))
+                    .foregroundStyle(Color.appTextSecondary)
                 TextField("Name", text: $name)
-                    .textFieldStyle(.roundedBorder)
-                    .font(.headline)
+                    .font(.system(size: Theme.subheadlineSize, weight: .semibold))
+                    .foregroundStyle(Color.appTextPrimary)
+                    .padding(Theme.spacingMD)
+                    .background(Color.appCardSecondary)
+                    .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusSM))
             }
 
-            // Macros grid
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-                nutrientField("Calories", value: $calories, unit: "kcal", color: .appCalories)
-                nutrientField("Protein", value: $protein, unit: "g", color: .appProtein)
-                nutrientField("Carbs", value: $carbs, unit: "g", color: .appCarbs)
-                nutrientField("Fat", value: $fat, unit: "g", color: .appFat)
+            // Macro grid
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: Theme.spacingMD) {
+                nutrientField("Calories", value: $calories, unit: "kcal", color: Color.appCaloriesColor)
+                nutrientField("Protein", value: $protein, unit: "g", color: Color.appProteinColor)
+                nutrientField("Carbs", value: $carbs, unit: "g", color: Color.appCarbsColor)
+                nutrientField("Fat", value: $fat, unit: "g", color: Color.appFatColor)
             }
 
             // Serving size
-            HStack {
+            HStack(spacing: Theme.spacingSM) {
                 Text("Serving")
-                    .font(.caption.bold())
-                    .foregroundStyle(.secondary)
+                    .font(.system(size: Theme.captionSize, weight: .bold))
+                    .foregroundStyle(Color.appTextSecondary)
                 TextField("e.g. 1 cup", text: $servingSize)
-                    .textFieldStyle(.roundedBorder)
+                    .font(.system(size: Theme.bodySize))
+                    .foregroundStyle(Color.appTextPrimary)
+                    .padding(Theme.spacingMD)
+                    .background(Color.appCardSecondary)
+                    .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusSM))
             }
 
             // Meal type picker
@@ -62,15 +69,15 @@ struct FoodDetailView: View {
                 onSave(finalNutrition, mealType)
             } label: {
                 Text("Add to Log")
-                    .font(.headline)
+                    .font(.system(size: Theme.subheadlineSize, weight: .bold))
                     .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(.orange)
+                    .padding(Theme.spacingLG)
+                    .background(Color.appAccent)
                     .foregroundStyle(.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 14))
+                    .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusMD))
             }
         }
-        .padding()
+        .padding(Theme.spacingLG)
         .onAppear {
             name = nutrition.name
             calories = String(nutrition.calories)
@@ -82,17 +89,21 @@ struct FoodDetailView: View {
     }
 
     private func nutrientField(_ label: String, value: Binding<String>, unit: String, color: Color) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: Theme.spacingXS) {
             Text(label)
-                .font(.caption.bold())
+                .font(.system(size: Theme.captionSize, weight: .bold))
                 .foregroundStyle(color)
-            HStack {
+            HStack(spacing: Theme.spacingXS) {
                 TextField("0", text: value)
                     .keyboardType(.decimalPad)
-                    .textFieldStyle(.roundedBorder)
+                    .font(.system(size: Theme.bodySize, weight: .medium, design: .rounded))
+                    .foregroundStyle(Color.appTextPrimary)
+                    .padding(Theme.spacingMD)
+                    .background(Color.appCardSecondary)
+                    .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusSM))
                 Text(unit)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .font(.system(size: Theme.captionSize))
+                    .foregroundStyle(Color.appTextSecondary)
             }
         }
     }

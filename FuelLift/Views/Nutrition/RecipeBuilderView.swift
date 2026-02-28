@@ -43,12 +43,12 @@ struct RecipeBuilderView: View {
                                     .font(.subheadline)
                                 Text("\(ingredient.amount)")
                                     .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(Color.appTextSecondary)
                             }
                             Spacer()
                             Text("\(ingredient.calories) kcal")
                                 .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(Color.appTextSecondary)
                         }
                     }
                     .onDelete { indices in

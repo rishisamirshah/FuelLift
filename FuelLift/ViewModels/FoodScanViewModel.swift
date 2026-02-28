@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 @MainActor
 final class FoodScanViewModel: ObservableObject {
@@ -8,6 +9,24 @@ final class FoodScanViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var showError = false
     @Published var selectedMealType: MealType = .snack
+    @Published var foodDescription: String = ""
+
+    func analyzeDescription() async {
+        guard !foodDescription.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+
+        isAnalyzing = true
+        errorMessage = nil
+
+        do {
+            let nutrition = try await ClaudeService.shared.analyzeFoodDescription(foodDescription)
+            scannedNutrition = nutrition
+        } catch {
+            errorMessage = error.localizedDescription
+            showError = true
+        }
+
+        isAnalyzing = false
+    }
 
     func analyzePhoto() async {
         guard let image = capturedImage else { return }
@@ -44,6 +63,15 @@ final class FoodScanViewModel: ObservableObject {
     func createFoodEntry() -> FoodEntry? {
         guard let nutrition = scannedNutrition else { return nil }
 
+        let source: String
+        if capturedImage != nil {
+            source = "ai_scan"
+        } else if !foodDescription.isEmpty {
+            source = "ai_description"
+        } else {
+            source = "barcode"
+        }
+
         return FoodEntry(
             name: nutrition.name,
             calories: nutrition.calories,
@@ -52,7 +80,7 @@ final class FoodScanViewModel: ObservableObject {
             fatG: nutrition.fatG,
             servingSize: nutrition.servingSize,
             mealType: selectedMealType.rawValue,
-            source: capturedImage != nil ? "ai_scan" : "barcode"
+            source: source
         )
     }
 

@@ -29,6 +29,11 @@ enum AppConstants {
     static let defaultFatGoal: Int = 65
     static let defaultWaterGoalML: Int = 2500
 
+    // MARK: - Anthropic (Claude AI)
+    static let anthropicAPIKey = ""
+    static let anthropicBaseURL = "https://api.anthropic.com/v1/messages"
+    static let anthropicModel = "claude-sonnet-4-6"
+
     // MARK: - Rest Timer Presets (seconds)
     static let restTimerPresets: [Int] = [30, 60, 90, 120, 180, 300]
 }

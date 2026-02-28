@@ -9,34 +9,36 @@ struct FriendProfileView: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 20) {
+            VStack(spacing: Theme.spacingXL) {
                 // Profile header
-                VStack(spacing: 12) {
+                VStack(spacing: Theme.spacingMD) {
                     Image(systemName: "person.circle.fill")
                         .font(.system(size: 80))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Color.appTextSecondary)
 
                     Text(name)
-                        .font(.title2.bold())
+                        .font(.system(size: Theme.headlineSize, weight: .bold))
+                        .foregroundStyle(Color.appTextPrimary)
 
-                    HStack(spacing: 24) {
-                        statBadge(icon: "flame.fill", value: "\(streak)", label: "Streak", color: .orange)
-                        statBadge(icon: "dumbbell.fill", value: "\(workoutsThisWeek)", label: "This Week", color: .blue)
+                    HStack(spacing: Theme.spacingXXL) {
+                        statBadge(icon: "flame.fill", value: "\(streak)", label: "Streak", color: Color.appAccent)
+                        statBadge(icon: "dumbbell.fill", value: "\(workoutsThisWeek)", label: "This Week", color: Color.appProteinColor)
                     }
                 }
-                .padding(.top, 20)
+                .padding(.top, Theme.spacingXL)
 
                 // Shared workouts would go here
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: Theme.spacingSM) {
                     Text("Recent Activity")
-                        .font(.headline)
+                        .font(.system(size: Theme.subheadlineSize, weight: .bold))
+                        .foregroundStyle(Color.appTextPrimary)
                     Text("Shared workouts and meals will appear here.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .font(.system(size: Theme.captionSize))
+                        .foregroundStyle(Color.appTextSecondary)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .cardStyle()
-                .padding(.horizontal)
+                .padding(.horizontal, Theme.spacingLG)
             }
         }
         .navigationTitle(name)
@@ -44,14 +46,15 @@ struct FriendProfileView: View {
     }
 
     private func statBadge(icon: String, value: String, label: String, color: Color) -> some View {
-        VStack(spacing: 4) {
+        VStack(spacing: Theme.spacingXS) {
             Image(systemName: icon)
                 .foregroundStyle(color)
             Text(value)
-                .font(.title3.bold())
+                .font(.system(size: Theme.subheadlineSize, weight: .bold, design: .rounded))
+                .foregroundStyle(Color.appTextPrimary)
             Text(label)
-                .font(.caption2)
-                .foregroundStyle(.secondary)
+                .font(.system(size: Theme.miniSize))
+                .foregroundStyle(Color.appTextSecondary)
         }
     }
 }

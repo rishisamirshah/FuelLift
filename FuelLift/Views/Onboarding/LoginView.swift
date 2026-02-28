@@ -6,26 +6,27 @@ struct LoginView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 32) {
+            VStack(spacing: Theme.spacingHuge) {
                 Spacer()
 
                 // Logo
-                VStack(spacing: 12) {
+                VStack(spacing: Theme.spacingMD) {
                     Image(systemName: "flame.fill")
-                        .font(.system(size: 64))
-                        .foregroundStyle(.orange.gradient)
+                        .font(.system(size: 80))
+                        .foregroundStyle(Color.appAccent.gradient)
 
                     Text("FuelLift")
-                        .font(.largeTitle.bold())
+                        .font(.system(size: Theme.titleSize, weight: .bold))
+                        .foregroundStyle(Color.appTextPrimary)
 
                     Text("Track fuel. Crush lifts. Level up.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .font(.system(size: Theme.bodySize))
+                        .foregroundStyle(Color.appTextSecondary)
                 }
 
                 Spacer()
 
-                VStack(spacing: 16) {
+                VStack(spacing: Theme.spacingLG) {
                     // Apple Sign-In
                     SignInWithAppleButton(.signIn) { request in
                         authViewModel.getAppleSignInRequest()(request)
@@ -36,26 +37,34 @@ struct LoginView: View {
                     }
                     .signInWithAppleButtonStyle(.whiteOutline)
                     .frame(height: 52)
-                    .clipShape(RoundedRectangle(cornerRadius: 14))
+                    .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusLG))
 
                     // Divider
-                    HStack {
-                        Rectangle().frame(height: 1).foregroundStyle(.quaternary)
-                        Text("or").font(.caption).foregroundStyle(.secondary)
-                        Rectangle().frame(height: 1).foregroundStyle(.quaternary)
+                    HStack(spacing: Theme.spacingSM) {
+                        Rectangle().frame(height: 1).foregroundStyle(Color.appTextTertiary.opacity(0.3))
+                        Text("or")
+                            .font(.system(size: Theme.captionSize))
+                            .foregroundStyle(Color.appTextTertiary)
+                        Rectangle().frame(height: 1).foregroundStyle(Color.appTextTertiary.opacity(0.3))
                     }
 
                     // Email fields
-                    VStack(spacing: 12) {
+                    VStack(spacing: Theme.spacingMD) {
                         TextField("Email", text: $authViewModel.email)
-                            .textFieldStyle(.roundedBorder)
+                            .padding(Theme.spacingMD)
+                            .background(Color.appCardBackground)
+                            .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusMD))
                             .textContentType(.emailAddress)
                             .autocapitalization(.none)
                             .keyboardType(.emailAddress)
+                            .foregroundStyle(Color.appTextPrimary)
 
                         SecureField("Password", text: $authViewModel.password)
-                            .textFieldStyle(.roundedBorder)
+                            .padding(Theme.spacingMD)
+                            .background(Color.appCardBackground)
+                            .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusMD))
                             .textContentType(authViewModel.isSignUpMode ? .newPassword : .password)
+                            .foregroundStyle(Color.appTextPrimary)
                     }
 
                     Button {
@@ -63,26 +72,27 @@ struct LoginView: View {
                     } label: {
                         if authViewModel.isLoading {
                             ProgressView()
+                                .tint(.white)
                                 .frame(maxWidth: .infinity)
-                                .padding()
+                                .padding(Theme.spacingMD)
                         } else {
                             Text(authViewModel.isSignUpMode ? "Create Account" : "Sign In")
                                 .font(.headline)
                                 .frame(maxWidth: .infinity)
-                                .padding()
+                                .padding(Theme.spacingMD)
                         }
                     }
-                    .background(.orange)
+                    .background(Color.appAccent)
                     .foregroundStyle(.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 14))
+                    .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusLG))
                     .disabled(authViewModel.isLoading)
 
                     HStack {
                         Button(authViewModel.isSignUpMode ? "Already have an account? Sign In" : "Don't have an account? Sign Up") {
                             withAnimation { authViewModel.isSignUpMode.toggle() }
                         }
-                        .font(.footnote)
-                        .foregroundStyle(.orange)
+                        .font(.system(size: Theme.captionSize))
+                        .foregroundStyle(Color.appAccent)
 
                         Spacer()
 
@@ -90,14 +100,15 @@ struct LoginView: View {
                             Button("Forgot Password?") {
                                 Task { await authViewModel.resetPassword() }
                             }
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
+                            .font(.system(size: Theme.captionSize))
+                            .foregroundStyle(Color.appTextSecondary)
                         }
                     }
                 }
-                .padding(.horizontal, 24)
+                .padding(.horizontal, Theme.spacingXXL)
                 .padding(.bottom, 40)
             }
+            .screenBackground()
             .alert("Notice", isPresented: $authViewModel.showError) {
                 Button("OK", role: .cancel) {}
             } message: {

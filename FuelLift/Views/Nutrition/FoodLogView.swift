@@ -7,31 +7,47 @@ struct FoodLogView: View {
     @State private var showAddSheet = false
     @State private var showCamera = false
     @State private var showBarcode = false
+    @State private var showDescriptionSheet = false
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 16) {
-                    // Date picker
-                    DatePicker("Date", selection: $viewModel.selectedDate, displayedComponents: .date)
-                        .datePickerStyle(.compact)
-                        .padding(.horizontal)
-                        .onChange(of: viewModel.selectedDate) { _, _ in
-                            viewModel.loadEntries(context: modelContext)
+            ZStack(alignment: .bottomTrailing) {
+                ScrollView {
+                    VStack(spacing: Theme.spacingXXL) {
+                        // Date picker
+                        DatePicker("Date", selection: $viewModel.selectedDate, displayedComponents: .date)
+                            .datePickerStyle(.compact)
+                            .tint(Color.appAccent)
+                            .padding(.horizontal, Theme.spacingLG)
+                            .onChange(of: viewModel.selectedDate) { _, _ in
+                                viewModel.loadEntries(context: modelContext)
+                            }
+
+                        // Daily summary card
+                        dailySummaryCard
+                            .padding(.horizontal, Theme.spacingLG)
+                            .animation(.easeInOut(duration: 0.3), value: viewModel.totalCalories)
+
+                        // Water tracker
+                        waterCard
+                            .padding(.horizontal, Theme.spacingLG)
+
+                        // Meals
+                        ForEach(MealType.allCases) { mealType in
+                            mealSection(mealType)
+                                .padding(.horizontal, Theme.spacingLG)
+                                .animation(.easeInOut(duration: 0.3), value: viewModel.todayEntries.count)
                         }
-
-                    // Daily summary card
-                    dailySummaryCard
-
-                    // Water tracker
-                    waterCard
-
-                    // Meals
-                    ForEach(MealType.allCases) { mealType in
-                        mealSection(mealType)
                     }
+                    .padding(.vertical, Theme.spacingLG)
                 }
-                .padding(.vertical)
+                .screenBackground()
+
+                // FAB
+                FloatingActionButton {
+                    showCamera = true
+                }
+                .padding(Theme.spacingXL)
             }
             .navigationTitle("Nutrition")
             .toolbar {
@@ -43,12 +59,16 @@ struct FoodLogView: View {
                         Button { showBarcode = true } label: {
                             Label("Scan Barcode", systemImage: "barcode.viewfinder")
                         }
+                        Button { showDescriptionSheet = true } label: {
+                            Label("Describe Food", systemImage: "text.bubble")
+                        }
                         Button { showAddSheet = true } label: {
                             Label("Manual Entry", systemImage: "pencil")
                         }
                     } label: {
                         Image(systemName: "plus.circle.fill")
                             .font(.title3)
+                            .foregroundStyle(Color.appAccent)
                     }
                 }
             }
@@ -61,6 +81,9 @@ struct FoodLogView: View {
             .sheet(isPresented: $showAddSheet) {
                 ManualFoodEntryView(nutritionViewModel: viewModel)
             }
+            .sheet(isPresented: $showDescriptionSheet) {
+                FoodDescriptionView(nutritionViewModel: viewModel)
+            }
             .onAppear {
                 viewModel.loadEntries(context: modelContext)
             }
@@ -70,61 +93,77 @@ struct FoodLogView: View {
     // MARK: - Daily Summary
 
     private var dailySummaryCard: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: Theme.spacingLG) {
+            // Calorie header
             HStack {
-                VStack(alignment: .leading) {
+                VStack(alignment: .leading, spacing: 2) {
                     Text("\(viewModel.totalCalories)")
-                        .font(.title.bold())
+                        .font(.system(size: Theme.titleSize, weight: .bold, design: .rounded))
+                        .foregroundStyle(Color.appTextPrimary)
+                        .contentTransition(.numericText())
+                        .animation(.snappy, value: viewModel.totalCalories)
                     Text("calories eaten")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .font(.system(size: Theme.captionSize, weight: .medium))
+                        .foregroundStyle(Color.appTextSecondary)
                 }
                 Spacer()
             }
 
-            HStack(spacing: 20) {
-                macroItem("Protein", value: viewModel.totalProtein, color: .appProtein)
-                macroItem("Carbs", value: viewModel.totalCarbs, color: .appCarbs)
-                macroItem("Fat", value: viewModel.totalFat, color: .appFat)
+            // Macro pills
+            HStack(spacing: Theme.spacingMD) {
+                macroPill("Protein", value: viewModel.totalProtein, color: Color.appProteinColor)
+                macroPill("Carbs", value: viewModel.totalCarbs, color: Color.appCarbsColor)
+                macroPill("Fat", value: viewModel.totalFat, color: Color.appFatColor)
             }
         }
         .cardStyle()
-        .padding(.horizontal)
     }
 
-    private func macroItem(_ label: String, value: Double, color: Color) -> some View {
-        VStack(spacing: 4) {
+    private func macroPill(_ label: String, value: Double, color: Color) -> some View {
+        VStack(spacing: Theme.spacingXS) {
             Text(value.oneDecimal + "g")
-                .font(.headline)
+                .font(.system(size: Theme.bodySize, weight: .bold, design: .rounded))
                 .foregroundStyle(color)
             Text(label)
-                .font(.caption2)
-                .foregroundStyle(.secondary)
+                .font(.system(size: Theme.miniSize, weight: .medium))
+                .foregroundStyle(Color.appTextSecondary)
         }
         .frame(maxWidth: .infinity)
+        .padding(.vertical, Theme.spacingSM)
+        .background(color.opacity(0.1))
+        .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusSM))
     }
 
     // MARK: - Water Card
 
     private var waterCard: some View {
-        HStack {
+        HStack(spacing: Theme.spacingMD) {
             Image(systemName: "drop.fill")
-                .foregroundStyle(.appWater)
+                .font(.system(size: Theme.inlineIconSize))
+                .foregroundStyle(Color.appWaterColor)
+
             Text("\(viewModel.totalWaterML) mL")
-                .font(.headline)
+                .font(.system(size: Theme.subheadlineSize, weight: .bold, design: .rounded))
+                .foregroundStyle(Color.appTextPrimary)
+
             Spacer()
 
             ForEach([250, 500], id: \.self) { amount in
-                Button("+\(amount)") {
+                Button {
                     viewModel.addWater(amountML: amount, context: modelContext)
+                } label: {
+                    Text("+\(amount)")
+                        .font(.system(size: Theme.captionSize, weight: .semibold, design: .rounded))
+                        .foregroundStyle(Color.appWaterColor)
+                        .padding(.horizontal, Theme.spacingMD)
+                        .padding(.vertical, Theme.spacingXS)
+                        .background(Color.appWaterColor.opacity(0.15))
+                        .clipShape(Capsule())
                 }
-                .buttonStyle(.bordered)
-                .tint(.cyan)
-                .controlSize(.small)
+                .buttonStyle(.plain)
             }
         }
         .cardStyle()
-        .padding(.horizontal)
     }
 
     // MARK: - Meal Sections
@@ -133,28 +172,38 @@ struct FoodLogView: View {
         let entries = viewModel.entriesForMeal(mealType)
         let cals = viewModel.caloriesForMeal(mealType)
 
-        return VStack(alignment: .leading, spacing: 8) {
+        return VStack(alignment: .leading, spacing: Theme.spacingSM) {
+            // Meal header
             HStack {
                 Image(systemName: mealType.icon)
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(Color.appAccent)
                 Text(mealType.displayName)
-                    .font(.headline)
+                    .font(.system(size: Theme.subheadlineSize, weight: .bold))
+                    .foregroundStyle(Color.appTextPrimary)
                 Spacer()
                 Text("\(cals) kcal")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .font(.system(size: Theme.bodySize, weight: .medium, design: .rounded))
+                    .foregroundStyle(Color.appTextSecondary)
             }
-            .padding(.horizontal)
 
             if entries.isEmpty {
                 Text("No entries yet")
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
-                    .padding(.horizontal, 32)
+                    .font(.system(size: Theme.captionSize))
+                    .foregroundStyle(Color.appTextTertiary)
+                    .padding(.leading, Theme.spacingXL)
             } else {
-                ForEach(entries, id: \.id) { entry in
-                    foodRow(entry)
+                VStack(spacing: 0) {
+                    ForEach(entries, id: \.id) { entry in
+                        foodRow(entry)
+
+                        if entry.id != entries.last?.id {
+                            Divider()
+                                .background(Color.appCardSecondary)
+                        }
+                    }
                 }
+                .background(Color.appCardBackground)
+                .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusMD))
             }
         }
     }
@@ -163,22 +212,24 @@ struct FoodLogView: View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
                 Text(entry.name)
-                    .font(.subheadline)
+                    .font(.system(size: Theme.bodySize, weight: .medium))
+                    .foregroundStyle(Color.appTextPrimary)
                 Text(entry.servingSize)
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
+                    .font(.system(size: Theme.miniSize))
+                    .foregroundStyle(Color.appTextTertiary)
             }
             Spacer()
             VStack(alignment: .trailing, spacing: 2) {
                 Text("\(entry.calories) kcal")
-                    .font(.subheadline.bold())
+                    .font(.system(size: Theme.bodySize, weight: .bold, design: .rounded))
+                    .foregroundStyle(Color.appTextPrimary)
                 Text("P:\(entry.proteinG.oneDecimal) C:\(entry.carbsG.oneDecimal) F:\(entry.fatG.oneDecimal)")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
+                    .font(.system(size: Theme.miniSize))
+                    .foregroundStyle(Color.appTextTertiary)
             }
         }
-        .padding(.horizontal)
-        .padding(.vertical, 6)
+        .padding(.horizontal, Theme.spacingLG)
+        .padding(.vertical, Theme.spacingSM)
         .swipeActions(edge: .trailing) {
             Button(role: .destructive) {
                 viewModel.deleteFoodEntry(entry, context: modelContext)

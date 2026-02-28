@@ -23,12 +23,34 @@ final class UserProfile {
     var age: Int?
     var gender: String?
     var activityLevel: String?
+    var weightGoalKG: Double?
 
     // Preferences
     var useMetricUnits: Bool
     var darkModeEnabled: Bool
     var notificationsEnabled: Bool
     var healthKitEnabled: Bool
+
+    // Dashboard display preferences
+    var showWaterTracker: Bool
+    var showWorkoutSummary: Bool
+    var showStreakBadge: Bool
+    var showQuickActions: Bool
+    var showMacrosBreakdown: Bool
+
+    // Notification preferences
+    var breakfastReminderEnabled: Bool
+    var lunchReminderEnabled: Bool
+    var dinnerReminderEnabled: Bool
+    var workoutReminderEnabled: Bool
+    var breakfastReminderHour: Int
+    var breakfastReminderMinute: Int
+    var lunchReminderHour: Int
+    var lunchReminderMinute: Int
+    var dinnerReminderHour: Int
+    var dinnerReminderMinute: Int
+    var workoutReminderHour: Int
+    var workoutReminderMinute: Int
 
     // Streaks
     var currentStreak: Int
@@ -57,6 +79,23 @@ final class UserProfile {
         self.darkModeEnabled = false
         self.notificationsEnabled = true
         self.healthKitEnabled = false
+        self.showWaterTracker = true
+        self.showWorkoutSummary = true
+        self.showStreakBadge = true
+        self.showQuickActions = true
+        self.showMacrosBreakdown = true
+        self.breakfastReminderEnabled = true
+        self.lunchReminderEnabled = true
+        self.dinnerReminderEnabled = true
+        self.workoutReminderEnabled = true
+        self.breakfastReminderHour = 8
+        self.breakfastReminderMinute = 0
+        self.lunchReminderHour = 12
+        self.lunchReminderMinute = 0
+        self.dinnerReminderHour = 18
+        self.dinnerReminderMinute = 30
+        self.workoutReminderHour = 17
+        self.workoutReminderMinute = 0
         self.currentStreak = 0
         self.longestStreak = 0
         self.hasCompletedOnboarding = false

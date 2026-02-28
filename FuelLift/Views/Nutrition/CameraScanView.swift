@@ -9,27 +9,27 @@ struct CameraScanView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 20) {
+            VStack(spacing: Theme.spacingXL) {
                 if let image = scanVM.capturedImage {
                     // Show captured image
                     Image(uiImage: image)
                         .resizable()
                         .scaledToFit()
                         .frame(maxHeight: 300)
-                        .clipShape(RoundedRectangle(cornerRadius: 16))
-                        .padding(.horizontal)
+                        .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusLG))
+                        .padding(.horizontal, Theme.spacingLG)
 
                     if scanVM.isAnalyzing {
-                        VStack(spacing: 12) {
+                        VStack(spacing: Theme.spacingMD) {
                             ProgressView()
                                 .controlSize(.large)
+                                .tint(Color.appAccent)
                             Text("Analyzing your food...")
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
+                                .font(.system(size: Theme.bodySize))
+                                .foregroundStyle(Color.appTextSecondary)
                         }
-                        .padding()
+                        .padding(Theme.spacingLG)
                     } else if let nutrition = scanVM.scannedNutrition {
-                        // Show results
                         FoodDetailView(
                             nutrition: nutrition,
                             mealType: $scanVM.selectedMealType,
@@ -54,58 +54,70 @@ struct CameraScanView: View {
                     }
 
                     if !scanVM.isAnalyzing && scanVM.scannedNutrition == nil {
-                        Button("Analyze Photo") {
-                            Task { await scanVM.analyzePhoto() }
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .tint(.orange)
+                        VStack(spacing: Theme.spacingMD) {
+                            Button("Analyze Photo") {
+                                Task { await scanVM.analyzePhoto() }
+                            }
+                            .font(.system(size: Theme.subheadlineSize, weight: .bold))
+                            .frame(maxWidth: .infinity)
+                            .padding(Theme.spacingLG)
+                            .background(Color.appAccent)
+                            .foregroundStyle(.white)
+                            .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusMD))
+                            .padding(.horizontal, Theme.spacingXL)
 
-                        Button("Retake") {
-                            scanVM.reset()
+                            Button("Retake") {
+                                scanVM.reset()
+                            }
+                            .font(.system(size: Theme.bodySize, weight: .medium))
+                            .foregroundStyle(Color.appTextSecondary)
                         }
-                        .foregroundStyle(.secondary)
                     }
                 } else {
-                    // No image yet
-                    VStack(spacing: 16) {
+                    // No image yet — prompt
+                    Spacer()
+
+                    VStack(spacing: Theme.spacingLG) {
                         Image(systemName: "camera.viewfinder")
                             .font(.system(size: 80))
-                            .foregroundStyle(.orange.opacity(0.5))
+                            .foregroundStyle(Color.appAccent.opacity(0.5))
 
                         Text("Take a photo of your food")
-                            .font(.headline)
+                            .font(.system(size: Theme.headlineSize, weight: .bold))
+                            .foregroundStyle(Color.appTextPrimary)
 
                         Text("Our AI will estimate calories, protein, carbs, and fat.")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                            .font(.system(size: Theme.bodySize))
+                            .foregroundStyle(Color.appTextSecondary)
                             .multilineTextAlignment(.center)
-                            .padding(.horizontal, 40)
+                            .padding(.horizontal, Theme.spacingHuge)
 
                         Button {
                             showCamera = true
                         } label: {
                             Label("Open Camera", systemImage: "camera.fill")
-                                .font(.headline)
+                                .font(.system(size: Theme.subheadlineSize, weight: .bold))
                                 .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(.orange)
+                                .padding(Theme.spacingLG)
+                                .background(Color.appAccent)
                                 .foregroundStyle(.white)
-                                .clipShape(RoundedRectangle(cornerRadius: 14))
+                                .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusMD))
                         }
-                        .padding(.horizontal, 40)
+                        .padding(.horizontal, Theme.spacingHuge)
 
                         PhotoLibraryPicker(selectedImage: $scanVM.capturedImage)
                     }
-                    .padding(.top, 40)
-                }
 
-                Spacer()
+                    Spacer()
+                }
             }
+            .screenBackground()
             .navigationTitle("Scan Food")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Cancel") { dismiss() }
+                        .foregroundStyle(Color.appAccent)
                 }
             }
             .fullScreenCover(isPresented: $showCamera) {

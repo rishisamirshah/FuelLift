@@ -27,31 +27,57 @@ struct LeaderboardView: View {
                 }
             }
             .pickerStyle(.segmented)
-            .padding()
+            .padding(.horizontal, Theme.spacingLG)
+            .padding(.vertical, Theme.spacingMD)
 
-            List(sampleData, id: \.name) { entry in
-                HStack {
-                    // Rank
-                    ZStack {
-                        Circle()
-                            .fill(rankColor(entry.rank))
-                            .frame(width: 32, height: 32)
-                        Text("\(entry.rank)")
-                            .font(.subheadline.bold())
-                            .foregroundStyle(.white)
+            ScrollView {
+                VStack(spacing: Theme.spacingMD) {
+                    ForEach(sampleData, id: \.name) { entry in
+                        HStack(spacing: Theme.spacingMD) {
+                            // Rank badge
+                            ZStack {
+                                Circle()
+                                    .fill(rankColor(entry.rank))
+                                    .frame(width: 36, height: 36)
+                                Text("\(entry.rank)")
+                                    .font(.subheadline.bold())
+                                    .foregroundStyle(.white)
+                            }
+
+                            // Avatar placeholder
+                            ZStack {
+                                Circle()
+                                    .fill(Color.appCardSecondary)
+                                    .frame(width: 40, height: 40)
+                                Image(systemName: "person.fill")
+                                    .foregroundStyle(Color.appTextTertiary)
+                            }
+
+                            VStack(alignment: .leading, spacing: Theme.spacingXS) {
+                                Text(entry.name)
+                                    .font(.subheadline.bold())
+                                    .foregroundStyle(Color.appTextPrimary)
+                                if entry.rank == 1 {
+                                    Text("Leader")
+                                        .font(.system(size: Theme.miniSize, weight: .semibold))
+                                        .foregroundStyle(Color.yellow)
+                                }
+                            }
+
+                            Spacer()
+
+                            Text(entry.value)
+                                .font(.subheadline.bold())
+                                .foregroundStyle(Color.appAccent)
+                        }
+                        .cardStyle()
                     }
-
-                    Text(entry.name)
-                        .font(.subheadline)
-
-                    Spacer()
-
-                    Text(entry.value)
-                        .font(.subheadline.bold())
-                        .foregroundStyle(.orange)
                 }
+                .padding(.horizontal, Theme.spacingLG)
+                .padding(.bottom, Theme.spacingLG)
             }
         }
+        .screenBackground()
         .navigationTitle("Leaderboard")
         .navigationBarTitleDisplayMode(.inline)
     }
@@ -60,8 +86,8 @@ struct LeaderboardView: View {
         switch rank {
         case 1: return .yellow
         case 2: return .gray
-        case 3: return .brown
-        default: return Color(.systemGray4)
+        case 3: return .orange
+        default: return Color(UIColor.systemGray4)
         }
     }
 }

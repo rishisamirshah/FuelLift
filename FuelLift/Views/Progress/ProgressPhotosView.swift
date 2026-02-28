@@ -11,34 +11,59 @@ struct ProgressPhotosView: View {
     @State private var showCamera = false
     @State private var selectedImage: UIImage?
 
-    private let columns = [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())]
+    private let columns = [
+        GridItem(.flexible(), spacing: 4),
+        GridItem(.flexible(), spacing: 4),
+        GridItem(.flexible(), spacing: 4)
+    ]
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 16) {
-                Button {
-                    showCamera = true
-                } label: {
-                    Label("Take Progress Photo", systemImage: "camera.fill")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(.orange)
-                        .foregroundStyle(.white)
-                        .clipShape(RoundedRectangle(cornerRadius: 14))
+            VStack(spacing: Theme.spacingLG) {
+                // Upload CTA card
+                VStack(alignment: .leading, spacing: Theme.spacingMD) {
+                    Text("Progress Photos")
+                        .font(.system(size: Theme.subheadlineSize, weight: .bold))
+                        .foregroundStyle(Color.appTextPrimary)
+
+                    HStack(spacing: Theme.spacingMD) {
+                        Image(systemName: "person.crop.rectangle.badge.plus")
+                            .font(.system(size: 36))
+                            .foregroundStyle(Color.appTextTertiary)
+
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Want to add a photo to track your progress?")
+                                .font(.system(size: Theme.captionSize))
+                                .foregroundStyle(Color.appTextSecondary)
+
+                            Button {
+                                showCamera = true
+                            } label: {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "plus")
+                                        .font(.system(size: 12, weight: .bold))
+                                    Text("Upload a Photo")
+                                        .font(.system(size: Theme.captionSize, weight: .semibold))
+                                }
+                                .foregroundStyle(Color.appTextPrimary)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
                 }
-                .padding(.horizontal)
+                .cardStyle()
+                .padding(.horizontal, Theme.spacingLG)
 
                 if photosMetrics.isEmpty {
-                    VStack(spacing: 8) {
+                    VStack(spacing: Theme.spacingMD) {
                         Image(systemName: "photo.on.rectangle.angled")
                             .font(.system(size: 50))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Color.appTextTertiary)
                         Text("No progress photos yet")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                            .font(.system(size: Theme.captionSize))
+                            .foregroundStyle(Color.appTextSecondary)
                     }
-                    .padding(.top, 60)
+                    .padding(.top, Theme.spacingHuge)
                 } else {
                     LazyVGrid(columns: columns, spacing: 4) {
                         ForEach(photosMetrics, id: \.id) { metric in
@@ -51,20 +76,23 @@ struct ProgressPhotosView: View {
                                         .clipped()
 
                                     Text(metric.date.shortFormatted)
-                                        .font(.caption2.bold())
+                                        .font(.system(size: 10, weight: .bold))
+                                        .foregroundStyle(.white)
                                         .padding(4)
                                         .background(.ultraThinMaterial)
                                         .clipShape(RoundedRectangle(cornerRadius: 4))
                                         .padding(4)
                                 }
+                                .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusSM))
                             }
                         }
                     }
-                    .padding(.horizontal)
+                    .padding(.horizontal, Theme.spacingLG)
                 }
             }
-            .padding(.vertical)
+            .padding(.vertical, Theme.spacingLG)
         }
+        .screenBackground()
         .navigationTitle("Progress Photos")
         .fullScreenCover(isPresented: $showCamera) {
             CameraImagePicker(image: $selectedImage)

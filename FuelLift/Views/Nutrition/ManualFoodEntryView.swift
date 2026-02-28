@@ -15,81 +15,117 @@ struct ManualFoodEntryView: View {
 
     var body: some View {
         NavigationStack {
-            Form {
-                Section("Food Details") {
-                    TextField("Food name", text: $name)
+            ScrollView {
+                VStack(spacing: Theme.spacingLG) {
+                    // Food details section
+                    VStack(alignment: .leading, spacing: Theme.spacingMD) {
+                        Text("Food Details")
+                            .font(.system(size: Theme.subheadlineSize, weight: .bold))
+                            .foregroundStyle(Color.appTextPrimary)
 
-                    Picker("Meal", selection: $mealType) {
-                        ForEach(MealType.allCases) { type in
-                            Text(type.displayName).tag(type)
+                        formField(label: "Food name", text: $name, placeholder: "e.g. Chicken breast")
+
+                        // Meal type picker
+                        VStack(alignment: .leading, spacing: Theme.spacingXS) {
+                            Text("Meal")
+                                .font(.system(size: Theme.captionSize, weight: .bold))
+                                .foregroundStyle(Color.appTextSecondary)
+                            Picker("Meal", selection: $mealType) {
+                                ForEach(MealType.allCases) { type in
+                                    Text(type.displayName).tag(type)
+                                }
+                            }
+                            .pickerStyle(.segmented)
                         }
-                    }
 
-                    TextField("Serving size (e.g. 1 cup)", text: $servingSize)
+                        formField(label: "Serving size", text: $servingSize, placeholder: "e.g. 1 cup, 200g")
+                    }
+                    .cardStyle()
+
+                    // Nutrition section
+                    VStack(alignment: .leading, spacing: Theme.spacingMD) {
+                        Text("Nutrition")
+                            .font(.system(size: Theme.subheadlineSize, weight: .bold))
+                            .foregroundStyle(Color.appTextPrimary)
+
+                        nutrientRow(label: "Calories", text: $calories, unit: "kcal", color: Color.appCaloriesColor)
+                        nutrientRow(label: "Protein", text: $protein, unit: "g", color: Color.appProteinColor)
+                        nutrientRow(label: "Carbs", text: $carbs, unit: "g", color: Color.appCarbsColor)
+                        nutrientRow(label: "Fat", text: $fat, unit: "g", color: Color.appFatColor)
+                    }
+                    .cardStyle()
+
+                    // Save button
+                    Button {
+                        saveEntry()
+                    } label: {
+                        Text("Add to Log")
+                            .font(.system(size: Theme.subheadlineSize, weight: .bold))
+                            .frame(maxWidth: .infinity)
+                            .padding(Theme.spacingLG)
+                            .background(name.isEmpty ? Color.appTextTertiary : Color.appAccent)
+                            .foregroundStyle(.white)
+                            .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusMD))
+                    }
+                    .disabled(name.isEmpty)
                 }
-
-                Section("Nutrition") {
-                    HStack {
-                        Text("Calories")
-                        Spacer()
-                        TextField("0", text: $calories)
-                            .keyboardType(.numberPad)
-                            .multilineTextAlignment(.trailing)
-                            .frame(width: 100)
-                        Text("kcal")
-                            .foregroundStyle(.secondary)
-                    }
-
-                    HStack {
-                        Text("Protein")
-                        Spacer()
-                        TextField("0", text: $protein)
-                            .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
-                            .frame(width: 100)
-                        Text("g")
-                            .foregroundStyle(.secondary)
-                    }
-
-                    HStack {
-                        Text("Carbs")
-                        Spacer()
-                        TextField("0", text: $carbs)
-                            .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
-                            .frame(width: 100)
-                        Text("g")
-                            .foregroundStyle(.secondary)
-                    }
-
-                    HStack {
-                        Text("Fat")
-                        Spacer()
-                        TextField("0", text: $fat)
-                            .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
-                            .frame(width: 100)
-                        Text("g")
-                            .foregroundStyle(.secondary)
-                    }
-                }
+                .padding(Theme.spacingLG)
             }
+            .screenBackground()
             .navigationTitle("Add Food")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Cancel") { dismiss() }
-                }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Save") {
-                        saveEntry()
-                    }
-                    .bold()
-                    .disabled(name.isEmpty)
+                        .foregroundStyle(Color.appAccent)
                 }
             }
         }
     }
+
+    // MARK: - Components
+
+    private func formField(label: String, text: Binding<String>, placeholder: String) -> some View {
+        VStack(alignment: .leading, spacing: Theme.spacingXS) {
+            Text(label)
+                .font(.system(size: Theme.captionSize, weight: .bold))
+                .foregroundStyle(Color.appTextSecondary)
+            TextField(placeholder, text: text)
+                .font(.system(size: Theme.bodySize))
+                .foregroundStyle(Color.appTextPrimary)
+                .padding(Theme.spacingMD)
+                .background(Color.appCardSecondary)
+                .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusSM))
+        }
+    }
+
+    private func nutrientRow(label: String, text: Binding<String>, unit: String, color: Color) -> some View {
+        HStack {
+            Circle()
+                .fill(color)
+                .frame(width: 8, height: 8)
+            Text(label)
+                .font(.system(size: Theme.bodySize, weight: .medium))
+                .foregroundStyle(Color.appTextPrimary)
+            Spacer()
+            TextField("0", text: text)
+                .keyboardType(unit == "kcal" ? .numberPad : .decimalPad)
+                .multilineTextAlignment(.trailing)
+                .font(.system(size: Theme.bodySize, weight: .medium, design: .rounded))
+                .foregroundStyle(Color.appTextPrimary)
+                .frame(width: 80)
+                .padding(.horizontal, Theme.spacingSM)
+                .padding(.vertical, Theme.spacingXS)
+                .background(Color.appCardSecondary)
+                .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusSM))
+            Text(unit)
+                .font(.system(size: Theme.captionSize))
+                .foregroundStyle(Color.appTextSecondary)
+                .frame(width: 30, alignment: .leading)
+        }
+    }
+
+    // MARK: - Save
 
     private func saveEntry() {
         let entry = FoodEntry(
