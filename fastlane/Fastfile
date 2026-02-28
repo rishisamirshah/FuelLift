@@ -30,7 +30,7 @@ platform :ios do
       scheme: "FuelLift",
       export_method: "app-store",
       clean: true,
-      xcargs: "OPENAI_API_KEY='#{ENV["OPENAI_API_KEY"]}' ANTHROPIC_API_KEY='#{ENV["ANTHROPIC_API_KEY"]}' PROVISIONING_PROFILE_SPECIFIER='match AppStore com.fuellift.app' CODE_SIGN_IDENTITY='Apple Distribution' DEVELOPMENT_TEAM='#{ENV["DEVELOPMENT_TEAM"]}'"
+      xcargs: "OPENAI_API_KEY='#{ENV["OPENAI_API_KEY"]}' ANTHROPIC_API_KEY='#{ENV["ANTHROPIC_API_KEY"]}' DEVELOPMENT_TEAM='#{ENV["DEVELOPMENT_TEAM"]}'"
     )
 
     upload_to_testflight(
