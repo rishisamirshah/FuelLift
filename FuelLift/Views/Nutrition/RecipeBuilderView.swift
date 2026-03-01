@@ -58,7 +58,11 @@ struct RecipeBuilderView: View {
                     Button {
                         showAddIngredient = true
                     } label: {
-                        Label("Add Ingredient", systemImage: "plus")
+                        Label {
+                            Text("Add Ingredient")
+                        } icon: {
+                            Image("icon_plus").resizable().renderingMode(.original).frame(width: 20, height: 20)
+                        }
                     }
                 }
 

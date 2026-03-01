@@ -1,6 +1,6 @@
 # FuelLift Brain - Complete Project Context
 
-> Last updated: 2026-02-28 (v4 — AI Nutrition Plan feature)
+> Last updated: 2026-02-28 (v5 — Pixel Art Visual Overhaul)
 > Auto-maintained by "Update all" task
 
 ---
@@ -257,7 +257,7 @@ BadgeViewModel checks conditions → awardBadge() → confetti + toast.
 - **Signing:** Manual code signing on FuelLift target only (SPM packages use automatic). Match profile: "match AppStore com.fuellift.app"
 - **Workflows:** `testflight.yml` (auto deploy), `setup-certificates.yml` (one-time cert generation)
 - **Required GitHub Secrets:** ASC_KEY_ID, ASC_ISSUER_ID, ASC_PRIVATE_KEY, MATCH_PASSWORD, MATCH_GIT_URL, MATCH_GIT_AUTH, DEVELOPMENT_TEAM, ANTHROPIC_API_KEY, OPENAI_API_KEY
-- **App Icon:** Placeholder solid green 1024x1024 PNG (single-size format, Xcode generates all sizes)
+- **App Icon:** Pixel art lifter character, 1024x1024 PNG (single-size format, Xcode generates all sizes)
 - **Encryption compliance:** ITSAppUsesNonExemptEncryption=false (auto-skips compliance prompt)
 
 ---
@@ -270,7 +270,7 @@ BadgeViewModel checks conditions → awardBadge() → confetti + toast.
 - **OpenAI:** Requires OPENAI_API_KEY.
 - **Claude AI:** Anthropic API integrated for: workout planner, food photo/description analysis, plan refinement (multi-turn), AI nutrition plan calculator with dietary preference + target weight + workout frequency (key in Constants.swift).
 - **HealthKit:** Active (requires device support).
-- **UI:** Premium Cal AI + Strong aesthetic. System-adaptive light/dark with in-app dark mode toggle. All Theme design tokens.
+- **UI:** Retro pixel art aesthetic (orange on black, 8-bit sprites). 122 custom pixel art assets replace SF Symbols app-wide. System-adaptive light/dark with in-app dark mode toggle. All Theme design tokens.
 - **Build:** Compiles cleanly (0 errors). CI/CD fully operational — push to `main` auto-deploys to TestFlight.
 - **TestFlight:** Live, internal testing group set up with testers.
 
@@ -280,7 +280,25 @@ BadgeViewModel checks conditions → awardBadge() → confetti + toast.
 - Unused credential variable (AuthService)
 - "All interface orientations must be supported unless the app requires full screen" (build warning, non-blocking)
 
-### Recently Implemented (v4 — AI Nutrition Plan)
+### Recently Implemented (v5 — Pixel Art Visual Overhaul)
+- **122 pixel art assets generated** via Gemini Nano Banana — icons (51), badges (31), exercises (26), heroes (3), other (11)
+- **32 Swift files modified** — SF Symbols replaced with `Image("asset_name").resizable().renderingMode(.original).frame()` pattern
+- **App icon** — Pixel art lifter character replaces green placeholder
+- **Logo** — "FUEL [figure] LIFT" pixel art header in DashboardView
+- **Tab bar** — Pixel art house, chart, dumbbell, person icons
+- **All settings rows** — Every icon replaced with pixel art
+- **Onboarding** — 3 hero illustrations (scan food, workout, social) replace SF Symbol circles
+- **Login** — Pixel art logo replaces flame SF Symbol
+- **31 badge artworks** — Unique pixel art per badge (Rookie→phoenix, First Bite→godfather, etc.)
+- **26 exercise illustrations** — Every exercise has pixel art showing the movement
+- **Macro ring emojis** — 🥩→pixel meat, 🍞→pixel bread, 🧈→pixel butter
+- **Streak badge** — 🔥 emoji → pixel art flame (compact + expanded)
+- **Exercise detail** — Local pixel art shown first via ID mapping, API fallback preserved
+- **Badge system** — BadgeGridItem/BadgeDetailView/BadgeUnlockedOverlay all load custom images
+- **FAB** — Pixel art plus icon
+- **Image generation script** — `scripts/generate_image.py` with baked-in style prefix for consistent aesthetic
+
+### Previously Implemented (v4 — AI Nutrition Plan)
 - **NutritionPlanView** — In-depth single-page questionnaire replacing GoalSetupView for editing: body stats, goal cards, target weight, activity level + workouts/week stepper, dietary preference pills (Standard/High Protein/Low Carb/Keto/Vegetarian/Vegan), AI Generate button, all 4 editable macro fields, reset to defaults, sticky save button
 - **Dashboard quick action** — "AI Nutrition Plan" button added as full-width third action below Scan Food + Start Workout
 - **Enhanced ClaudeService prompt** — calculateNutritionGoals() now accepts dietaryPreference, targetWeightKG, workoutsPerWeek; uses Mifflin-St Jeor + dietary-specific macro ratios
@@ -289,22 +307,20 @@ BadgeViewModel checks conditions → awardBadge() → confetti + toast.
 - **FlowLayout** — Custom SwiftUI Layout for wrapping dietary preference pills
 - **GoalSetupView preserved** — Still used for onboarding wizard (unchanged)
 
-### Recently Implemented (v3 — CI/CD)
+### Previously Implemented (v3 — CI/CD)
 - **TestFlight pipeline** — Fully automated: push to main → GitHub Actions → Fastlane → TestFlight (~15 min)
 - **One-time cert setup workflow** — `setup-certificates.yml` generates Match certs without needing a Mac locally
 - **App icon asset catalog** — Created Assets.xcassets with placeholder AppIcon (single-size 1024x1024)
 - **Info.plist metadata** — Added all required keys: CFBundleIconName, UILaunchScreen, orientations, health descriptions, encryption compliance
 - **Per-target code signing** — Manual signing only on FuelLift target; SPM packages use automatic signing (fixes "conflicting provisioning settings")
 
-### Planned: Gemini Image Generation Integration
-- **Goal:** Let Claude Code generate app graphics (icons, splash screens, assets) programmatically via Google Gemini's image generation API (nano banana model)
-- **Approach:** Python script + Gemini API key
-  1. Get Gemini API key from Google AI Studio
-  2. Python script (`scripts/generate_image.py`) calls Gemini image generation endpoint
-  3. Claude Code invokes via Bash — takes prompt, saves PNG to specified path
-  4. Used for: app icon, onboarding illustrations, placeholder assets, marketing graphics
-- **Requirements:** Python installed, `GEMINI_API_KEY` environment variable or in Constants
-- **Status:** Not yet implemented — waiting on API key
+### Gemini Image Generation (Active)
+- **Script:** `scripts/generate_image.py` — Python, uses `google-genai` SDK
+- **Model:** Nano Banana (`gemini-2.5-flash-image`) — $0.039/image
+- **Style:** Chunky solid filled pixel art, orange/dark orange on black, white sparkle stars, retro 8-bit
+- **Usage:** `python generate_image.py "prompt" -o output.png -m nano`
+- **Models available:** `nano` (default, fast), `pro` (high quality), `nano2` (latest)
+- **Reference aesthetic:** `C:\Users\12147\Pictures\8d0397a0-e9f8-4270-9894-2a2296800244.jfif`
 
 ### Deferred Features (Next Implementation Cycle)
 - **Workout Sharing** — Export routines as shareable links/text, import shared workouts from others
@@ -328,4 +344,6 @@ BadgeViewModel checks conditions → awardBadge() → confetti + toast.
 | Services | 10 |
 | Utilities | 4 |
 | Resources | 5 |
+| Scripts | 1 |
+| Asset Images | 122 |
 | **Total Swift** | **94** |

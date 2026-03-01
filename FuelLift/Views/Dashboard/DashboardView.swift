@@ -21,9 +21,11 @@ struct DashboardView: View {
                     VStack(spacing: Theme.spacingXXL) {
                         // Header with streak
                         HStack {
-                            Text("FuelLift")
-                                .font(.system(size: Theme.titleSize, weight: .bold, design: .rounded))
-                                .foregroundStyle(Color.appTextPrimary)
+                            Image("logo_fuellift")
+                                .resizable()
+                                .renderingMode(.original)
+                                .scaledToFit()
+                                .frame(height: 40)
                             Spacer()
                             if profile?.showStreakBadge ?? true, viewModel.currentStreak > 0 {
                                 StreakBadge(count: viewModel.currentStreak, style: .compact)
@@ -46,15 +48,15 @@ struct DashboardView: View {
                         if profile?.showQuickActions ?? true {
                             VStack(spacing: Theme.spacingMD) {
                                 HStack(spacing: Theme.spacingMD) {
-                                    quickAction(icon: "camera.fill", label: "Scan Food") {
+                                    quickAction(iconName: "icon_camera", label: "Scan Food") {
                                         showCamera = true
                                     }
-                                    quickAction(icon: "dumbbell.fill", label: "Start Workout") {
+                                    quickAction(iconName: "icon_dumbbell", label: "Start Workout") {
                                         workoutVM.startWorkout()
                                         showActiveWorkout = true
                                     }
                                 }
-                                quickAction(icon: "wand.and.stars", label: "AI Nutrition Plan") {
+                                quickAction(iconName: "icon_wand_stars", label: "AI Nutrition Plan") {
                                     showNutritionPlan = true
                                 }
                             }
@@ -127,12 +129,13 @@ struct DashboardView: View {
 
     // MARK: - Quick Action Button
 
-    private func quickAction(icon: String, label: String, action: @escaping () -> Void) -> some View {
+    private func quickAction(iconName: String, label: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             HStack(spacing: Theme.spacingSM) {
-                Image(systemName: icon)
-                    .font(.system(size: Theme.inlineIconSize, weight: .semibold))
-                    .foregroundStyle(Color.appAccent)
+                Image(iconName)
+                    .resizable()
+                    .renderingMode(.original)
+                    .frame(width: 20, height: 20)
                 Text(label)
                     .font(.system(size: Theme.bodySize, weight: .semibold))
                     .foregroundStyle(Color.appTextPrimary)
@@ -150,8 +153,10 @@ struct DashboardView: View {
     private var waterCard: some View {
         VStack(alignment: .leading, spacing: Theme.spacingSM) {
             HStack {
-                Image(systemName: "drop.fill")
-                    .foregroundStyle(Color.appWaterColor)
+                Image("icon_water_drop")
+                    .resizable()
+                    .renderingMode(.original)
+                    .frame(width: 20, height: 20)
                 Text("Water")
                     .font(.system(size: Theme.subheadlineSize, weight: .bold))
                     .foregroundStyle(Color.appTextPrimary)
@@ -208,9 +213,10 @@ struct DashboardView: View {
 
             if viewModel.todayEntries.isEmpty {
                 VStack(spacing: Theme.spacingMD) {
-                    Image(systemName: "fork.knife.circle")
-                        .font(.system(size: 40))
-                        .foregroundStyle(Color.appTextTertiary)
+                    Image("icon_fork_knife")
+                        .resizable()
+                        .renderingMode(.original)
+                        .frame(width: 40, height: 40)
 
                     Text("Tap + to add your first meal of the day")
                         .font(.system(size: Theme.bodySize))
@@ -263,9 +269,10 @@ struct DashboardView: View {
 
                 // Calories
                 HStack(spacing: Theme.spacingXS) {
-                    Image(systemName: "flame.fill")
-                        .font(.system(size: 14))
-                        .foregroundStyle(Color.appCaloriesColor)
+                    Image("icon_fire_streak")
+                        .resizable()
+                        .renderingMode(.original)
+                        .frame(width: 16, height: 16)
                     Text("\(entry.calories) calories")
                         .font(.system(size: Theme.subheadlineSize, weight: .bold))
                         .foregroundStyle(Color.appTextPrimary)
@@ -273,9 +280,9 @@ struct DashboardView: View {
 
                 // Macro pills
                 HStack(spacing: Theme.spacingLG) {
-                    macroLabel(icon: "fork.knife", value: "\(Int(entry.proteinG))g", color: Color.appProteinColor)
-                    macroLabel(icon: "leaf.fill", value: "\(Int(entry.carbsG))g", color: Color.appCarbsColor)
-                    macroLabel(icon: "drop.fill", value: "\(Int(entry.fatG))g", color: Color.appFatColor)
+                    macroLabel(iconName: "icon_fork_knife", value: "\(Int(entry.proteinG))g")
+                    macroLabel(iconName: "icon_leaf", value: "\(Int(entry.carbsG))g")
+                    macroLabel(iconName: "icon_water_drop", value: "\(Int(entry.fatG))g")
                 }
             }
         }
@@ -284,11 +291,12 @@ struct DashboardView: View {
         .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusLG))
     }
 
-    private func macroLabel(icon: String, value: String, color: Color) -> some View {
+    private func macroLabel(iconName: String, value: String) -> some View {
         HStack(spacing: Theme.spacingXS) {
-            Image(systemName: icon)
-                .font(.system(size: 12))
-                .foregroundStyle(color)
+            Image(iconName)
+                .resizable()
+                .renderingMode(.original)
+                .frame(width: 14, height: 14)
             Text(value)
                 .font(.system(size: Theme.captionSize, weight: .medium))
                 .foregroundStyle(Color.appTextPrimary)

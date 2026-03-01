@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import UIKit
 import Charts
 
 struct ExerciseDetailView: View {
@@ -13,6 +14,15 @@ struct ExerciseDetailView: View {
     @State private var isLoadingImage = false
 
     private let tabs = ["About", "History", "Charts", "Records"]
+
+    /// Local pixel art asset name derived from exercise ID (e.g. "bench-press" → "exercise_bench_press")
+    private var localExerciseImageName: String {
+        "exercise_\(exercise.id.replacingOccurrences(of: "-", with: "_"))"
+    }
+
+    private var hasLocalExerciseImage: Bool {
+        UIImage(named: localExerciseImageName) != nil
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -63,8 +73,15 @@ struct ExerciseDetailView: View {
     @ViewBuilder
     private var aboutTab: some View {
         VStack(alignment: .leading, spacing: Theme.spacingLG) {
-            // Exercise demonstration image
-            if isLoadingImage {
+            // Exercise demonstration image — prefer local pixel art, then API, then placeholder
+            if hasLocalExerciseImage {
+                Image(localExerciseImageName)
+                    .resizable()
+                    .interpolation(.none)
+                    .aspectRatio(contentMode: .fit)
+                    .frame(maxWidth: .infinity, maxHeight: 250)
+                    .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusMD))
+            } else if isLoadingImage {
                 ProgressView()
                     .frame(maxWidth: .infinity)
                     .frame(height: 200)
@@ -93,7 +110,14 @@ struct ExerciseDetailView: View {
 
             HStack(spacing: Theme.spacingMD) {
                 Label(exercise.muscleGroup, systemImage: "figure.strengthtraining.traditional")
-                Label(exercise.equipment, systemImage: "dumbbell")
+                Label {
+                    Text(exercise.equipment)
+                } icon: {
+                    Image("icon_dumbbell")
+                        .resizable()
+                        .renderingMode(.original)
+                        .frame(width: 20, height: 20)
+                }
             }
             .font(.system(size: Theme.captionSize))
             .foregroundStyle(Color.appTextSecondary)
@@ -127,9 +151,10 @@ struct ExerciseDetailView: View {
 
     private var exercisePlaceholder: some View {
         VStack(spacing: Theme.spacingSM) {
-            Image(systemName: "dumbbell.fill")
-                .font(.system(size: 40))
-                .foregroundStyle(Color.appTextTertiary)
+            Image("icon_dumbbell")
+                .resizable()
+                .renderingMode(.original)
+                .frame(width: 48, height: 48)
             Text("No image available")
                 .font(.system(size: Theme.captionSize))
                 .foregroundStyle(Color.appTextTertiary)

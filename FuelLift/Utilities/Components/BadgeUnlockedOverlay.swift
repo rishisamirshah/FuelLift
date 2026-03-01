@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import ConfettiSwiftUI
 
 struct BadgeUnlockedOverlay: View {
@@ -8,6 +9,10 @@ struct BadgeUnlockedOverlay: View {
     @State private var iconScale: CGFloat = 0.3
     @State private var textOpacity: Double = 0.0
     @State private var confettiCounter: Int = 0
+
+    private var definition: BadgeDefinition? {
+        BadgeDefinition.all.first { $0.key.rawValue == badge.key }
+    }
 
     var body: some View {
         ZStack {
@@ -21,13 +26,21 @@ struct BadgeUnlockedOverlay: View {
 
                 // Badge icon with scale animation
                 ZStack {
-                    Circle()
-                        .fill(Color.appBadgeEarned.opacity(0.2))
-                        .frame(width: 160, height: 160)
+                    if let def = definition, def.hasCustomImage, let imgName = def.imageName {
+                        // Custom pixel art badge
+                        Image(imgName)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 160, height: 160)
+                    } else {
+                        Circle()
+                            .fill(Color.appBadgeEarned.opacity(0.2))
+                            .frame(width: 160, height: 160)
 
-                    Image(systemName: badge.iconName)
-                        .font(.system(size: 72))
-                        .foregroundStyle(Color.appBadgeEarned)
+                        Image(systemName: badge.iconName)
+                            .font(.system(size: 72))
+                            .foregroundStyle(Color.appBadgeEarned)
+                    }
                 }
                 .scaleEffect(iconScale)
                 .confettiCannon(counter: $confettiCounter, num: 50, radius: 300)

@@ -2,7 +2,7 @@ import SwiftUI
 
 struct FloatingActionButton: View {
     let action: () -> Void
-    var icon: String = "plus"
+    var pixelIcon: String = "icon_plus"
     var size: CGFloat = 56
 
     @State private var isPressed = false
@@ -19,9 +19,10 @@ struct FloatingActionButton: View {
                     .frame(width: size, height: size)
                     .shadow(color: Color.appAccent.opacity(0.4), radius: 8, y: 4)
 
-                Image(systemName: icon)
-                    .font(.system(size: size * 0.38, weight: .semibold))
-                    .foregroundStyle(.white)
+                Image(pixelIcon)
+                    .resizable()
+                    .renderingMode(.original)
+                    .frame(width: size * 0.38, height: size * 0.38)
             }
         }
         .buttonStyle(FABButtonStyle())

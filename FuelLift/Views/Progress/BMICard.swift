@@ -33,9 +33,10 @@ struct BMICard: View {
                     .font(.system(size: Theme.subheadlineSize, weight: .bold))
                     .foregroundStyle(Color.appTextPrimary)
                 Spacer()
-                Image(systemName: "info.circle")
-                    .font(.system(size: 16))
-                    .foregroundStyle(Color.appTextTertiary)
+                Image("icon_info")
+                    .resizable()
+                    .renderingMode(.original)
+                    .frame(width: 20, height: 20)
             }
 
             // BMI value + category

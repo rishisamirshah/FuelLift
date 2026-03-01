@@ -11,9 +11,11 @@ struct LoginView: View {
 
                 // Logo
                 VStack(spacing: Theme.spacingMD) {
-                    Image(systemName: "flame.fill")
-                        .font(.system(size: 80))
-                        .foregroundStyle(Color.appAccent.gradient)
+                    Image("logo_fuellift")
+                        .resizable()
+                        .renderingMode(.original)
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 80, height: 80)
 
                     Text("FuelLift")
                         .font(.system(size: Theme.titleSize, weight: .bold))

@@ -51,9 +51,9 @@ struct FoodDescriptionView: View {
                     } else {
                         // Text input state
                         VStack(spacing: Theme.spacingLG) {
-                            Image(systemName: "text.bubble")
-                                .font(.system(size: 48))
-                                .foregroundStyle(Color.appAccent.opacity(0.5))
+                            Image("icon_text_bubble").resizable().renderingMode(.original)
+                                .frame(width: 48, height: 48)
+                                .opacity(0.5)
                                 .padding(.top, Theme.spacingHuge)
 
                             Text("Describe what you ate")
@@ -90,8 +90,12 @@ struct FoodDescriptionView: View {
                         Button {
                             Task { await scanVM.analyzeDescription() }
                         } label: {
-                            Label("Analyze with AI", systemImage: "sparkles")
-                                .font(.system(size: Theme.subheadlineSize, weight: .bold))
+                            Label {
+                                Text("Analyze with AI")
+                                    .font(.system(size: Theme.subheadlineSize, weight: .bold))
+                            } icon: {
+                                Image("icon_wand_stars").resizable().renderingMode(.original).frame(width: 24, height: 24)
+                            }
                                 .frame(maxWidth: .infinity)
                                 .padding(Theme.spacingLG)
                                 .background(Color.appAccent)

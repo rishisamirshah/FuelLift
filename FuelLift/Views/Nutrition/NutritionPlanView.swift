@@ -135,9 +135,8 @@ struct NutritionPlanView: View {
                             }
                             Spacer()
                             if goal == g {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundStyle(Color.appAccent)
-                                    .font(.title3)
+                                Image("icon_checkmark_circle").resizable().renderingMode(.original)
+                                    .frame(width: 24, height: 24)
                             }
                         }
                         .padding(Theme.spacingLG)
@@ -248,7 +247,7 @@ struct NutritionPlanView: View {
                         ProgressView()
                             .tint(.white)
                     } else {
-                        Image(systemName: "wand.and.stars")
+                        Image("icon_wand_stars").resizable().renderingMode(.original).frame(width: 24, height: 24)
                     }
                     Text("Generate My Plan")
                         .font(.system(size: Theme.bodySize, weight: .bold))

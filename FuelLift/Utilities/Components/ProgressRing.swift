@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct ProgressRing: View {
     let progress: Double
@@ -95,6 +96,27 @@ struct MacroRing: View {
         return current / goal
     }
 
+    /// Maps macro emoji to a local pixel art asset, falling back to the emoji text.
+    @ViewBuilder
+    private var macroIcon: some View {
+        let assetName: String? = switch emoji {
+        case "\u{1F969}": "icon_meat_protein"   // 🥩
+        case "\u{1F35E}": "icon_bread_carbs"    // 🍞
+        case "\u{1F9C8}": "icon_butter_fat"     // 🧈
+        default: nil
+        }
+
+        if let assetName, UIImage(named: assetName) != nil {
+            Image(assetName)
+                .resizable()
+                .interpolation(.none)
+                .aspectRatio(contentMode: .fit)
+        } else {
+            Text(emoji)
+                .font(.system(size: size * 0.35))
+        }
+    }
+
     var body: some View {
         VStack(spacing: Theme.spacingSM) {
             ZStack {
@@ -105,8 +127,8 @@ struct MacroRing: View {
                     size: size
                 )
 
-                Text(emoji)
-                    .font(.system(size: size * 0.35))
+                macroIcon
+                    .frame(width: size * 0.45, height: size * 0.45)
             }
 
             VStack(spacing: 2) {

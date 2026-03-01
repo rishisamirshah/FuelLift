@@ -37,16 +37,44 @@ struct WorkoutHistoryCard: View {
 
             // Stats row
             HStack(spacing: Theme.spacingLG) {
-                Label(workout.durationFormatted, systemImage: "clock")
+                Label {
+                    Text(workout.durationFormatted)
+                } icon: {
+                    Image("icon_clock")
+                        .resizable()
+                        .renderingMode(.original)
+                        .frame(width: 20, height: 20)
+                }
 
-                Label("\(Int(workout.totalVolume).formattedWithComma) lb", systemImage: "scalemass")
+                Label {
+                    Text("\(Int(workout.totalVolume).formattedWithComma) lb")
+                } icon: {
+                    Image("icon_scale")
+                        .resizable()
+                        .renderingMode(.original)
+                        .frame(width: 20, height: 20)
+                }
 
                 let prCount = exerciseGroups.flatMap(\.sets).filter(\.isPersonalRecord).count
                 if prCount > 0 {
-                    Label("\(prCount) PRs", systemImage: "trophy.fill")
-                        .foregroundStyle(Color.appPRWeight)
+                    Label {
+                        Text("\(prCount) PRs")
+                    } icon: {
+                        Image("icon_trophy")
+                            .resizable()
+                            .renderingMode(.original)
+                            .frame(width: 20, height: 20)
+                    }
+                    .foregroundStyle(Color.appPRWeight)
                 } else {
-                    Label("0 PRs", systemImage: "trophy")
+                    Label {
+                        Text("0 PRs")
+                    } icon: {
+                        Image("icon_trophy")
+                            .resizable()
+                            .renderingMode(.original)
+                            .frame(width: 20, height: 20)
+                    }
                 }
             }
             .font(.system(size: Theme.captionSize))

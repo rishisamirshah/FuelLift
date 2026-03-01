@@ -42,9 +42,11 @@ struct WorkoutCalendarView: View {
                         displayedMonth = calendar.date(byAdding: .month, value: -1, to: displayedMonth) ?? displayedMonth
                     }
                 } label: {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: Theme.subheadlineSize, weight: .semibold))
-                        .foregroundStyle(Color.appTextSecondary)
+                    Image("icon_chevron_right")
+                        .resizable()
+                        .renderingMode(.original)
+                        .frame(width: 20, height: 20)
+                        .scaleEffect(x: -1, y: 1)
                 }
 
                 Spacer()
@@ -60,9 +62,10 @@ struct WorkoutCalendarView: View {
                         displayedMonth = calendar.date(byAdding: .month, value: 1, to: displayedMonth) ?? displayedMonth
                     }
                 } label: {
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: Theme.subheadlineSize, weight: .semibold))
-                        .foregroundStyle(Color.appTextSecondary)
+                    Image("icon_chevron_right")
+                        .resizable()
+                        .renderingMode(.original)
+                        .frame(width: 20, height: 20)
                 }
             }
             .padding(.horizontal, Theme.spacingSM)
@@ -115,9 +118,10 @@ struct WorkoutCalendarView: View {
             }
 
             if hasWorkout {
-                Image(systemName: "checkmark.circle.fill")
-                    .font(.system(size: 14))
-                    .foregroundStyle(Color.appWorkoutGreen)
+                Image("icon_checkmark_circle")
+                    .resizable()
+                    .renderingMode(.original)
+                    .frame(width: 14, height: 14)
             } else {
                 Color.clear.frame(height: 14)
             }

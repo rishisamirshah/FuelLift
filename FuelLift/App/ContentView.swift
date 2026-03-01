@@ -10,12 +10,12 @@ struct ContentView: View {
         case workout = "Workout"
         case profile = "Profile"
 
-        var icon: String {
+        var iconName: String {
             switch self {
-            case .home: return "house.fill"
-            case .progress: return "chart.bar.fill"
-            case .workout: return "dumbbell.fill"
-            case .profile: return "person.fill"
+            case .home: return "icon_house"
+            case .progress: return "icon_chart_bar"
+            case .workout: return "icon_dumbbell"
+            case .profile: return "icon_person"
             }
         }
     }
@@ -25,25 +25,53 @@ struct ContentView: View {
             TabView(selection: $selectedTab) {
                 DashboardView()
                     .tabItem {
-                        Label(Tab.home.rawValue, systemImage: Tab.home.icon)
+                        Label {
+                            Text(Tab.home.rawValue)
+                        } icon: {
+                            Image(Tab.home.iconName)
+                                .resizable()
+                                .renderingMode(.original)
+                                .frame(width: 25, height: 25)
+                        }
                     }
                     .tag(Tab.home)
 
                 ProgressDashboardView()
                     .tabItem {
-                        Label(Tab.progress.rawValue, systemImage: Tab.progress.icon)
+                        Label {
+                            Text(Tab.progress.rawValue)
+                        } icon: {
+                            Image(Tab.progress.iconName)
+                                .resizable()
+                                .renderingMode(.original)
+                                .frame(width: 25, height: 25)
+                        }
                     }
                     .tag(Tab.progress)
 
                 WorkoutListView()
                     .tabItem {
-                        Label(Tab.workout.rawValue, systemImage: Tab.workout.icon)
+                        Label {
+                            Text(Tab.workout.rawValue)
+                        } icon: {
+                            Image(Tab.workout.iconName)
+                                .resizable()
+                                .renderingMode(.original)
+                                .frame(width: 25, height: 25)
+                        }
                     }
                     .tag(Tab.workout)
 
                 SettingsView()
                     .tabItem {
-                        Label(Tab.profile.rawValue, systemImage: Tab.profile.icon)
+                        Label {
+                            Text(Tab.profile.rawValue)
+                        } icon: {
+                            Image(Tab.profile.iconName)
+                                .resizable()
+                                .renderingMode(.original)
+                                .frame(width: 25, height: 25)
+                        }
                     }
                     .tag(Tab.profile)
             }

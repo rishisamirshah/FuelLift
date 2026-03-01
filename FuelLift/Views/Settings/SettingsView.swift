@@ -26,9 +26,10 @@ struct SettingsView: View {
                             Circle()
                                 .fill(Color.appCardSecondary)
                                 .frame(width: 56, height: 56)
-                            Image(systemName: "person.fill")
-                                .font(.system(size: 24))
-                                .foregroundStyle(Color.appTextSecondary)
+                            Image("icon_person")
+                                .resizable()
+                                .renderingMode(.original)
+                                .frame(width: 24, height: 24)
                         }
 
                         VStack(alignment: .leading, spacing: 2) {
@@ -42,9 +43,10 @@ struct SettingsView: View {
 
                         Spacer()
 
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundStyle(Color.appTextTertiary)
+                        Image("icon_chevron_right")
+                            .resizable()
+                            .renderingMode(.original)
+                            .frame(width: 12, height: 12)
                     }
                     .padding(Theme.spacingLG)
                     .background(Color.appCardBackground)
@@ -58,15 +60,15 @@ struct SettingsView: View {
                     .padding(.horizontal, Theme.spacingLG)
 
                 VStack(spacing: 0) {
-                    settingsRow(icon: "person.text.rectangle", title: "Personal Details") {
+                    settingsRow(pixelIcon: "icon_person", title: "Personal Details") {
                         ProfileEditView()
                     }
                     divider()
-                    settingsRow(icon: "gearshape", title: "Preferences") {
+                    settingsRow(pixelIcon: "icon_gear", title: "Preferences") {
                         NotificationSettingsView()
                     }
                     divider()
-                    settingsRow(icon: "ruler", title: "Units") {
+                    settingsRow(pixelIcon: "icon_ruler", title: "Units") {
                         UnitsSettingsView()
                     }
                 }
@@ -80,10 +82,10 @@ struct SettingsView: View {
 
                 VStack(spacing: 0) {
                     HStack(spacing: Theme.spacingMD) {
-                        Image(systemName: "moon.fill")
-                            .font(.system(size: 16))
-                            .foregroundStyle(Color.appAccent)
-                            .frame(width: 24)
+                        Image("icon_moon")
+                            .resizable()
+                            .renderingMode(.original)
+                            .frame(width: 20, height: 20)
                         Text("Dark Mode")
                             .font(.system(size: Theme.bodySize, weight: .medium))
                             .foregroundStyle(Color.appTextPrimary)
@@ -110,31 +112,31 @@ struct SettingsView: View {
                     .padding(.horizontal, Theme.spacingLG)
 
                 VStack(spacing: 0) {
-                    dashboardToggle("Streak Badge", icon: "flame.fill", color: Color.appStreakColor,
+                    dashboardToggle("Streak Badge", pixelIcon: "icon_fire_streak",
                                     isOn: Binding(
                                         get: { profile?.showStreakBadge ?? true },
                                         set: { profile?.showStreakBadge = $0; try? modelContext.save() }
                                     ))
                     divider()
-                    dashboardToggle("Quick Actions", icon: "bolt.fill", color: Color.appAccent,
+                    dashboardToggle("Quick Actions", pixelIcon: "icon_bolt",
                                     isOn: Binding(
                                         get: { profile?.showQuickActions ?? true },
                                         set: { profile?.showQuickActions = $0; try? modelContext.save() }
                                     ))
                     divider()
-                    dashboardToggle("Macros Breakdown", icon: "chart.pie.fill", color: Color.appProteinColor,
+                    dashboardToggle("Macros Breakdown", pixelIcon: "icon_pie_chart",
                                     isOn: Binding(
                                         get: { profile?.showMacrosBreakdown ?? true },
                                         set: { profile?.showMacrosBreakdown = $0; try? modelContext.save() }
                                     ))
                     divider()
-                    dashboardToggle("Water Tracker", icon: "drop.fill", color: Color.appWaterColor,
+                    dashboardToggle("Water Tracker", pixelIcon: "icon_water_drop",
                                     isOn: Binding(
                                         get: { profile?.showWaterTracker ?? true },
                                         set: { profile?.showWaterTracker = $0; try? modelContext.save() }
                                     ))
                     divider()
-                    dashboardToggle("Workout Summary", icon: "dumbbell.fill", color: Color.appWorkoutGreen,
+                    dashboardToggle("Workout Summary", pixelIcon: "icon_dumbbell",
                                     isOn: Binding(
                                         get: { profile?.showWorkoutSummary ?? true },
                                         set: { profile?.showWorkoutSummary = $0; try? modelContext.save() }
@@ -151,10 +153,10 @@ struct SettingsView: View {
                 VStack(spacing: 0) {
                     // Apple Health row
                     HStack(spacing: Theme.spacingMD) {
-                        Image(systemName: "heart.fill")
-                            .font(.system(size: 16))
-                            .foregroundStyle(Color.appFatColor)
-                            .frame(width: 24)
+                        Image("icon_heart")
+                            .resizable()
+                            .renderingMode(.original)
+                            .frame(width: 20, height: 20)
                         Text("Apple Health")
                             .font(.system(size: Theme.bodySize, weight: .medium))
                             .foregroundStyle(Color.appTextPrimary)
@@ -173,13 +175,13 @@ struct SettingsView: View {
 
                     divider()
 
-                    settingsRow(icon: "target", title: "Edit Nutrition Goals") {
+                    settingsRow(pixelIcon: "icon_target", title: "Edit Nutrition Goals") {
                         NutritionPlanView()
                     }
 
                     divider()
 
-                    settingsRow(icon: "bell.fill", title: "Notifications") {
+                    settingsRow(pixelIcon: "icon_bell", title: "Notifications") {
                         NotificationSettingsView()
                     }
                 }
@@ -192,7 +194,7 @@ struct SettingsView: View {
                     .padding(.horizontal, Theme.spacingLG)
 
                 VStack(spacing: 0) {
-                    settingsRow(icon: "person.2.fill", title: "Groups") {
+                    settingsRow(pixelIcon: "icon_person_group", title: "Groups") {
                         GroupsListView()
                     }
                 }
@@ -283,22 +285,23 @@ struct SettingsView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    private func settingsRow<Destination: View>(icon: String, title: String, @ViewBuilder destination: () -> Destination) -> some View {
+    private func settingsRow<Destination: View>(pixelIcon: String, title: String, @ViewBuilder destination: () -> Destination) -> some View {
         NavigationLink {
             destination()
         } label: {
             HStack(spacing: Theme.spacingMD) {
-                Image(systemName: icon)
-                    .font(.system(size: 16))
-                    .foregroundStyle(Color.appTextSecondary)
-                    .frame(width: 24)
+                Image(pixelIcon)
+                    .resizable()
+                    .renderingMode(.original)
+                    .frame(width: 20, height: 20)
                 Text(title)
                     .font(.system(size: Theme.bodySize, weight: .medium))
                     .foregroundStyle(Color.appTextPrimary)
                 Spacer()
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(Color.appTextTertiary)
+                Image("icon_chevron_right")
+                    .resizable()
+                    .renderingMode(.original)
+                    .frame(width: 12, height: 12)
             }
             .padding(.horizontal, Theme.spacingLG)
             .padding(.vertical, Theme.spacingMD)
@@ -306,12 +309,12 @@ struct SettingsView: View {
         .buttonStyle(.plain)
     }
 
-    private func dashboardToggle(_ title: String, icon: String, color: Color, isOn: Binding<Bool>) -> some View {
+    private func dashboardToggle(_ title: String, pixelIcon: String, isOn: Binding<Bool>) -> some View {
         HStack(spacing: Theme.spacingMD) {
-            Image(systemName: icon)
-                .font(.system(size: 16))
-                .foregroundStyle(color)
-                .frame(width: 24)
+            Image(pixelIcon)
+                .resizable()
+                .renderingMode(.original)
+                .frame(width: 20, height: 20)
             Text(title)
                 .font(.system(size: Theme.bodySize, weight: .medium))
                 .foregroundStyle(Color.appTextPrimary)

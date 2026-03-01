@@ -39,8 +39,8 @@ struct MealHistoryView: View {
                                 .foregroundStyle(Color.appTextSecondary)
                         }
                         Spacer()
-                        Image(systemName: "plus.circle")
-                            .foregroundStyle(Color.appAccent)
+                        Image("icon_plus_circle").resizable().renderingMode(.original)
+                            .frame(width: 24, height: 24)
                     }
                 }
                 .buttonStyle(.plain)

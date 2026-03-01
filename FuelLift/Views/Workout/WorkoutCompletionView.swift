@@ -29,9 +29,10 @@ struct WorkoutCompletionView: View {
                         .fill(Color.appWorkoutGreen.opacity(0.2))
                         .frame(width: 120, height: 120)
 
-                    Image(systemName: "trophy.fill")
-                        .font(.system(size: 56))
-                        .foregroundStyle(Color.appWorkoutGreen)
+                    Image("icon_trophy")
+                        .resizable()
+                        .renderingMode(.original)
+                        .frame(width: 72, height: 72)
                 }
                 .scaleEffect(trophyScale)
                 .confettiCannon(counter: $confettiCounter, num: 50, radius: 300)
@@ -54,10 +55,10 @@ struct WorkoutCompletionView: View {
                     GridItem(.flexible(), spacing: Theme.spacingMD),
                     GridItem(.flexible(), spacing: Theme.spacingMD)
                 ], spacing: Theme.spacingMD) {
-                    statCard(icon: "timer", label: "Duration", value: data.duration)
+                    pixelStatCard(iconName: "icon_timer", label: "Duration", value: data.duration)
                     statCard(icon: "figure.strengthtraining.traditional", label: "Exercises", value: "\(data.exerciseCount)")
-                    statCard(icon: "checkmark.circle.fill", label: "Sets", value: "\(data.totalSets)")
-                    statCard(icon: "scalemass.fill", label: "Volume", value: "\(Int(data.totalVolume).formattedWithComma) lb")
+                    pixelStatCard(iconName: "icon_checkmark_circle", label: "Sets", value: "\(data.totalSets)")
+                    pixelStatCard(iconName: "icon_scale", label: "Volume", value: "\(Int(data.totalVolume).formattedWithComma) lb")
                 }
                 .padding(.horizontal, Theme.spacingLG)
                 .opacity(statsOpacity)
@@ -73,9 +74,10 @@ struct WorkoutCompletionView: View {
 
                         ForEach(data.personalRecords, id: \.self) { exercise in
                             HStack(spacing: Theme.spacingSM) {
-                                Image(systemName: "trophy.fill")
-                                    .foregroundStyle(Color.appPRWeight)
-                                    .font(.system(size: Theme.subheadlineSize))
+                                Image("icon_trophy")
+                                    .resizable()
+                                    .renderingMode(.original)
+                                    .frame(width: 20, height: 20)
 
                                 Text(exercise)
                                     .font(.system(size: Theme.bodySize, weight: .semibold))
@@ -161,6 +163,29 @@ struct WorkoutCompletionView: View {
             Image(systemName: icon)
                 .font(.system(size: Theme.headlineSize))
                 .foregroundStyle(Color.appWorkoutGreen)
+
+            Text(value)
+                .font(.system(size: Theme.headlineSize, weight: .bold))
+                .foregroundStyle(Color.appTextPrimary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+
+            Text(label)
+                .font(.system(size: Theme.captionSize))
+                .foregroundStyle(Color.appTextSecondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, Theme.spacingLG)
+        .background(Color.appCardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusLG))
+    }
+
+    private func pixelStatCard(iconName: String, label: String, value: String) -> some View {
+        VStack(spacing: Theme.spacingSM) {
+            Image(iconName)
+                .resizable()
+                .renderingMode(.original)
+                .frame(width: 24, height: 24)
 
             Text(value)
                 .font(.system(size: Theme.headlineSize, weight: .bold))

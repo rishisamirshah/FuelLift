@@ -90,8 +90,10 @@ struct WeightEditorView: View {
                     }
                 } label: {
                     HStack {
-                        Image(systemName: "target")
-                            .foregroundStyle(Color.appAccent)
+                        Image("icon_target")
+                            .resizable()
+                            .renderingMode(.original)
+                            .frame(width: 20, height: 20)
                         Text("Set Weight Goal")
                             .font(.system(size: Theme.bodySize, weight: .semibold))
                             .foregroundStyle(Color.appTextPrimary)

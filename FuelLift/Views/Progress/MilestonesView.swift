@@ -24,9 +24,10 @@ struct MilestonesView: View {
 
                     // Badges earned count
                     VStack(spacing: Theme.spacingSM) {
-                        Image(systemName: "medal.fill")
-                            .font(.system(size: 44))
-                            .foregroundStyle(Color.appTextSecondary)
+                        Image("icon_medal")
+                            .resizable()
+                            .renderingMode(.original)
+                            .frame(width: 44, height: 44)
 
                         Text("\(earnedCount)")
                             .font(.system(size: 28, weight: .bold, design: .rounded))

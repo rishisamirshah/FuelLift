@@ -27,9 +27,10 @@ struct ProgressPhotosView: View {
                         .foregroundStyle(Color.appTextPrimary)
 
                     HStack(spacing: Theme.spacingMD) {
-                        Image(systemName: "person.crop.rectangle.badge.plus")
-                            .font(.system(size: 36))
-                            .foregroundStyle(Color.appTextTertiary)
+                        Image("icon_photo_frame")
+                            .resizable()
+                            .renderingMode(.original)
+                            .frame(width: 36, height: 36)
 
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Want to add a photo to track your progress?")
@@ -40,8 +41,10 @@ struct ProgressPhotosView: View {
                                 showCamera = true
                             } label: {
                                 HStack(spacing: 4) {
-                                    Image(systemName: "plus")
-                                        .font(.system(size: 12, weight: .bold))
+                                    Image("icon_plus")
+                                        .resizable()
+                                        .renderingMode(.original)
+                                        .frame(width: 12, height: 12)
                                     Text("Upload a Photo")
                                         .font(.system(size: Theme.captionSize, weight: .semibold))
                                 }
@@ -56,9 +59,10 @@ struct ProgressPhotosView: View {
 
                 if photosMetrics.isEmpty {
                     VStack(spacing: Theme.spacingMD) {
-                        Image(systemName: "photo.on.rectangle.angled")
-                            .font(.system(size: 50))
-                            .foregroundStyle(Color.appTextTertiary)
+                        Image("icon_photo_frame")
+                            .resizable()
+                            .renderingMode(.original)
+                            .frame(width: 48, height: 48)
                         Text("No progress photos yet")
                             .font(.system(size: Theme.captionSize))
                             .foregroundStyle(Color.appTextSecondary)

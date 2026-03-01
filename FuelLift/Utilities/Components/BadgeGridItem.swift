@@ -44,9 +44,11 @@ struct BadgeGridItem: View {
                         .fill(Color.appBadgeLocked.opacity(0.12))
                         .frame(width: Theme.badgeIconSize, height: Theme.badgeIconSize)
                         .overlay(
-                            Image(systemName: "star.fill")
-                                .font(.system(size: 28))
-                                .foregroundStyle(Color.appBadgeLocked)
+                            Image("icon_star")
+                                .resizable()
+                                .renderingMode(.original)
+                                .frame(width: 28, height: 28)
+                                .opacity(0.5)
                         )
                 }
             }

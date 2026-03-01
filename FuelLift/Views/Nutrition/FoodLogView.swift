@@ -54,16 +54,32 @@ struct FoodLogView: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     Menu {
                         Button { showCamera = true } label: {
-                            Label("Scan Food Photo", systemImage: "camera.fill")
+                            Label {
+                                Text("Scan Food Photo")
+                            } icon: {
+                                Image("icon_camera").resizable().renderingMode(.original).frame(width: 20, height: 20)
+                            }
                         }
                         Button { showBarcode = true } label: {
-                            Label("Scan Barcode", systemImage: "barcode.viewfinder")
+                            Label {
+                                Text("Scan Barcode")
+                            } icon: {
+                                Image("icon_barcode").resizable().renderingMode(.original).frame(width: 20, height: 20)
+                            }
                         }
                         Button { showDescriptionSheet = true } label: {
-                            Label("Describe Food", systemImage: "text.bubble")
+                            Label {
+                                Text("Describe Food")
+                            } icon: {
+                                Image("icon_text_bubble").resizable().renderingMode(.original).frame(width: 20, height: 20)
+                            }
                         }
                         Button { showAddSheet = true } label: {
-                            Label("Manual Entry", systemImage: "pencil")
+                            Label {
+                                Text("Manual Entry")
+                            } icon: {
+                                Image("icon_pencil").resizable().renderingMode(.original).frame(width: 20, height: 20)
+                            }
                         }
                     } label: {
                         Image(systemName: "plus.circle.fill")
@@ -138,9 +154,8 @@ struct FoodLogView: View {
 
     private var waterCard: some View {
         HStack(spacing: Theme.spacingMD) {
-            Image(systemName: "drop.fill")
-                .font(.system(size: Theme.inlineIconSize))
-                .foregroundStyle(Color.appWaterColor)
+            Image("icon_water_drop").resizable().renderingMode(.original)
+                .frame(width: 20, height: 20)
 
             Text("\(viewModel.totalWaterML) mL")
                 .font(.system(size: Theme.subheadlineSize, weight: .bold, design: .rounded))
@@ -250,7 +265,11 @@ struct FoodLogView: View {
             Button(role: .destructive) {
                 viewModel.deleteFoodEntry(entry, context: modelContext)
             } label: {
-                Label("Delete", systemImage: "trash")
+                Label {
+                    Text("Delete")
+                } icon: {
+                    Image("icon_trash").resizable().renderingMode(.original).frame(width: 20, height: 20)
+                }
             }
         }
     }

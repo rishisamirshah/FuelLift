@@ -76,8 +76,7 @@ struct WorkoutPlannerView: View {
                         viewModel.selectedGoal = goal
                     } label: {
                         HStack(spacing: Theme.spacingMD) {
-                            Image(systemName: goalIcon(goal))
-                                .font(.title2)
+                            iconView(goalIcon(goal), size: 24)
                                 .foregroundStyle(viewModel.selectedGoal == goal ? Color.appAccent : Color.appTextSecondary)
                                 .frame(width: 32)
 
@@ -93,9 +92,10 @@ struct WorkoutPlannerView: View {
                             Spacer()
 
                             if viewModel.selectedGoal == goal {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundStyle(Color.appAccent)
-                                    .font(.title3)
+                                Image("icon_checkmark_circle")
+                                    .resizable()
+                                    .renderingMode(.original)
+                                    .frame(width: 24, height: 24)
                             }
                         }
                         .padding(Theme.spacingLG)
@@ -151,9 +151,10 @@ struct WorkoutPlannerView: View {
                             Spacer()
 
                             if viewModel.selectedExperience == level {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundStyle(Color.appAccent)
-                                    .font(.title3)
+                                Image("icon_checkmark_circle")
+                                    .resizable()
+                                    .renderingMode(.original)
+                                    .frame(width: 24, height: 24)
                             }
                         }
                         .padding(Theme.spacingLG)
@@ -285,8 +286,7 @@ struct WorkoutPlannerView: View {
                         }
                     } label: {
                         HStack(spacing: Theme.spacingSM) {
-                            Image(systemName: equipmentIcon(equipment))
-                                .font(.system(size: Theme.bodySize))
+                            iconView(equipmentIcon(equipment), size: 20)
                                 .foregroundStyle(viewModel.selectedEquipment.contains(equipment) ? Color.appAccent : Color.appTextSecondary)
 
                             Text(equipment)
@@ -417,9 +417,10 @@ struct WorkoutPlannerView: View {
         VStack(spacing: Theme.spacingXL) {
             Spacer()
 
-            Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 64))
-                .foregroundStyle(Color.appWorkoutGreen)
+            Image("icon_checkmark_circle")
+                .resizable()
+                .renderingMode(.original)
+                .frame(width: 64, height: 64)
 
             Text("Plan Saved!")
                 .font(.system(size: Theme.headlineSize, weight: .bold))
@@ -541,7 +542,10 @@ struct WorkoutPlannerView: View {
                         .padding(Theme.spacingMD)
                     } else {
                         HStack(spacing: Theme.spacingSM) {
-                            Image(systemName: "wand.and.stars")
+                            Image("icon_wand_stars")
+                                .resizable()
+                                .renderingMode(.original)
+                                .frame(width: 24, height: 24)
                             Text("Generate Plan")
                         }
                         .font(.headline)
@@ -572,8 +576,8 @@ struct WorkoutPlannerView: View {
     private func goalIcon(_ goal: String) -> String {
         switch goal {
         case "Build Muscle": return "figure.strengthtraining.traditional"
-        case "Lose Fat": return "flame.fill"
-        case "Get Stronger": return "bolt.fill"
+        case "Lose Fat": return "icon_fire_streak"
+        case "Get Stronger": return "icon_bolt"
         case "General Fitness": return "heart.fill"
         default: return "star.fill"
         }
@@ -610,13 +614,27 @@ struct WorkoutPlannerView: View {
     private func equipmentIcon(_ equipment: String) -> String {
         switch equipment {
         case "Barbell": return "figure.strengthtraining.traditional"
-        case "Dumbbells": return "dumbbell.fill"
+        case "Dumbbells": return "icon_dumbbell"
         case "Machines": return "gearshape.fill"
         case "Cables": return "arrow.up.and.down.text.horizontal"
         case "Bodyweight": return "figure.core.training"
         case "Kettlebell": return "figure.strengthtraining.functional"
         case "Resistance Bands": return "arrow.left.and.right"
         default: return "circle.fill"
+        }
+    }
+
+    /// Returns a pixel art Image for asset names (prefixed with "icon_"), or an SF Symbol Image otherwise.
+    @ViewBuilder
+    private func iconView(_ name: String, size: CGFloat) -> some View {
+        if name.hasPrefix("icon_") {
+            Image(name)
+                .resizable()
+                .renderingMode(.original)
+                .frame(width: size, height: size)
+        } else {
+            Image(systemName: name)
+                .font(.system(size: size))
         }
     }
 }

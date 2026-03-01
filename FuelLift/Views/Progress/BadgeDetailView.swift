@@ -19,23 +19,24 @@ struct BadgeDetailView: View {
             VStack(spacing: Theme.spacingXXL) {
                 // Badge Icon
                 ZStack {
-                    if badge.isEarned, let category = badgeCategory {
-                        Circle()
-                            .fill(category.gradient)
-                            .frame(width: 140, height: 140)
-                            .shadow(color: category.gradientColors[0].opacity(0.4), radius: 10, y: 5)
-                    } else {
-                        Circle()
-                            .fill(Color.appBadgeLocked.opacity(0.1))
-                            .frame(width: 140, height: 140)
-                    }
-
                     if badge.isEarned, let def = definition, def.hasCustomImage, let imgName = def.imageName {
+                        // Custom pixel art badge — no background circle
                         Image(imgName)
                             .resizable()
                             .aspectRatio(contentMode: .fit)
-                            .frame(width: 80, height: 80)
+                            .frame(width: 140, height: 140)
                     } else {
+                        if badge.isEarned, let category = badgeCategory {
+                            Circle()
+                                .fill(category.gradient)
+                                .frame(width: 140, height: 140)
+                                .shadow(color: category.gradientColors[0].opacity(0.4), radius: 10, y: 5)
+                        } else {
+                            Circle()
+                                .fill(Color.appBadgeLocked.opacity(0.1))
+                                .frame(width: 140, height: 140)
+                        }
+
                         Image(systemName: badge.isEarned ? badge.iconName : "star.fill")
                             .font(.system(size: 56, weight: .semibold))
                             .foregroundStyle(badge.isEarned ? Color.white : Color.appBadgeLocked)

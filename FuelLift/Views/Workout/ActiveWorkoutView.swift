@@ -16,8 +16,10 @@ struct ActiveWorkoutView: View {
                     VStack(spacing: Theme.spacingLG) {
                         // Timer bar
                         HStack(spacing: Theme.spacingSM) {
-                            Image(systemName: "timer")
-                                .foregroundStyle(Color.appAccent)
+                            Image("icon_timer")
+                                .resizable()
+                                .renderingMode(.original)
+                                .frame(width: 20, height: 20)
                             Text(viewModel.elapsedFormatted)
                                 .font(.system(size: Theme.subheadlineSize, weight: .bold, design: .monospaced))
                                 .foregroundStyle(Color.appTextPrimary)
@@ -28,8 +30,10 @@ struct ActiveWorkoutView: View {
                         // PR alerts
                         ForEach(viewModel.newPRs, id: \.self) { exerciseName in
                             HStack(spacing: Theme.spacingSM) {
-                                Image(systemName: "trophy.fill")
-                                    .foregroundStyle(Color.appPRWeight)
+                                Image("icon_trophy")
+                                    .resizable()
+                                    .renderingMode(.original)
+                                    .frame(width: 20, height: 20)
                                 Text("New PR on \(exerciseName)!")
                                     .font(.system(size: Theme.captionSize, weight: .bold))
                                     .foregroundStyle(Color.appTextPrimary)
@@ -53,7 +57,10 @@ struct ActiveWorkoutView: View {
                             showExercisePicker = true
                         } label: {
                             HStack(spacing: Theme.spacingSM) {
-                                Image(systemName: "plus.circle.fill")
+                                Image("icon_plus_circle")
+                                    .resizable()
+                                    .renderingMode(.original)
+                                    .frame(width: 24, height: 24)
                                 Text("Add Exercise")
                             }
                             .font(.system(size: Theme.subheadlineSize, weight: .semibold))
@@ -227,11 +234,20 @@ struct ActiveWorkoutView: View {
                     UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                     viewModel.completeSet(groupIndex: groupIndex, setIndex: setIndex, context: modelContext)
                 } label: {
-                    Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle")
-                        .foregroundStyle(isCompleted ? (set.isPersonalRecord ? Color.appPRWeight : Color.appWorkoutGreen) : Color.appTextTertiary)
-                        .font(.system(size: 22))
-                        .scaleEffect(isCompleted ? 1.0 : 0.9)
-                        .animation(.spring(response: 0.3, dampingFraction: 0.5), value: isCompleted)
+                    Group {
+                        if isCompleted {
+                            Image("icon_checkmark_circle")
+                                .resizable()
+                                .renderingMode(.original)
+                                .frame(width: 24, height: 24)
+                        } else {
+                            Image(systemName: "circle")
+                                .foregroundStyle(Color.appTextTertiary)
+                                .font(.system(size: 22))
+                        }
+                    }
+                    .scaleEffect(isCompleted ? 1.0 : 0.9)
+                    .animation(.spring(response: 0.3, dampingFraction: 0.5), value: isCompleted)
                 }
                 .frame(width: 40)
                 .disabled(isCompleted)

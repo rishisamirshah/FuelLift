@@ -52,7 +52,10 @@ struct WorkoutListView: View {
                                 showWorkoutPlanner = true
                             } label: {
                                 HStack(spacing: Theme.spacingXS) {
-                                    Image(systemName: "wand.and.stars")
+                                    Image("icon_wand_stars")
+                                        .resizable()
+                                        .renderingMode(.original)
+                                        .frame(width: 20, height: 20)
                                     Text("AI Plan")
                                 }
                                 .font(.system(size: Theme.captionSize, weight: .semibold))

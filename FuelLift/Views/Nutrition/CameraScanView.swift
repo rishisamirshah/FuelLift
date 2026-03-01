@@ -82,9 +82,9 @@ struct CameraScanView: View {
                     Spacer()
 
                     VStack(spacing: Theme.spacingLG) {
-                        Image(systemName: "camera.viewfinder")
-                            .font(.system(size: 80))
-                            .foregroundStyle(Color.appAccent.opacity(0.5))
+                        Image("icon_camera").resizable().renderingMode(.original)
+                            .frame(width: 48, height: 48)
+                            .opacity(0.5)
 
                         Text("Take a photo of your food")
                             .font(.system(size: Theme.headlineSize, weight: .bold))
@@ -99,8 +99,12 @@ struct CameraScanView: View {
                         Button {
                             showCamera = true
                         } label: {
-                            Label("Open Camera", systemImage: "camera.fill")
-                                .font(.system(size: Theme.subheadlineSize, weight: .bold))
+                            Label {
+                                Text("Open Camera")
+                                    .font(.system(size: Theme.subheadlineSize, weight: .bold))
+                            } icon: {
+                                Image("icon_camera").resizable().renderingMode(.original).frame(width: 24, height: 24)
+                            }
                                 .frame(maxWidth: .infinity)
                                 .padding(Theme.spacingLG)
                                 .background(Color.appAccent)

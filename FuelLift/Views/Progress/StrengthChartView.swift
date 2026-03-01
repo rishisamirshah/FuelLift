@@ -21,9 +21,10 @@ struct StrengthChartView: View {
 
                 if prs.isEmpty {
                     VStack(spacing: Theme.spacingMD) {
-                        Image(systemName: "trophy")
-                            .font(.system(size: 40))
-                            .foregroundStyle(Color.appTextTertiary)
+                        Image("icon_trophy")
+                            .resizable()
+                            .renderingMode(.original)
+                            .frame(width: 48, height: 48)
                         Text("Complete workouts to see your personal records.")
                             .font(.system(size: Theme.captionSize))
                             .foregroundStyle(Color.appTextSecondary)

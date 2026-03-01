@@ -42,9 +42,10 @@ struct ProgressDashboardView: View {
                             MilestonesView()
                         } label: {
                             VStack(spacing: Theme.spacingSM) {
-                                Image(systemName: "medal.fill")
-                                    .font(.system(size: 44))
-                                    .foregroundStyle(Color.appTextSecondary)
+                                Image("icon_medal")
+                                    .resizable()
+                                    .renderingMode(.original)
+                                    .frame(width: 44, height: 44)
 
                                 Text("\(earnedBadgeCount)")
                                     .font(.system(size: 28, weight: .bold, design: .rounded))
@@ -164,7 +165,7 @@ struct ProgressDashboardView: View {
                     NavigationLink {
                         StrengthChartView(prs: viewModel.exercisePRs)
                     } label: {
-                        navRow(icon: "trophy.fill", title: "Strength PRs", color: Color.appPRColor)
+                        navRow(pixelIcon: "icon_trophy", title: "Strength PRs")
                     }
                     .buttonStyle(.plain)
                     .padding(.horizontal, Theme.spacingLG)
@@ -175,7 +176,7 @@ struct ProgressDashboardView: View {
                     NavigationLink {
                         BodyMeasurementsView()
                     } label: {
-                        navRow(icon: "ruler", title: "Body Measurements", color: Color.appAccent)
+                        navRow(pixelIcon: "icon_ruler", title: "Body Measurements")
                     }
                     .buttonStyle(.plain)
                     .padding(.horizontal, Theme.spacingLG)
@@ -205,9 +206,10 @@ struct ProgressDashboardView: View {
                 .foregroundStyle(Color.appTextPrimary)
 
             HStack(spacing: Theme.spacingMD) {
-                Image(systemName: "person.crop.rectangle.badge.plus")
-                    .font(.system(size: 36))
-                    .foregroundStyle(Color.appTextTertiary)
+                Image("icon_photo_frame")
+                    .resizable()
+                    .renderingMode(.original)
+                    .frame(width: 36, height: 36)
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Want to add a photo to track your progress?")
@@ -216,8 +218,10 @@ struct ProgressDashboardView: View {
                         .multilineTextAlignment(.leading)
 
                     HStack(spacing: 4) {
-                        Image(systemName: "plus")
-                            .font(.system(size: 12, weight: .bold))
+                        Image("icon_plus")
+                            .resizable()
+                            .renderingMode(.original)
+                            .frame(width: 12, height: 12)
                         Text("Upload a Photo")
                             .font(.system(size: Theme.captionSize, weight: .semibold))
                     }
@@ -229,18 +233,20 @@ struct ProgressDashboardView: View {
         .cardStyle()
     }
 
-    private func navRow(icon: String, title: String, color: Color) -> some View {
+    private func navRow(pixelIcon: String, title: String) -> some View {
         HStack(spacing: Theme.spacingMD) {
-            Image(systemName: icon)
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(color)
+            Image(pixelIcon)
+                .resizable()
+                .renderingMode(.original)
+                .frame(width: 20, height: 20)
             Text(title)
                 .font(.system(size: Theme.bodySize, weight: .medium))
                 .foregroundStyle(Color.appTextPrimary)
             Spacer()
-            Image(systemName: "chevron.right")
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(Color.appTextTertiary)
+            Image("icon_chevron_right")
+                .resizable()
+                .renderingMode(.original)
+                .frame(width: 12, height: 12)
         }
         .cardStyle()
     }

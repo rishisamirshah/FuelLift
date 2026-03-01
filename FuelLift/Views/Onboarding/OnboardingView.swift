@@ -4,10 +4,10 @@ struct OnboardingView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @State private var currentPage = 0
 
-    private let pages: [(title: String, subtitle: String, icon: String)] = [
-        ("Track Your Fuel", "Snap a photo of any meal and get instant calorie & macro breakdowns powered by AI.", "camera.fill"),
-        ("Crush Your Lifts", "Log every set, rep, and PR. Build routines, track progress, and never miss a gain.", "dumbbell.fill"),
-        ("Stronger Together", "Join groups, share workouts, and compete on leaderboards with friends.", "person.3.fill")
+    private let pages: [(title: String, subtitle: String, heroImage: String)] = [
+        ("Track Your Fuel", "Snap a photo of any meal and get instant calorie & macro breakdowns powered by AI.", "hero_scan_food"),
+        ("Crush Your Lifts", "Log every set, rep, and PR. Build routines, track progress, and never miss a gain.", "hero_workout"),
+        ("Stronger Together", "Join groups, share workouts, and compete on leaderboards with friends.", "hero_social")
     ]
 
     var body: some View {
@@ -17,15 +17,11 @@ struct OnboardingView: View {
                     VStack(spacing: Theme.spacingXXL) {
                         Spacer()
 
-                        ZStack {
-                            Circle()
-                                .fill(Color.appAccent.opacity(0.15))
-                                .frame(width: 160, height: 160)
-
-                            Image(systemName: pages[index].icon)
-                                .font(.system(size: 72))
-                                .foregroundStyle(Color.appAccent.gradient)
-                        }
+                        Image(pages[index].heroImage)
+                            .resizable()
+                            .renderingMode(.original)
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 160, height: 160)
 
                         VStack(spacing: Theme.spacingMD) {
                             Text(pages[index].title)

@@ -22,8 +22,10 @@ struct StreakBadge: View {
 
     private var compactBadge: some View {
         HStack(spacing: 4) {
-            Text("🔥")
-                .font(.system(size: 14))
+            Image("icon_fire_streak")
+                .resizable()
+                .renderingMode(.original)
+                .frame(width: 16, height: 16)
                 .scaleEffect(isPulsing ? 1.15 : 1.0)
 
             Text("\(count)")
@@ -43,8 +45,10 @@ struct StreakBadge: View {
 
     private var expandedBadge: some View {
         VStack(spacing: Theme.spacingSM) {
-            Text("🔥")
-                .font(.system(size: 44))
+            Image("icon_fire_streak")
+                .resizable()
+                .renderingMode(.original)
+                .frame(width: 48, height: 48)
                 .scaleEffect(isPulsing ? 1.1 : 1.0)
 
             Text("\(count)")

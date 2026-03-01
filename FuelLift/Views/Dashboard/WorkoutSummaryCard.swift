@@ -6,15 +6,19 @@ struct WorkoutSummaryCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.spacingSM) {
             HStack {
-                Image(systemName: "dumbbell.fill")
-                    .foregroundStyle(Color.appAccent)
+                Image("icon_dumbbell")
+                    .resizable()
+                    .renderingMode(.original)
+                    .frame(width: 20, height: 20)
                 Text("Today's Workout")
                     .font(.system(size: Theme.subheadlineSize, weight: .bold))
                     .foregroundStyle(Color.appTextPrimary)
                 Spacer()
                 if workout != nil {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(Color.appWorkoutGreen)
+                    Image("icon_checkmark_circle")
+                        .resizable()
+                        .renderingMode(.original)
+                        .frame(width: 20, height: 20)
                 }
             }
 
@@ -25,9 +29,9 @@ struct WorkoutSummaryCard: View {
                         .foregroundStyle(Color.appTextPrimary)
 
                     HStack(spacing: Theme.spacingLG) {
-                        workoutStat(icon: "clock", value: workout.durationFormatted)
-                        workoutStat(icon: "number", value: "\(workout.totalSets) sets")
-                        workoutStat(icon: "scalemass", value: "\(Int(workout.totalVolume)) kg")
+                        workoutStat(iconName: "icon_clock", value: workout.durationFormatted)
+                        workoutStat(iconName: "icon_scale", value: "\(workout.totalSets) sets")
+                        workoutStat(iconName: "icon_scale", value: "\(Int(workout.totalVolume)) kg")
                     }
 
                     if !workout.exerciseNames.isEmpty {
@@ -43,19 +47,22 @@ struct WorkoutSummaryCard: View {
                         .font(.system(size: Theme.bodySize))
                         .foregroundStyle(Color.appTextSecondary)
                     Spacer()
-                    Image(systemName: "arrow.right.circle")
-                        .foregroundStyle(Color.appAccent)
+                    Image("icon_arrow_right_circle")
+                        .resizable()
+                        .renderingMode(.original)
+                        .frame(width: 20, height: 20)
                 }
             }
         }
         .cardStyle()
     }
 
-    private func workoutStat(icon: String, value: String) -> some View {
+    private func workoutStat(iconName: String, value: String) -> some View {
         HStack(spacing: Theme.spacingXS) {
-            Image(systemName: icon)
-                .font(.system(size: Theme.miniSize))
-                .foregroundStyle(Color.appTextTertiary)
+            Image(iconName)
+                .resizable()
+                .renderingMode(.original)
+                .frame(width: 14, height: 14)
             Text(value)
                 .font(.system(size: Theme.captionSize, weight: .medium))
                 .foregroundStyle(Color.appTextSecondary)

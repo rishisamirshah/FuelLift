@@ -1,0 +1,13 @@
+{
+  "images": [
+    {
+      "filename": "hero_scan_food.png",
+      "idiom": "universal",
+      "scale": "1x"
+    }
+  ],
+  "info": {
+    "author": "xcode",
+    "version": 1
+  }
+}

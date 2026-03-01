@@ -9,9 +9,10 @@ struct AchievementToast: View {
     var body: some View {
         if isVisible {
             HStack(spacing: Theme.spacingMD) {
-                Image(systemName: badge.iconName)
-                    .font(.system(size: 20))
-                    .foregroundStyle(Color.appBadgeEarned)
+                Image(badge.imageName ?? badge.iconName)
+                    .resizable()
+                    .renderingMode(.original)
+                    .frame(width: 24, height: 24)
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Badge Earned")

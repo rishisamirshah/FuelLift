@@ -37,9 +37,8 @@ struct FoodEntryDetailView: View {
             ToolbarItem(placement: .topBarTrailing) {
                 HStack(spacing: Theme.spacingMD) {
                     Button { } label: {
-                        Image(systemName: "square.and.arrow.up")
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundStyle(Color.appTextPrimary)
+                        Image("icon_share").resizable().renderingMode(.original)
+                            .frame(width: 20, height: 20)
                             .frame(width: 36, height: 36)
                             .background(Color.appCardSecondary.opacity(0.8))
                             .clipShape(Circle())
@@ -102,9 +101,8 @@ struct FoodEntryDetailView: View {
 
             // Calorie card
             HStack(spacing: Theme.spacingMD) {
-                Image(systemName: "flame.fill")
-                    .font(.system(size: 28))
-                    .foregroundStyle(Color.appCaloriesColor)
+                Image("icon_fire_streak").resizable().renderingMode(.original)
+                    .frame(width: 28, height: 28)
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Calories")
                         .font(.system(size: Theme.captionSize))
@@ -121,9 +119,9 @@ struct FoodEntryDetailView: View {
 
             // Macro cards
             HStack(spacing: Theme.spacingSM) {
-                macroCard(label: "Protein", value: Int(entry.proteinG), icon: "fork.knife", color: Color.appProteinColor)
-                macroCard(label: "Carbs", value: Int(entry.carbsG), icon: "leaf.fill", color: Color.appCarbsColor)
-                macroCard(label: "Fats", value: Int(entry.fatG), icon: "drop.fill", color: Color.appFatColor)
+                macroCard(label: "Protein", value: Int(entry.proteinG), icon: "icon_fork_knife", color: Color.appProteinColor)
+                macroCard(label: "Carbs", value: Int(entry.carbsG), icon: "icon_leaf", color: Color.appCarbsColor)
+                macroCard(label: "Fats", value: Int(entry.fatG), icon: "icon_water_drop", color: Color.appFatColor)
             }
 
             // Page dots
@@ -170,9 +168,8 @@ struct FoodEntryDetailView: View {
     private func macroCard(label: String, value: Int, icon: String, color: Color) -> some View {
         VStack(spacing: Theme.spacingSM) {
             HStack(spacing: Theme.spacingXS) {
-                Image(systemName: icon)
-                    .font(.system(size: 14))
-                    .foregroundStyle(color)
+                Image(icon).resizable().renderingMode(.original)
+                    .frame(width: 14, height: 14)
                 Text(label)
                     .font(.system(size: Theme.captionSize))
                     .foregroundStyle(Color.appTextSecondary)
@@ -239,7 +236,7 @@ struct FoodEntryDetailView: View {
         HStack(spacing: Theme.spacingMD) {
             Button { } label: {
                 HStack(spacing: Theme.spacingSM) {
-                    Image(systemName: "sparkles")
+                    Image("icon_wand_stars").resizable().renderingMode(.original).frame(width: 20, height: 20)
                     Text("Fix Issue")
                 }
                 .font(.system(size: Theme.subheadlineSize, weight: .semibold))
