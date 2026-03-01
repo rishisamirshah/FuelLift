@@ -7,6 +7,7 @@ struct DashboardView: View {
     @Query private var profiles: [UserProfile]
     @State private var showCamera = false
     @State private var showActiveWorkout = false
+    @State private var showNutritionPlan = false
     @State private var selectedDate = Date()
     @StateObject private var workoutVM = WorkoutViewModel()
     @State private var appeared = false
@@ -43,13 +44,18 @@ struct DashboardView: View {
 
                         // Quick actions
                         if profile?.showQuickActions ?? true {
-                            HStack(spacing: Theme.spacingMD) {
-                                quickAction(icon: "camera.fill", label: "Scan Food") {
-                                    showCamera = true
+                            VStack(spacing: Theme.spacingMD) {
+                                HStack(spacing: Theme.spacingMD) {
+                                    quickAction(icon: "camera.fill", label: "Scan Food") {
+                                        showCamera = true
+                                    }
+                                    quickAction(icon: "dumbbell.fill", label: "Start Workout") {
+                                        workoutVM.startWorkout()
+                                        showActiveWorkout = true
+                                    }
                                 }
-                                quickAction(icon: "dumbbell.fill", label: "Start Workout") {
-                                    workoutVM.startWorkout()
-                                    showActiveWorkout = true
+                                quickAction(icon: "wand.and.stars", label: "AI Nutrition Plan") {
+                                    showNutritionPlan = true
                                 }
                             }
                             .padding(.horizontal, Theme.spacingLG)
@@ -107,6 +113,11 @@ struct DashboardView: View {
                 viewModel.loadDashboard(context: modelContext)
             }) {
                 CameraScanView(nutritionViewModel: NutritionViewModel())
+            }
+            .sheet(isPresented: $showNutritionPlan, onDismiss: {
+                viewModel.loadDashboard(context: modelContext)
+            }) {
+                NutritionPlanView()
             }
             .fullScreenCover(isPresented: $showActiveWorkout) {
                 ActiveWorkoutView(viewModel: workoutVM)

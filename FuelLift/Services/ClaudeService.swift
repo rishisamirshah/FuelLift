@@ -378,7 +378,10 @@ final class ClaudeService {
         heightCM: Double,
         weightKG: Double,
         activityLevel: String,
-        goal: String
+        goal: String,
+        dietaryPreference: String = "Standard",
+        targetWeightKG: Double? = nil,
+        workoutsPerWeek: Int = 3
     ) async throws -> NutritionGoals {
         let apiKey = AppConstants.anthropicAPIKey
         guard !apiKey.isEmpty else { throw ClaudeError.noAPIKey }
@@ -393,20 +396,26 @@ final class ClaudeService {
         request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
         request.setValue("2023-06-01", forHTTPHeaderField: "anthropic-version")
 
-        let userPrompt = """
-        Calculate daily nutrition targets for:
-        - Gender: \(gender)
-        - Age: \(age)
-        - Height: \(heightCM) cm
-        - Weight: \(weightKG) kg
-        - Activity level: \(activityLevel)
-        - Goal: \(goal)
-        """
+        var promptLines = [
+            "Calculate daily nutrition targets for:",
+            "- Gender: \(gender)",
+            "- Age: \(age)",
+            "- Height: \(heightCM) cm",
+            "- Weight: \(weightKG) kg",
+            "- Activity level: \(activityLevel)",
+            "- Goal: \(goal)",
+            "- Dietary preference: \(dietaryPreference)",
+            "- Workouts per week: \(workoutsPerWeek)"
+        ]
+        if let target = targetWeightKG {
+            promptLines.append("- Target weight: \(target) kg")
+        }
+        let userPrompt = promptLines.joined(separator: "\n")
 
         let body: [String: Any] = [
             "model": AppConstants.anthropicModel,
             "max_tokens": 1024,
-            "system": "You are a certified nutritionist. Calculate daily calorie and macro targets. Respond ONLY with JSON: {\"calories\":0,\"proteinG\":0,\"carbsG\":0,\"fatG\":0,\"reasoning\":\"...\"}",
+            "system": "You are a certified nutritionist. Calculate daily calorie and macro targets based on the user's body stats, goal, dietary preference, target weight, and workout frequency. Use the Mifflin-St Jeor equation for BMR, apply activity multiplier and goal adjustment. For dietary preferences like Keto, use very low carbs and high fat; for High Protein, increase protein ratio; for Low Carb, reduce carbs and increase fat. Respond ONLY with JSON: {\"calories\":0,\"proteinG\":0,\"carbsG\":0,\"fatG\":0,\"reasoning\":\"...\"}",
             "messages": [
                 ["role": "user", "content": userPrompt]
             ]
