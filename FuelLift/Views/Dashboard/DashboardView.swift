@@ -14,6 +14,9 @@ struct DashboardView: View {
     @StateObject private var workoutVM = WorkoutViewModel()
     @State private var appeared = false
     @State private var capturedImage: UIImage?
+    @State private var selectedEntry: FoodEntry?
+    @State private var swipeOffsets: [String: CGFloat] = [:]
+    @State private var activeSwipeID: String?
 
     private var profile: UserProfile? { profiles.first }
 
@@ -214,6 +217,9 @@ struct DashboardView: View {
             .fullScreenCover(isPresented: $showActiveWorkout) {
                 ActiveWorkoutView(viewModel: workoutVM)
             }
+            .navigationDestination(item: $selectedEntry) { entry in
+                FoodEntryDetailView(entry: entry)
+            }
         }
     }
 
@@ -271,73 +277,94 @@ struct DashboardView: View {
     // MARK: - Food Entry Row with Swipe Delete
 
     private func foodEntryRow(_ entry: FoodEntry) -> some View {
-        ZStack(alignment: .trailing) {
-            // Delete button behind
-            Button {
-                withAnimation(.easeInOut(duration: 0.25)) {
-                    deleteFoodEntry(entry)
+        let offset = swipeOffsets[entry.id] ?? 0
+
+        return ZStack(alignment: .trailing) {
+            // Delete button revealed behind card
+            if offset < -20 {
+                Button {
+                    withAnimation(.easeInOut(duration: 0.25)) {
+                        deleteFoodEntry(entry)
+                    }
+                } label: {
+                    VStack(spacing: 4) {
+                        Image(systemName: "trash.fill")
+                            .font(.system(size: 20))
+                            .foregroundStyle(.white)
+                        Text("Delete")
+                            .font(.system(size: Theme.miniSize, weight: .medium))
+                            .foregroundStyle(.white)
+                    }
+                    .frame(width: 80)
+                    .frame(maxHeight: .infinity)
+                    .background(Color.appFatColor)
+                    .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusLG))
                 }
-            } label: {
-                VStack {
-                    Image(systemName: "trash.fill")
-                        .font(.system(size: 20))
-                        .foregroundStyle(.white)
-                    Text("Delete")
-                        .font(.system(size: Theme.miniSize, weight: .medium))
-                        .foregroundStyle(.white)
-                }
-                .frame(width: 80)
-                .frame(maxHeight: .infinity)
-                .background(Color.appFatColor)
-                .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusLG))
+                .transition(.opacity)
             }
 
-            NavigationLink {
-                FoodEntryDetailView(entry: entry)
-            } label: {
-                foodEntryCard(entry)
-            }
-            .buttonStyle(.plain)
-            .offset(x: swipeOffsets[entry.id] ?? 0)
-            .gesture(
-                DragGesture(minimumDistance: 30, coordinateSpace: .local)
-                    .onChanged { value in
-                        // Only respond to horizontal swipes
-                        let horizontal = abs(value.translation.width)
-                        let vertical = abs(value.translation.height)
-                        guard horizontal > vertical else { return }
-
-                        if value.translation.width < 0 {
-                            swipeOffsets[entry.id] = max(value.translation.width, -90)
-                        } else {
+            // Food card — uses onTapGesture (NOT NavigationLink) to avoid gesture conflicts
+            foodEntryCard(entry)
+                .contentShape(Rectangle())
+                .offset(x: offset)
+                .onTapGesture {
+                    if offset < -20 {
+                        // If swiped open, close it
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
                             swipeOffsets[entry.id] = 0
                         }
+                    } else {
+                        // Navigate to detail
+                        selectedEntry = entry
                     }
-                    .onEnded { value in
-                        let horizontal = abs(value.translation.width)
-                        let vertical = abs(value.translation.height)
-
-                        if horizontal > vertical && value.translation.width < -60 {
-                            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                                swipeOffsets[entry.id] = -90
+                }
+                .simultaneousGesture(
+                    DragGesture(minimumDistance: 15)
+                        .onChanged { value in
+                            // Close any other open swipe first
+                            if let active = activeSwipeID, active != entry.id {
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                                    swipeOffsets[active] = 0
+                                }
                             }
-                        } else {
-                            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                                swipeOffsets[entry.id] = 0
+                            activeSwipeID = entry.id
+
+                            let dx = value.translation.width
+                            if dx < 0 {
+                                // Swiping left — reveal delete
+                                swipeOffsets[entry.id] = max(dx, -100)
+                            } else if (swipeOffsets[entry.id] ?? 0) < 0 {
+                                // Swiping right to close
+                                swipeOffsets[entry.id] = min(0, (swipeOffsets[entry.id] ?? 0) + dx)
                             }
                         }
-                    }
-            )
+                        .onEnded { value in
+                            let dx = value.translation.width
+                            let velocity = value.predictedEndTranslation.width
+
+                            if dx < -40 || velocity < -200 {
+                                // Snap open
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                                    swipeOffsets[entry.id] = -90
+                                }
+                            } else {
+                                // Snap closed
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                                    swipeOffsets[entry.id] = 0
+                                }
+                                activeSwipeID = nil
+                            }
+                        }
+                )
         }
         .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusLG))
     }
-
-    @State private var swipeOffsets: [String: CGFloat] = [:]
 
     // MARK: - Delete Food Entry
 
     private func deleteFoodEntry(_ entry: FoodEntry) {
         swipeOffsets.removeValue(forKey: entry.id)
+        activeSwipeID = nil
         modelContext.delete(entry)
         try? modelContext.save()
         viewModel.loadDashboard(context: modelContext, for: selectedDate)
