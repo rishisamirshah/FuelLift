@@ -18,7 +18,7 @@ final class FoodScanViewModel: ObservableObject {
         errorMessage = nil
 
         do {
-            let nutrition = try await ClaudeService.shared.analyzeFoodDescription(foodDescription)
+            let nutrition = try await GeminiService.shared.analyzeFoodDescription(foodDescription)
             scannedNutrition = nutrition
         } catch {
             errorMessage = error.localizedDescription
@@ -35,7 +35,7 @@ final class FoodScanViewModel: ObservableObject {
         errorMessage = nil
 
         do {
-            let nutrition = try await ClaudeService.shared.analyzeFoodPhoto(image)
+            let nutrition = try await GeminiService.shared.analyzeFoodPhoto(image)
             scannedNutrition = nutrition
         } catch {
             errorMessage = error.localizedDescription

@@ -36,6 +36,13 @@ enum AppConstants {
     static let anthropicBaseURL = "https://api.anthropic.com/v1/messages"
     static let anthropicModel = "claude-sonnet-4-6"
 
+    // MARK: - Google Gemini
+    static var geminiAPIKey: String {
+        Bundle.main.infoDictionary?["GEMINI_API_KEY"] as? String ?? ""
+    }
+    static let geminiBaseURL = "https://generativelanguage.googleapis.com/v1beta/models"
+    static let geminiModel = "gemini-2.5-flash"
+
     // MARK: - Rest Timer Presets (seconds)
     static let restTimerPresets: [Int] = [30, 60, 90, 120, 180, 300]
 }
