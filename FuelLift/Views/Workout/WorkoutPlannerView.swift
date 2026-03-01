@@ -93,10 +93,7 @@ struct WorkoutPlannerView: View {
 
                             if viewModel.selectedGoal == goal {
                                 Image("icon_checkmark_circle")
-                                    .resizable()
-                                    .renderingMode(.original)
-                                    .interpolation(.none)
-                                    .aspectRatio(contentMode: .fit)
+                                    .pixelArt()
                                     .frame(width: 24, height: 24)
                             }
                         }
@@ -154,10 +151,7 @@ struct WorkoutPlannerView: View {
 
                             if viewModel.selectedExperience == level {
                                 Image("icon_checkmark_circle")
-                                    .resizable()
-                                    .renderingMode(.original)
-                                    .interpolation(.none)
-                                    .aspectRatio(contentMode: .fit)
+                                    .pixelArt()
                                     .frame(width: 24, height: 24)
                             }
                         }
@@ -422,10 +416,7 @@ struct WorkoutPlannerView: View {
             Spacer()
 
             Image("icon_checkmark_circle")
-                .resizable()
-                .renderingMode(.original)
-                .interpolation(.none)
-                .aspectRatio(contentMode: .fit)
+                .pixelArt()
                 .frame(width: 64, height: 64)
 
             Text("Plan Saved!")
@@ -549,10 +540,7 @@ struct WorkoutPlannerView: View {
                     } else {
                         HStack(spacing: Theme.spacingSM) {
                             Image("icon_wand_stars")
-                                .resizable()
-                                .renderingMode(.original)
-                                .interpolation(.none)
-                                .aspectRatio(contentMode: .fit)
+                                .pixelArt()
                                 .frame(width: 24, height: 24)
                             Text("Generate Plan")
                         }
@@ -637,10 +625,7 @@ struct WorkoutPlannerView: View {
     private func iconView(_ name: String, size: CGFloat) -> some View {
         if name.hasPrefix("icon_") {
             Image(name)
-                .resizable()
-                .renderingMode(.original)
-                .interpolation(.none)
-                .aspectRatio(contentMode: .fit)
+                .pixelArt()
                 .frame(width: size, height: size)
         } else {
             Image(systemName: name)

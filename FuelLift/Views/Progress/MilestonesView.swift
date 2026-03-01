@@ -25,10 +25,7 @@ struct MilestonesView: View {
                     // Badges earned count
                     VStack(spacing: Theme.spacingSM) {
                         Image("icon_medal")
-                            .resizable()
-                            .renderingMode(.original)
-                            .interpolation(.none)
-                            .aspectRatio(contentMode: .fit)
+                            .pixelArt()
                             .frame(width: 48, height: 48)
 
                         Text("\(earnedCount)")
@@ -58,14 +55,22 @@ struct MilestonesView: View {
                             LazyVGrid(columns: columns, spacing: Theme.spacingMD) {
                                 ForEach(categoryBadges, id: \.key) { definition in
                                     let earned = isBadgeEarned(definition.key)
-                                    BadgeGridItem(
-                                        name: definition.name,
-                                        iconName: definition.iconName,
-                                        requirement: definition.requirement,
-                                        isEarned: earned,
-                                        imageName: definition.imageName,
-                                        category: category
-                                    )
+                                    let badge = badges.first(where: { $0.key == definition.key.rawValue })
+                                    NavigationLink {
+                                        if let badge {
+                                            BadgeDetailView(badge: badge)
+                                        }
+                                    } label: {
+                                        BadgeGridItem(
+                                            name: definition.name,
+                                            iconName: definition.iconName,
+                                            requirement: definition.requirement,
+                                            isEarned: earned,
+                                            imageName: definition.imageName,
+                                            category: category
+                                        )
+                                    }
+                                    .buttonStyle(.plain)
                                 }
                             }
                             .padding(.horizontal, Theme.spacingMD)

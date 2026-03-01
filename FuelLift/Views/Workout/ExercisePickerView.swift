@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct ExercisePickerView: View {
     let onSelect: (String) -> Void
@@ -157,8 +158,33 @@ struct ExercisePickerView: View {
             .clipShape(Capsule())
     }
 
+    /// Image asset name for an exercise ID (e.g. "bench-press" → "exercise_bench_press")
+    private func exerciseImageName(for id: String) -> String {
+        let overrides: [String: String] = [
+            "chest-fly": "exercise_cable_fly",
+            "ohp": "exercise_overhead_press"
+        ]
+        return overrides[id] ?? "exercise_\(id.replacingOccurrences(of: "-", with: "_"))"
+    }
+
     private func exerciseRow(_ exercise: ExerciseDefinition) -> some View {
         HStack(spacing: Theme.spacingMD) {
+            // Exercise thumbnail
+            let imgName = exerciseImageName(for: exercise.id)
+            if UIImage(named: imgName) != nil {
+                Image(imgName)
+                    .pixelArt()
+                    .frame(width: 40, height: 40)
+                    .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusSM))
+            } else {
+                Image("icon_dumbbell")
+                    .pixelArt()
+                    .frame(width: 24, height: 24)
+                    .frame(width: 40, height: 40)
+                    .background(Color.appCardSecondary)
+                    .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusSM))
+            }
+
             VStack(alignment: .leading, spacing: Theme.spacingXS) {
                 Text(exercise.name)
                     .font(.system(size: Theme.bodySize, weight: .semibold))

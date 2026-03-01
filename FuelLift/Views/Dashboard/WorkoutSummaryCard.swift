@@ -7,10 +7,7 @@ struct WorkoutSummaryCard: View {
         VStack(alignment: .leading, spacing: Theme.spacingSM) {
             HStack {
                 Image("icon_dumbbell")
-                    .resizable()
-                    .renderingMode(.original)
-                    .interpolation(.none)
-                    .aspectRatio(contentMode: .fit)
+                    .pixelArt()
                     .frame(width: 24, height: 24)
                 Text("Today's Workout")
                     .font(.system(size: Theme.subheadlineSize, weight: .bold))
@@ -18,10 +15,7 @@ struct WorkoutSummaryCard: View {
                 Spacer()
                 if workout != nil {
                     Image("icon_checkmark_circle")
-                        .resizable()
-                        .renderingMode(.original)
-                        .interpolation(.none)
-                        .aspectRatio(contentMode: .fit)
+                        .pixelArt()
                         .frame(width: 24, height: 24)
                 }
             }
@@ -52,10 +46,7 @@ struct WorkoutSummaryCard: View {
                         .foregroundStyle(Color.appTextSecondary)
                     Spacer()
                     Image("icon_arrow_right_circle")
-                        .resizable()
-                        .renderingMode(.original)
-                        .interpolation(.none)
-                        .aspectRatio(contentMode: .fit)
+                        .pixelArt()
                         .frame(width: 24, height: 24)
                 }
             }
@@ -66,10 +57,7 @@ struct WorkoutSummaryCard: View {
     private func workoutStat(iconName: String, value: String) -> some View {
         HStack(spacing: Theme.spacingXS) {
             Image(iconName)
-                .resizable()
-                .renderingMode(.original)
-                .interpolation(.none)
-                .aspectRatio(contentMode: .fit)
+                .pixelArt()
                 .frame(width: 18, height: 18)
             Text(value)
                 .font(.system(size: Theme.captionSize, weight: .medium))

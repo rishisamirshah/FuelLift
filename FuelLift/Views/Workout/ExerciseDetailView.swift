@@ -85,10 +85,7 @@ struct ExerciseDetailView: View {
             // Exercise demonstration image — prefer local pixel art, then API, then placeholder
             if hasLocalExerciseImage {
                 Image(localExerciseImageName)
-                    .resizable()
-                    .renderingMode(.original)
-                    .interpolation(.none)
-                    .aspectRatio(contentMode: .fit)
+                    .pixelArt()
                     .frame(maxWidth: .infinity, maxHeight: 250)
                     .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusMD))
             } else if isLoadingImage {
@@ -124,10 +121,7 @@ struct ExerciseDetailView: View {
                     Text(exercise.equipment)
                 } icon: {
                     Image("icon_dumbbell")
-                        .resizable()
-                        .renderingMode(.original)
-                        .interpolation(.none)
-                        .aspectRatio(contentMode: .fit)
+                        .pixelArt()
                         .frame(width: 24, height: 24)
                 }
             }
@@ -164,10 +158,7 @@ struct ExerciseDetailView: View {
     private var exercisePlaceholder: some View {
         VStack(spacing: Theme.spacingSM) {
             Image("icon_dumbbell")
-                .resizable()
-                .renderingMode(.original)
-                .interpolation(.none)
-                .aspectRatio(contentMode: .fit)
+                .pixelArt()
                 .frame(width: 48, height: 48)
             Text("No image available")
                 .font(.system(size: Theme.captionSize))

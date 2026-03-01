@@ -17,39 +17,57 @@ struct BadgeDetailView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: Theme.spacingXXL) {
-                // Badge Icon
+                // Badge Icon — large display
                 ZStack {
-                    if badge.isEarned, let def = definition, def.hasCustomImage, let imgName = def.imageName {
-                        // Custom pixel art badge — no background circle
+                    if let def = definition, def.hasCustomImage, let imgName = def.imageName {
                         Image(imgName)
-                            .resizable()
-                            .interpolation(.none)
-                            .aspectRatio(contentMode: .fit)
+                            .pixelArt()
                             .frame(width: 140, height: 140)
+                            .saturation(badge.isEarned ? 1 : 0)
+                            .opacity(badge.isEarned ? 1 : 0.35)
+                    } else if let category = badgeCategory {
+                        Circle()
+                            .fill(badge.isEarned ? category.gradient : LinearGradient(colors: [Color.appBadgeLocked], startPoint: .top, endPoint: .bottom))
+                            .frame(width: 140, height: 140)
+                            .opacity(badge.isEarned ? 1 : 0.25)
+                            .overlay(
+                                Image(systemName: badge.iconName)
+                                    .font(.system(size: 56, weight: .semibold))
+                                    .foregroundStyle(badge.isEarned ? Color.white : Color.appBadgeLocked)
+                            )
+                            .if(badge.isEarned) { view in
+                                view.shadow(color: category.gradientColors[0].opacity(0.4), radius: 10, y: 5)
+                            }
                     } else {
-                        if badge.isEarned, let category = badgeCategory {
-                            Circle()
-                                .fill(category.gradient)
-                                .frame(width: 140, height: 140)
-                                .shadow(color: category.gradientColors[0].opacity(0.4), radius: 10, y: 5)
-                        } else {
-                            Circle()
-                                .fill(Color.appBadgeLocked.opacity(0.1))
-                                .frame(width: 140, height: 140)
-                        }
-
-                        Image(systemName: badge.isEarned ? badge.iconName : "star.fill")
+                        Image(systemName: badge.iconName)
                             .font(.system(size: 56, weight: .semibold))
-                            .foregroundStyle(badge.isEarned ? Color.white : Color.appBadgeLocked)
+                            .foregroundStyle(badge.isEarned ? Color.appBadgeEarned : Color.appBadgeLocked)
+                            .frame(width: 140, height: 140)
+                    }
+
+                    // Lock overlay for unearned
+                    if !badge.isEarned {
+                        Image(systemName: "lock.fill")
+                            .font(.system(size: 24, weight: .bold))
+                            .foregroundStyle(Color.appTextTertiary)
+                            .padding(8)
+                            .background(
+                                Circle()
+                                    .fill(Color.appCardBackground.opacity(0.9))
+                            )
+                            .offset(x: 50, y: 50)
                     }
                 }
                 .padding(.top, Theme.spacingHuge)
+                .if(badge.isEarned) { view in
+                    view.accentGlow(radius: 12)
+                }
 
                 // Badge Info
                 VStack(spacing: Theme.spacingSM) {
                     Text(badge.name)
                         .font(.system(size: Theme.headlineSize, weight: .bold))
-                        .foregroundStyle(Color.appTextPrimary)
+                        .foregroundStyle(badge.isEarned ? Color.appTextPrimary : Color.appTextSecondary)
 
                     Text(badge.badgeDescription)
                         .font(.system(size: Theme.bodySize))
@@ -57,6 +75,21 @@ struct BadgeDetailView: View {
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, Theme.spacingXXL)
                 }
+
+                // Status badge
+                HStack(spacing: Theme.spacingSM) {
+                    Image(systemName: badge.isEarned ? "checkmark.circle.fill" : "circle.dashed")
+                        .foregroundStyle(badge.isEarned ? Color.appCaloriesColor : Color.appTextTertiary)
+                    Text(badge.isEarned ? "Earned" : "Locked")
+                        .font(.system(size: Theme.subheadlineSize, weight: .semibold))
+                        .foregroundStyle(badge.isEarned ? Color.appCaloriesColor : Color.appTextTertiary)
+                }
+                .padding(.horizontal, Theme.spacingLG)
+                .padding(.vertical, Theme.spacingSM)
+                .background(
+                    Capsule()
+                        .fill(badge.isEarned ? Color.appCaloriesColor.opacity(0.15) : Color.appCardSecondary)
+                )
 
                 // Requirement Card
                 VStack(spacing: Theme.spacingMD) {
@@ -82,7 +115,7 @@ struct BadgeDetailView: View {
                         HStack {
                             Image(systemName: "checkmark.circle.fill")
                                 .foregroundStyle(Color.appCaloriesColor)
-                            Text("Earned")
+                            Text("Earned on")
                                 .font(.system(size: Theme.subheadlineSize, weight: .semibold))
                                 .foregroundStyle(Color.appTextPrimary)
                             Spacer()
@@ -99,20 +132,12 @@ struct BadgeDetailView: View {
                 // Share Button
                 if badge.isEarned {
                     ShareLink(
-                        item: "I earned the \"\(badge.name)\" badge on FuelLift! 💪",
+                        item: "I earned the \"\(badge.name)\" badge on FuelLift!",
                         subject: Text("Badge Earned!"),
                         message: Text("Check out my achievement on FuelLift")
                     ) {
-                        HStack(spacing: Theme.spacingSM) {
-                            Image(systemName: "square.and.arrow.up")
-                            Text("Share Badge")
-                        }
-                        .font(.system(size: Theme.subheadlineSize, weight: .semibold))
-                        .foregroundStyle(Color.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, Theme.spacingMD)
-                        .background(Color.appAccent)
-                        .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusMD))
+                        Text("Share Badge")
+                            .primaryButtonStyle()
                     }
                     .padding(.horizontal, Theme.spacingLG)
                 }

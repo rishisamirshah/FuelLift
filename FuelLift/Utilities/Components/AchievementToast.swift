@@ -16,10 +16,7 @@ struct AchievementToast: View {
             HStack(spacing: Theme.spacingMD) {
                 if let def = definition, def.hasCustomImage, let imgName = def.imageName {
                     Image(imgName)
-                        .resizable()
-                        .renderingMode(.original)
-                        .interpolation(.none)
-                        .aspectRatio(contentMode: .fit)
+                        .pixelArt()
                         .frame(width: 28, height: 28)
                 } else {
                     Image(systemName: badge.iconName)
@@ -31,7 +28,7 @@ struct AchievementToast: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Badge Earned")
                         .font(.system(size: Theme.captionSize, weight: .medium))
-                        .foregroundStyle(Color.appTextSecondary)
+                        .foregroundStyle(Color.appAccent)
 
                     Text(badge.name)
                         .font(.system(size: Theme.bodySize, weight: .semibold))
@@ -48,7 +45,11 @@ struct AchievementToast: View {
             .padding(Theme.spacingLG)
             .background(Color.appCardBackground)
             .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusMD))
-            .shadow(color: .black.opacity(0.2), radius: 8, y: 4)
+            .overlay(
+                RoundedRectangle(cornerRadius: Theme.cornerRadiusMD)
+                    .strokeBorder(Color.appBorderAccent, lineWidth: 1)
+            )
+            .shadow(color: Color.appAccent.opacity(0.2), radius: 12, y: 4)
             .padding(.horizontal, Theme.spacingLG)
             .transition(.move(edge: .top).combined(with: .opacity))
         }

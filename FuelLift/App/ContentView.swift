@@ -22,7 +22,7 @@ struct ContentView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Content area
+            // Content area with scanline CRT overlay
             Group {
                 switch selectedTab {
                 case .home: DashboardView()
@@ -33,56 +33,73 @@ struct ContentView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .clipped()
+            .scanlineOverlay()
 
-            // Retro pixel art tab bar
+            // Retro-futuristic arcade tab bar
             VStack(spacing: 0) {
-                // Top accent line
+                // Top accent gradient line
                 Rectangle()
                     .fill(
                         LinearGradient(
-                            colors: [Color.appAccent.opacity(0.1), Color.appAccent.opacity(0.5), Color.appAccent.opacity(0.1)],
+                            colors: [
+                                Color.appAccent.opacity(0.1),
+                                Color.appAccent.opacity(0.5),
+                                Color.appAccent.opacity(0.1)
+                            ],
                             startPoint: .leading,
                             endPoint: .trailing
                         )
                     )
                     .frame(height: 2)
 
-                HStack {
+                HStack(spacing: 0) {
                     ForEach(Tab.allCases, id: \.self) { tab in
+                        let isSelected = selectedTab == tab
+
                         Button {
-                            selectedTab = tab
+                            withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) {
+                                selectedTab = tab
+                            }
                         } label: {
-                            VStack(spacing: 4) {
+                            VStack(spacing: 6) {
                                 Image(tab.iconName)
-                                    .resizable()
-                                    .renderingMode(.original)
-                                    .interpolation(.none)
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(width: 24, height: 24)
-                                    .opacity(selectedTab == tab ? 1.0 : 0.4)
+                                    .pixelArt()
+                                    .frame(width: Theme.tabBarIconSize, height: Theme.tabBarIconSize)
+                                    .scaleEffect(isSelected ? 1.1 : 1.0)
+                                    .opacity(isSelected ? 1.0 : 0.35)
 
                                 Text(tab.rawValue)
-                                    .font(.system(size: 10, weight: selectedTab == tab ? .bold : .regular))
-                                    .foregroundStyle(selectedTab == tab ? Color.appAccent : Color.appTextTertiary)
+                                    .font(.system(
+                                        size: 10,
+                                        weight: isSelected ? .semibold : .regular,
+                                        design: isSelected ? .rounded : .default
+                                    ))
+                                    .foregroundStyle(isSelected ? Color.appAccent : Color.appTextTertiary)
                             }
                             .frame(maxWidth: .infinity)
-                            .padding(.vertical, 6)
-                            .background(
-                                selectedTab == tab ?
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .fill(Color.appAccent.opacity(0.1))
-                                        .padding(.horizontal, 8)
-                                    : nil
-                            )
+                            .padding(.top, 10)
+                            .padding(.bottom, 6)
+                            .overlay(alignment: .bottom) {
+                                // Glowing orange underline indicator
+                                if isSelected {
+                                    RoundedRectangle(cornerRadius: 1.5)
+                                        .fill(Color.appAccent)
+                                        .frame(width: 32, height: 3)
+                                        .shadow(color: Color.appAccent.opacity(0.6), radius: 6, y: 0)
+                                        .shadow(color: Color.appAccent.opacity(0.3), radius: 12, y: 0)
+                                        .transition(.opacity.combined(with: .scale(scale: 0.5)))
+                                }
+                            }
                         }
                         .buttonStyle(.plain)
                     }
                 }
-                .padding(.top, 8)
+                .padding(.top, 4)
                 .padding(.bottom, 28)
             }
             .background(Color.appCardBackground)
         }
+        .screenBackground()
         .overlay(alignment: .bottomTrailing) {
             FloatingActionButton {
                 showAddMeal = true

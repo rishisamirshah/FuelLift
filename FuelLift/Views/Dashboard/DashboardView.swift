@@ -22,10 +22,7 @@ struct DashboardView: View {
                     // Header with streak
                     HStack {
                         Image("logo_fuellift")
-                            .resizable()
-                            .renderingMode(.original)
-                            .interpolation(.none)
-                            .aspectRatio(contentMode: .fit)
+                            .pixelArt()
                             .frame(height: 32)
                         Spacer()
                         if profile?.showStreakBadge ?? true, viewModel.currentStreak > 0 {
@@ -102,6 +99,7 @@ struct DashboardView: View {
                 workoutVM.badgeViewModel = badgeViewModel
                 // Check streak badges after dashboard recalculates streak
                 if let badgeVM = badgeViewModel {
+                    badgeVM.recheckAllBadges(context: modelContext)
                     badgeVM.checkStreakBadges(currentStreak: viewModel.currentStreak, context: modelContext)
                 }
                 withAnimation(.easeOut(duration: 0.6)) {
@@ -137,10 +135,7 @@ struct DashboardView: View {
         Button(action: action) {
             HStack(spacing: Theme.spacingMD) {
                 Image(iconName)
-                    .resizable()
-                    .renderingMode(.original)
-                    .interpolation(.none)
-                    .aspectRatio(contentMode: .fit)
+                    .pixelArt()
                     .frame(width: 28, height: 28)
                 Text(label)
                     .font(.system(size: Theme.bodySize, weight: .bold))
@@ -157,10 +152,7 @@ struct DashboardView: View {
         VStack(alignment: .leading, spacing: Theme.spacingSM) {
             HStack {
                 Image("icon_water_drop")
-                    .resizable()
-                    .renderingMode(.original)
-                    .interpolation(.none)
-                    .aspectRatio(contentMode: .fit)
+                    .pixelArt()
                     .frame(width: 24, height: 24)
                 Text("Water")
                     .font(.system(size: Theme.subheadlineSize, weight: .bold))
@@ -199,7 +191,7 @@ struct DashboardView: View {
                             .foregroundStyle(Color.appWaterColor)
                             .padding(.horizontal, Theme.spacingMD)
                             .padding(.vertical, Theme.spacingXS)
-                            .background(Color.appWaterColor.opacity(0.15))
+                            .background(Color.appCardSecondary)
                             .clipShape(Capsule())
                     }
                     .buttonStyle(.plain)
@@ -219,10 +211,7 @@ struct DashboardView: View {
             if viewModel.todayEntries.isEmpty {
                 VStack(spacing: Theme.spacingMD) {
                     Image("icon_fork_knife")
-                        .resizable()
-                        .renderingMode(.original)
-                        .interpolation(.none)
-                        .aspectRatio(contentMode: .fit)
+                        .pixelArt()
                         .frame(width: 40, height: 40)
 
                     Text("Tap + to add your first meal of the day")
@@ -277,10 +266,7 @@ struct DashboardView: View {
                 // Calories
                 HStack(spacing: Theme.spacingXS) {
                     Image("icon_fire_streak")
-                        .resizable()
-                        .renderingMode(.original)
-                        .interpolation(.none)
-                        .aspectRatio(contentMode: .fit)
+                        .pixelArt()
                         .frame(width: 20, height: 20)
                     Text("\(entry.calories) calories")
                         .font(.system(size: Theme.subheadlineSize, weight: .bold))
@@ -295,18 +281,13 @@ struct DashboardView: View {
                 }
             }
         }
-        .padding(Theme.spacingLG)
-        .background(Color.appCardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusLG))
+        .cardStyle()
     }
 
     private func macroLabel(iconName: String, value: String) -> some View {
         HStack(spacing: Theme.spacingXS) {
             Image(iconName)
-                .resizable()
-                .renderingMode(.original)
-                .interpolation(.none)
-                .aspectRatio(contentMode: .fit)
+                .pixelArt()
                 .frame(width: 18, height: 18)
             Text(value)
                 .font(.system(size: Theme.captionSize, weight: .medium))

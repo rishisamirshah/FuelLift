@@ -1,13 +1,13 @@
 # FuelLift Brain - Complete Project Context
 
-> Last updated: 2026-02-28 (v5 — Pixel Art Visual Overhaul)
+> Last updated: 2026-02-28 (v6 — Retro-Futuristic Dark UI + Badge System)
 > Auto-maintained by "Update all" task
 
 ---
 
 ## Project Overview
 
-**FuelLift** is an iOS fitness + nutrition tracking app combining calorie/macro logging (like Cal-AI) with strength training (like Strong). Built with SwiftUI, SwiftData, Firebase, HealthKit, and OpenAI. Premium Cal AI + Strong aesthetic with system-adaptive light/dark mode.
+**FuelLift** is an iOS fitness + nutrition tracking app combining calorie/macro logging (like Cal-AI) with strength training (like Strong). Built with SwiftUI, SwiftData, Firebase, HealthKit, and OpenAI. Retro-futuristic pixel art aesthetic — dark arcade theme with orange accents and 8-bit sprites.
 
 - **Bundle ID:** com.fuellift.app
 - **Min iOS:** 17.0 | **Swift:** 5.9 | **Xcode:** 16.2
@@ -24,68 +24,87 @@
 ```
 FuelLift/
 ├── App/                    # Entry points (3 files)
-│   ├── FuelLiftApp.swift   # @main, ModelContainer (9 models), RootView
+│   ├── FuelLiftApp.swift   # @main, ModelContainer (9 models), RootView, BadgeViewModel init
 │   ├── AppDelegate.swift   # Notifications (Firebase disabled)
-│   └── ContentView.swift   # 4-tab bar + FAB overlay
+│   └── ContentView.swift   # Custom 4-tab bar + FAB overlay + scanline CRT
 ├── Models/                 # SwiftData @Model + structs (11 files)
 ├── ViewModels/             # State managers (9 files)
-├── Views/                  # SwiftUI views (47 files)
+├── Views/                  # SwiftUI views (51 files)
 │   ├── Dashboard/          # 3 files
 │   ├── Nutrition/          # 10 files
-│   ├── Workout/            # 9 files
+│   ├── Workout/            # 10 files
 │   ├── Progress/           # 12 files
 │   ├── Social/             # 5 files
-│   ├── Settings/           # 4 files
+│   ├── Settings/           # 5 files (added PreferencesView)
 │   └── Onboarding/         # 3 files
 ├── Services/               # Singletons (8 files)
 ├── Utilities/              # Theme, Extensions, Constants, ImagePicker
 │   └── Components/         # 9 shared UI components
-└── Resources/              # Info.plist, Entitlements, Assets.xcassets (AppIcon)
+└── Resources/              # Info.plist, Entitlements, Assets.xcassets (123 images)
 ```
 
 ---
 
-## Design System (Theme.swift)
+## Design System (Theme.swift) — Retro-Futuristic Dark
 
 ### Spacing: XS(4) / SM(8) / MD(12) / LG(16) / XL(20) / XXL(24) / Huge(32)
 ### Corner Radius: SM(8) / MD(12) / LG(16—cards) / XL(20) / Full(100—pills)
 ### Typography: title(34) / headline(22) / subheadline(17) / body(15) / caption(13) / mini(11)
 ### Rings: calorieRing(120pt, 12pt stroke) / macroRing(56pt, 6pt stroke)
+### Glow: glowRadius(8) / glowRadiusLG(16) / glowOpacity(0.35)
+### Borders: borderWidth(1) / borderWidthThick(2) / pixelStep(4)
 
-### Semantic Colors (all system-adaptive)
-- **Backgrounds:** appBackground, appCardBackground, appCardSecondary, appGroupedBackground
-- **Text:** appTextPrimary (label), appTextSecondary, appTextTertiary
-- **Macros:** appProteinColor (#4A90D9 blue), appCarbsColor (#F5A623 orange), appFatColor (#D0021B red), appCaloriesColor (#7ED321 green)
-- **Other:** appWaterColor (#50E3C2 teal), appStreakColor (#FF9500), appAccent (orange), appWorkoutGreen
-- **PR Badges:** appPR1RM (teal), appPRVolume (green), appPRWeight (yellow)
-- **Badge States:** appBadgeEarned (orange), appBadgeLocked (tertiaryLabel)
+### Color Palette — Intentional Dark (NOT system-adaptive)
+- **Backgrounds:** appBackground (#08080F deep black), appCardBackground (#12121E), appCardSecondary (#1A1A2A), appGroupedBackground (#0D0D17)
+- **Accent:** appAccent (#FF6B00 hot orange), appAccentBright (#FF8C26), appAccentDim (#CC5500)
+- **Text:** appTextPrimary (white), appTextSecondary (white 60%), appTextTertiary (white 30%)
+- **Macros (neon-tinted):** appProteinColor (#59A5FF), appCarbsColor (#FFBF33), appFatColor (#FF4D59), appCaloriesColor (#66E640)
+- **Other:** appWaterColor (#40D9E6), appStreakColor (#FF9500), appPRColor (#00CCE6), appWorkoutGreen
+- **Borders:** appBorder (white 8%), appBorderAccent (orange 30%)
+- **Badge States:** appBadgeEarned (#FF6B00), appBadgeLocked (white 20%)
 
 ### View Modifiers (Extensions.swift)
-- `.cardStyle()` — padding(LG) + appCardBackground + cornerRadiusLG
-- `.secondaryCardStyle()` — padding(LG) + appCardSecondary + cornerRadiusMD
-- `.sectionHeaderStyle()` — font 20pt bold + appTextPrimary + leading
-- `.screenBackground()` — appBackground
+- `.cardStyle()` — padding(LG) + appCardBackground + cornerRadiusLG + orange accent border
+- `.secondaryCardStyle()` — padding(LG) + appCardSecondary + cornerRadiusMD + subtle border
+- `.pixelCardStyle()` — pixel-stepped corners (PixelBorder shape) + orange accent
+- `.pixelButtonStyle()` — full-width retro button with gradient orange border
+- `.primaryButtonStyle()` — filled orange button with glow shadow
+- `.sectionHeaderStyle()` — font 20pt bold + white + leading
+- `.screenBackground()` — deep dark appBackground
+- `.accentGlow(radius:)` — orange shadow glow effect
+- `.scanlineOverlay(opacity:)` — CRT horizontal lines for retro atmosphere
+- `.pixelDivider()` — thin line with subtle accent
+- `.if(_:transform:)` — conditional view modifier
+
+### Image Helper
+- `Image("name").pixelArt()` — `.resizable().renderingMode(.original).interpolation(.none).aspectRatio(contentMode: .fit)` (returns `some View`, chain `.frame()` after)
+
+### Custom Shapes
+- **PixelBorder** — stepped corner shape for retro card borders
+- **ScanlinePattern** — horizontal line pattern for CRT overlay
 
 ### Gradients
-- calorieRing, proteinRing, carbsRing, fatRing (color → 70% opacity)
+- calorieRing, proteinRing, carbsRing, fatRing (color → 60% opacity)
 - streakGradient (orange → red, vertical)
+- accentGlow (orange 60% → 15%, vertical)
 
 ---
 
 ## Tab Navigation
 
-4 tabs + Floating Action Button:
+4 tabs + Floating Action Button (custom VStack-based, NOT SwiftUI TabView):
 
-| Tab | Icon | Destination | Purpose |
-|-----|------|-------------|---------|
-| Home | house.fill | DashboardView | Daily summary, calorie ring, macros, streak |
-| Progress | chart.bar.fill | ProgressDashboardView | Weight/calorie charts, milestones, badges |
-| Workout | dumbbell.fill | WorkoutListView | Templates, active workout, history |
-| Profile | person.fill | SettingsView | Profile, settings, social access |
+| Tab | Icon Asset | Destination | Purpose |
+|-----|------------|-------------|---------|
+| Home | icon_house | DashboardView | Daily summary, calorie ring, macros, streak |
+| Progress | icon_chart_bar | ProgressDashboardView | Weight/calorie charts, milestones, badges |
+| Workout | icon_dumbbell | WorkoutListView | Templates, active workout, history |
+| Profile | icon_person | SettingsView | Profile, settings, social access |
 
-- **FAB:** Orange FloatingActionButton bottom-right, opens FoodLogView sheet
+- **Tab bar design:** Dark bg, orange gradient top line, glowing 3px orange underline on selected tab, spring animation, icon scale 1.1x on select
+- **FAB:** Orange FloatingActionButton bottom-right with glow + ring border, opens FoodLogView sheet
+- **CRT overlay:** Scanline pattern on content area
 - Social tab removed — accessible from Profile
-- Tint: `.tint(.orange)`
 
 ---
 
@@ -96,38 +115,32 @@ FuelLift/
 - Body: heightCM, weightKG, weightGoalKG (optional), age, gender, activityLevel
 - Nutrition Plan: dietaryPreference (String?), workoutsPerWeek (Int?), targetWeightKG (Double?)
 - Prefs: useMetricUnits, darkModeEnabled, notificationsEnabled, healthKitEnabled
+- Dashboard toggles: showStreakBadge, showQuickActions, showMacrosBreakdown, showWaterTracker, showWorkoutSummary
 - Streaks: currentStreak, longestStreak, lastLogDate
 - Onboarding: hasCompletedOnboarding; Profile: displayName, email, firestoreId
-- **Auto-created:** RootView creates default UserProfile on launch if none exists (auth bypass fix)
+- Reminder times: breakfastReminderHour/Minute, lunchReminderHour/Minute, dinnerReminderHour(18)/Minute(0)
+- **Auto-created:** RootView creates default UserProfile on launch if none exists
 
 ### FoodEntry
 - name, calories (Int), proteinG, carbsG, fatG, servingSize, mealType, date, imageData, barcode, source, firestoreId
-- Computed: nutrition → NutritionData; Methods: toFirestoreData()
 
 ### WaterEntry — amountML (Int), date
-### Exercise — name, muscleGroup, equipment, instructions, isCustom
-### ExerciseSet — exerciseName, setNumber, weight, reps, rpe, isWarmup, isCompleted, isPersonalRecord; Computed: estimated1RM (Epley), volume
+### Exercise — name, muscleGroup, equipment, instructions, isCustom (45 predefined exercises)
+### ExerciseSet — exerciseName, setNumber, weight, reps, rpe, isWarmup, isCompleted, isPersonalRecord
 ### WorkoutRoutine — name, exerciseNames ([String]), defaultSetsPerExercise, notes
 ### BodyMetric — date, weightKG?, bodyFatPercent?, chestCM?, waistCM?, hipsCM?, bicepsCM?, thighsCM?, photoData?
 
 ### Workout
 - name, date, durationSeconds, notes, isCompleted, exerciseGroupsData (Data? JSON)
-- Computed: totalVolume, totalSets, exerciseNames, durationFormatted
-- Methods: toFirestoreData(), decodeExerciseGroups(), encodeExerciseGroups()
 
-### Badge (NEW)
+### Badge
 - key (String→BadgeKey), name, badgeDescription, iconName, category (String→BadgeCategory), requirement, earnedDate (Date?)
 - Computed: isEarned (earnedDate != nil)
 
 ### Supporting Types
-- **NutritionData** (Codable) — name, calories, proteinG, carbsG, fatG, servingSize
-- **ExerciseDefinition** (Codable) — 29 predefined exercises, static loadAll()
-- **WorkoutExerciseGroup** (Codable, Identifiable) — exerciseName, sets: [WorkoutSetData], isSuperset
-- **WorkoutSetData** (Codable, Identifiable) — setNumber, weight, reps, rpe?, isWarmup, isCompleted, isPersonalRecord; estimated1RM, volume
-- **MealType** (enum) — breakfast, lunch, dinner, snack
 - **BadgeCategory** (enum) — streak, meals, workouts, strength, bodyProgress, social (displayName, gradientColors, gradient)
 - **BadgeKey** (enum) — 31 cases across 6 categories
-- **BadgeDefinition** (struct) — static all: 31 badge definitions with keys, names, icons, requirements
+- **BadgeDefinition** (struct) — static all: 31 badge definitions with keys, names, icons, requirements, imageName
 - **PRType** (enum) — oneRM, volume, weight (label, color)
 
 ---
@@ -137,90 +150,15 @@ FuelLift/
 | ViewModel | Type | Key Properties | Key Methods |
 |-----------|------|----------------|-------------|
 | AuthViewModel | ObservableObject | isAuthenticated, isLoading, needsOnboarding | signIn(), signUp(), signInWithApple() — bypassed |
-| WorkoutPlannerViewModel | ObservableObject | selectedGoal, selectedExperience, daysPerWeek, generatedPlan, refinementInput, isRefining, conversationHistory | generatePlan(), savePlan(), refinePlan() |
-| BadgeViewModel (NEW) | @Observable | badges, newlyEarnedBadge, showConfetti | initializeBadgesIfNeeded(), checkStreak/Meal/Workout/PR/BodyBadges() |
-| DashboardViewModel | ObservableObject | caloriesEaten, calorieGoal, macros, waterML, todayWorkout, currentStreak | loadTodayData() |
-| NutritionViewModel | ObservableObject | selectedDate, todayEntries, todayWater, totals | entriesForMeal(), addFoodEntry(), deleteFoodEntry(), addWater() |
-| FoodScanViewModel | ObservableObject | capturedImage, scannedNutrition, isAnalyzing, foodDescription | analyzePhoto(), analyzeDescription(), lookupBarcode(), createFoodEntry() |
-| WorkoutViewModel | ObservableObject | activeWorkout, exerciseGroups, elapsedSeconds, newPRs | startWorkout(), finishWorkout(), addExercise(), completeSet(), checkForPR() |
-| ProgressViewModel | ObservableObject | weightHistory, calorieHistory, exercisePRs | loadData(), loadWeightHistory(), loadCalorieHistory(), loadPRs() |
-| ExerciseLibraryViewModel | ObservableObject | exercises, searchText, selectedMuscleGroup | filteredExercises (computed) |
-| SocialViewModel | ObservableObject | groups, friends | loadGroups(), createGroup(), joinGroup() — Firebase dependent |
-
----
-
-## Services (Singletons)
-
-| Service | Backend | Status | Purpose |
-|---------|---------|--------|---------|
-| AuthService | Firebase Auth | Disabled | Email/password + Apple Sign-In |
-| FirestoreService | Firestore | Disabled | Cloud data sync |
-| StorageService | Firebase Storage | Disabled | Photo uploads |
-| HealthKitService | HealthKit | Active | Read steps/calories, write macros/weight/workouts |
-| OpenAIService | OpenAI GPT-4o | Active* | Food photo → NutritionData (needs API key) |
-| ClaudeService | Anthropic Claude | Active | Workout plans, food photo/description analysis, plan refinement, nutrition goal calculator (enhanced: dietary pref, target weight, workouts/week) |
-| ExerciseAPIService | wger.de | Active | Exercise images (ID map + search fallback, cached) |
-| BarcodeService | Open Food Facts | Active | Barcode → NutritionData |
-| NotificationService | UNNotifications | Active | Meal/workout reminders |
-| SyncService | Firestore | Disabled | Pull remote → update local |
-
-All Firebase services guard with `FirebaseApp.app() != nil`.
-
----
-
-## Views (52 files)
-
-### Dashboard (3)
-- **DashboardView** — StreakBadge, WeekDaySelector, CalorieRing, MacroRings, quick actions (Scan Food, Start Workout, AI Nutrition Plan), water, workout summary, recently uploaded, FAB
-- **CalorieSummaryCard** — CalorieRing (120pt) + 3 MacroRings (56pt)
-- **WorkoutSummaryCard** — Dark card: name, duration, sets, volume
-
-### Nutrition (10)
-- **FoodLogView** — Date picker, summary, water tracker, meal sections, FAB, menu: camera/barcode/describe/manual
-- **NutritionPlanView** — In-depth AI nutrition questionnaire: body stats, goal cards, target weight, activity/workouts stepper, dietary preference pills (FlowLayout), AI Generate button, all 4 editable macros, reset to defaults, sticky save. Opened from Dashboard quick action + Settings.
-- **FoodDescriptionView** — Text input → Claude AI → FoodDetailView → save with source "ai_description"
-- **CameraScanView** — Camera → Claude Vision → FoodDetailView
-- **BarcodeScanView** — AVFoundation barcode scanner
-- **FoodDetailView** — Nutrition editor, **ManualFoodEntryView** — Manual form
-- **MealHistoryView** — Past foods for re-log, **RecipeBuilderView** — Multi-ingredient recipes
-- **FoodEntryDetailView** — Detail view for logged food entries
-
-### Workout (9)
-- **WorkoutListView** — Green CTA, template grid, history, calendar toggle
-- **ActiveWorkoutView** — Timer, set logging, PR badges, haptics
-- **ExercisePickerView** — Search, filter dropdowns, A-Z index
-- **ExerciseDetailView** — 4-tab: About(image+placeholder)/History/Charts/Records
-- **RoutineEditorView** — Template editor
-- **RestTimerView** — ProgressRing countdown, **SupersetGroupView** — Paired exercises
-- **WorkoutCalendarView** (NEW) — Monthly grid with green checkmarks
-- **WorkoutHistoryCard** (NEW) — Workout card + PRBadge component
-
-### Progress (12)
-- **ProgressDashboardView** — Scrolling: streak, weight, charts, badges, energy, BMI
-- **WeightChartView** — Line chart + FilterPills (90D/6M/1Y/ALL)
-- **NutritionChartView** — Stacked bar chart (protein/carbs/fat)
-- **StrengthChartView** — Ranked PR list
-- **BodyMeasurementsView** — Measurement cards, **ProgressPhotosView** — Photo grid
-- **MilestonesView** (NEW) — Badge grid by category from BadgeDefinition.all
-- **BadgeDetailView** (NEW) — Badge detail + ShareLink
-- **WeightChangesCard** (NEW) — TrendRows for 3/7/14/30/90d
-- **WeeklyEnergyCard** (NEW) — Burned vs Consumed bar chart
-- **BMICard** (NEW) — BMI gauge (green/yellow/red), **WeightEditorView** (NEW) — Weight picker + weight goal setting + plan prompt
-
-### Social (5) — GroupsListView, GroupDetailView, LeaderboardView (gold/silver/bronze), FriendProfileView, WorkoutShareView
-### Settings (4) — SettingsView (profile header, grouped sections, "Edit Nutrition Goals" → NutritionPlanView), ProfileEditView, NotificationSettingsView, UnitsSettingsView
-### Onboarding (3) — LoginView (dark, Apple Sign-In), OnboardingView (carousel), GoalSetupView (3-step wizard + AI Calculate, used for onboarding only)
-
-### Shared Components (9)
-- **ProgressRing** — Circular ring + CalorieRing/MacroRing variants
-- **WeekDaySelector** — 7-day horizontal row
-- **StreakBadge** — .compact (pill) / .expanded (card) with pulse
-- **TrendRow** — Label + mini bar + trend arrow
-- **FilterPills** — Selectable pills (TimeFilter, WeekFilter enums)
-- **FloatingActionButton** — Orange FAB with spring + haptics
-- **BadgeGridItem** — Badge cell (earned=gradient circle + white icon / locked=gray circle + star). Takes optional `category` for gradient.
-- **BadgeUnlockedOverlay** — Confetti celebration overlay
-- **AchievementToast** — Slide-in toast + .achievementToast() modifier
+| BadgeViewModel | @Observable | badges, newlyEarnedBadge, showConfetti | initializeBadgesIfNeeded(), check*Badges(), recheckAllBadges(), awardBadge() |
+| DashboardViewModel | ObservableObject | caloriesEaten, calorieGoal, macros, waterML, todayWorkout, currentStreak | loadDashboard(), calculateStreak() |
+| NutritionViewModel | ObservableObject | selectedDate, todayEntries, todayWater, totals, badgeViewModel | addFoodEntry() (checks meal+streak badges) |
+| WorkoutViewModel | ObservableObject | activeWorkout, exerciseGroups, elapsedSeconds, newPRs, badgeViewModel | startWorkout(), finishWorkout() (checks workout+PR badges) |
+| ProgressViewModel | ObservableObject | weightHistory, calorieHistory, exercisePRs | loadData() |
+| FoodScanViewModel | ObservableObject | capturedImage, scannedNutrition | analyzePhoto(), analyzeDescription() |
+| WorkoutPlannerViewModel | ObservableObject | selectedGoal, generatedPlan | generatePlan(), savePlan(), refinePlan() |
+| ExerciseLibraryViewModel | ObservableObject | exercises, searchText | filteredExercises |
+| SocialViewModel | ObservableObject | groups, friends | — Firebase dependent |
 
 ---
 
@@ -233,7 +171,15 @@ All Firebase services guard with `FirebaseApp.app() != nil`.
 - **Body/Progress (6):** Weigh In, Snapshot, Transformation, Goal Crusher, Perfect Week, Hydration Hero
 - **Social (3):** Social Butterfly, Team Player, Influencer
 
-BadgeViewModel checks conditions → awardBadge() → confetti + toast.
+### Badge Earning Flow
+1. `FuelLiftApp.swift` creates `BadgeViewModel` → `initializeBadgesIfNeeded()` on launch
+2. `DashboardView.onAppear` → `recheckAllBadges()` (safety net — catches any missed badges)
+3. `NutritionViewModel.addFoodEntry()` → `checkMealBadges()` + `checkStreakBadges()`
+4. `WorkoutViewModel.finishWorkout()` → `checkWorkoutBadges()` + `checkPRBadges()`
+5. `awardBadge()` auto-reloads badges if empty, sets earnedDate, triggers confetti + toast
+6. **MilestonesView** — tap any badge → NavigationLink → BadgeDetailView
+7. **BadgeDetailView** — shows large image (greyed out for locked), requirement, earned date, share button
+8. **BadgeGridItem** — earned: full color + orange glow border, locked: desaturated + lock overlay
 
 ---
 
@@ -253,12 +199,8 @@ BadgeViewModel checks conditions → awardBadge() → confetti + toast.
 - **Trigger:** Push to `main` or manual workflow_dispatch
 - **Runner:** macos-14, Xcode 16.2
 - **Flow:** Checkout → XcodeGen → Ruby/Fastlane → GoogleService-Info.plist (placeholder) → SPM resolve → Fastlane beta lane
-- **Fastlane beta lane:** setup_ci → App Store Connect API key → Match (readonly) → increment_build_number (timestamp) → build_app → upload_to_testflight
-- **Signing:** Manual code signing on FuelLift target only (SPM packages use automatic). Match profile: "match AppStore com.fuellift.app"
-- **Workflows:** `testflight.yml` (auto deploy), `setup-certificates.yml` (one-time cert generation)
-- **Required GitHub Secrets:** ASC_KEY_ID, ASC_ISSUER_ID, ASC_PRIVATE_KEY, MATCH_PASSWORD, MATCH_GIT_URL, MATCH_GIT_AUTH, DEVELOPMENT_TEAM, ANTHROPIC_API_KEY, OPENAI_API_KEY
-- **App Icon:** Pixel art lifter character, 1024x1024 PNG (single-size format, Xcode generates all sizes)
-- **Encryption compliance:** ITSAppUsesNonExemptEncryption=false (auto-skips compliance prompt)
+- **Signing:** Manual code signing on FuelLift target only; SPM packages use automatic
+- **App Icon:** Pixel art lifter character, 1024x1024 PNG (single-size format)
 
 ---
 
@@ -267,68 +209,49 @@ BadgeViewModel checks conditions → awardBadge() → confetti + toast.
 - **Firebase:** Disabled. All services guard with `FirebaseApp.app() != nil`.
 - **Auth:** Bypassed — isAuthenticated = true on init.
 - **Local data:** SwiftData fully functional.
-- **OpenAI:** Requires OPENAI_API_KEY.
-- **Claude AI:** Anthropic API integrated for: workout planner, food photo/description analysis, plan refinement (multi-turn), AI nutrition plan calculator with dietary preference + target weight + workout frequency (key in Constants.swift).
+- **Claude AI:** Active — workout plans, food analysis, nutrition goals (key in Constants.swift).
 - **HealthKit:** Active (requires device support).
-- **UI:** Retro pixel art aesthetic (orange on black, 8-bit sprites). 122 custom pixel art assets replace SF Symbols app-wide. System-adaptive light/dark with in-app dark mode toggle. All Theme design tokens.
-- **Build:** Compiles cleanly (0 errors). CI/CD fully operational — push to `main` auto-deploys to TestFlight.
-- **TestFlight:** Live, internal testing group set up with testers.
+- **UI:** Retro-futuristic dark arcade — deep black backgrounds (#08080F), hot orange accents (#FF6B00), neon macro colors, pixel-stepped borders, CRT scanline overlay, glow effects. 123 custom pixel art assets. `.pixelArt()` helper on all asset images.
+- **Build:** Compiles cleanly (0 errors). CI/CD fully operational.
+- **TestFlight:** Live, internal testing.
 
 ### Known Warnings
 - HKWorkout init deprecated iOS 17 (HealthKitService)
 - Unused StorageReference (StorageService)
-- Unused credential variable (AuthService)
-- "All interface orientations must be supported unless the app requires full screen" (build warning, non-blocking)
+- "All interface orientations must be supported" (build warning, non-blocking)
 
-### Recently Implemented (v5 — Pixel Art Visual Overhaul)
-- **122 pixel art assets generated** via Gemini Nano Banana — icons (51), badges (31), exercises (26), heroes (3), other (11)
-- **32 Swift files modified** — SF Symbols replaced with `Image("asset_name").resizable().renderingMode(.original).frame()` pattern
-- **App icon** — Pixel art lifter character replaces green placeholder
-- **Logo** — "FUEL [figure] LIFT" pixel art header in DashboardView
-- **Tab bar** — Pixel art house, chart, dumbbell, person icons
-- **All settings rows** — Every icon replaced with pixel art
-- **Onboarding** — 3 hero illustrations (scan food, workout, social) replace SF Symbol circles
-- **Login** — Pixel art logo replaces flame SF Symbol
-- **31 badge artworks** — Unique pixel art per badge (Rookie→phoenix, First Bite→godfather, etc.)
-- **26 exercise illustrations** — Every exercise has pixel art showing the movement
-- **Macro ring emojis** — 🥩→pixel meat, 🍞→pixel bread, 🧈→pixel butter
-- **Streak badge** — 🔥 emoji → pixel art flame (compact + expanded)
-- **Exercise detail** — Local pixel art shown first via ID mapping, API fallback preserved
-- **Badge system** — BadgeGridItem/BadgeDetailView/BadgeUnlockedOverlay all load custom images
-- **FAB** — Pixel art plus icon
-- **Image generation script** — `scripts/generate_image.py` with baked-in style prefix for consistent aesthetic
+### Recently Implemented (v6 — Retro-Futuristic Dark UI + Badge System)
+- **Dark design system overhaul** — replaced system-adaptive colors with intentional dark palette
+- **New color tokens** — neon macro colors, border/glow tokens, accent variants
+- **New view modifiers** — pixelButtonStyle, primaryButtonStyle, accentGlow, scanlineOverlay, pixelCardStyle, PixelBorder shape, ScanlinePattern
+- **`.pixelArt()` helper** — replaces verbose 4-line image rendering chain (50+ replacements across all views)
+- **Tab bar redesign** — custom VStack with glowing orange underline indicator, spring animations, icon scale on select
+- **Badge system fixes** — recheckAllBadges() on dashboard appear, auto-reload badges if empty in awardBadge
+- **Tappable badges** — MilestonesView badges link to BadgeDetailView, locked badges show greyed-out image + lock overlay
+- **Settings fixes** — NavigationStack added (fixes navigation), PreferencesView (dark mode, units, water goal), nutrition goals in ProfileEditView, "Reset AI Plan" rename
+- **Exercise library expansion** — 18 new exercises (45 total), image mapping fixes
+- **Notification defaults** — dinner time 6:00 PM
+- **16 skills installed** to .claude/commands/ (design, docs, dev, communication)
 
-### Previously Implemented (v4 — AI Nutrition Plan)
-- **NutritionPlanView** — In-depth single-page questionnaire replacing GoalSetupView for editing: body stats, goal cards, target weight, activity level + workouts/week stepper, dietary preference pills (Standard/High Protein/Low Carb/Keto/Vegetarian/Vegan), AI Generate button, all 4 editable macro fields, reset to defaults, sticky save button
-- **Dashboard quick action** — "AI Nutrition Plan" button added as full-width third action below Scan Food + Start Workout
-- **Enhanced ClaudeService prompt** — calculateNutritionGoals() now accepts dietaryPreference, targetWeightKG, workoutsPerWeek; uses Mifflin-St Jeor + dietary-specific macro ratios
-- **UserProfile new fields** — dietaryPreference (String?), workoutsPerWeek (Int?), targetWeightKG (Double?)
-- **Settings redirect** — "Edit Nutrition Goals" now opens NutritionPlanView instead of GoalSetupView
-- **FlowLayout** — Custom SwiftUI Layout for wrapping dietary preference pills
-- **GoalSetupView preserved** — Still used for onboarding wizard (unchanged)
+### Previously Implemented (v5 — Pixel Art Visual Overhaul)
+- 122 pixel art assets via Gemini Nano Banana, background removal, content cropping
+- Custom tab bar replacing SwiftUI TabView (fixes icon sizing)
+- App icon, logo, badge artwork, exercise illustrations
 
-### Previously Implemented (v3 — CI/CD)
-- **TestFlight pipeline** — Fully automated: push to main → GitHub Actions → Fastlane → TestFlight (~15 min)
-- **One-time cert setup workflow** — `setup-certificates.yml` generates Match certs without needing a Mac locally
-- **App icon asset catalog** — Created Assets.xcassets with placeholder AppIcon (single-size 1024x1024)
-- **Info.plist metadata** — Added all required keys: CFBundleIconName, UILaunchScreen, orientations, health descriptions, encryption compliance
-- **Per-target code signing** — Manual signing only on FuelLift target; SPM packages use automatic signing (fixes "conflicting provisioning settings")
+### Gemini Image Generation
+- **Script:** `scripts/generate_image.py` — Python, `google-genai` SDK
+- **Model:** Nano Banana (`gemini-2.5-flash-image`)
+- **API Key:** Set via env var `GEMINI_API_KEY` (NOT hardcoded — previous key was leaked)
+- **Usage:** `python generate_image.py "prompt" -o output.png -m nano [--raw]`
+- **Models:** `nano` (default), `pro` (high quality), `nano2` (latest)
 
-### Gemini Image Generation (Active)
-- **Script:** `scripts/generate_image.py` — Python, uses `google-genai` SDK
-- **Model:** Nano Banana (`gemini-2.5-flash-image`) — $0.039/image
-- **Style:** Chunky solid filled pixel art, orange/dark orange on black, white sparkle stars, retro 8-bit
-- **Usage:** `python generate_image.py "prompt" -o output.png -m nano`
-- **Models available:** `nano` (default, fast), `pro` (high quality), `nano2` (latest)
-- **Reference aesthetic:** `C:\Users\12147\Pictures\8d0397a0-e9f8-4270-9894-2a2296800244.jfif`
-
-### Deferred Features (Next Implementation Cycle)
-- **Workout Sharing** — Export routines as shareable links/text, import shared workouts from others
-- **Firebase Integration** — Re-enable Auth, Firestore sync, Storage for cloud data
-- **Custom Exercise Creation** — `isCustom` flag exists on Exercise model but no UI to create/edit custom exercises
-- **Superset/Dropset Support** — SupersetGroupView exists but isn't integrated into ActiveWorkoutView
-- **Rest Timer Customization** — Currently hardcoded 90s, needs user-configurable duration
-- **Workout Rating/RPE Summary** — Post-workout RPE rating at finish
+### Deferred Features
+- **Firebase Integration** — Re-enable Auth, Firestore sync, Storage
+- **Custom Exercise Creation** — `isCustom` flag exists but no creation UI
+- **Superset/Dropset Support** — SupersetGroupView exists but not integrated
+- **Rest Timer Customization** — Needs user-configurable duration
+- **Workout Sharing** — Export/import routines
+- **Light mode support** — Currently dark-only by design
 
 ---
 
@@ -339,11 +262,11 @@ BadgeViewModel checks conditions → awardBadge() → confetti + toast.
 | App | 3 |
 | Models | 11 |
 | ViewModels | 10 |
-| Views | 50 |
+| Views | 51 |
 | Components | 9 |
 | Services | 10 |
 | Utilities | 4 |
 | Resources | 5 |
-| Scripts | 1 |
-| Asset Images | 122 |
-| **Total Swift** | **94** |
+| Scripts | 3 (generate_image, remove_backgrounds, crop_images) |
+| Asset Images | 123 |
+| **Total Swift** | **95** |

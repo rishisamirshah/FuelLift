@@ -28,10 +28,7 @@ struct ProgressPhotosView: View {
 
                     HStack(spacing: Theme.spacingMD) {
                         Image("icon_photo_frame")
-                            .resizable()
-                            .renderingMode(.original)
-                            .interpolation(.none)
-                            .aspectRatio(contentMode: .fit)
+                            .pixelArt()
                             .frame(width: 40, height: 40)
 
                         VStack(alignment: .leading, spacing: 4) {
@@ -44,10 +41,7 @@ struct ProgressPhotosView: View {
                             } label: {
                                 HStack(spacing: 4) {
                                     Image("icon_plus")
-                                        .resizable()
-                                        .renderingMode(.original)
-                                        .interpolation(.none)
-                                        .aspectRatio(contentMode: .fit)
+                                        .pixelArt()
                                         .frame(width: 16, height: 16)
                                     Text("Upload a Photo")
                                         .font(.system(size: Theme.captionSize, weight: .semibold))
@@ -64,10 +58,7 @@ struct ProgressPhotosView: View {
                 if photosMetrics.isEmpty {
                     VStack(spacing: Theme.spacingMD) {
                         Image("icon_photo_frame")
-                            .resizable()
-                            .renderingMode(.original)
-                            .interpolation(.none)
-                            .aspectRatio(contentMode: .fit)
+                            .pixelArt()
                             .frame(width: 52, height: 52)
                         Text("No progress photos yet")
                             .font(.system(size: Theme.captionSize))

@@ -43,10 +43,7 @@ struct ProgressDashboardView: View {
                         } label: {
                             VStack(spacing: Theme.spacingSM) {
                                 Image("icon_medal")
-                                    .resizable()
-                                    .renderingMode(.original)
-                                    .interpolation(.none)
-                                    .aspectRatio(contentMode: .fit)
+                                    .pixelArt()
                                     .frame(width: 48, height: 48)
 
                                 Text("\(earnedBadgeCount)")
@@ -58,9 +55,7 @@ struct ProgressDashboardView: View {
                                     .foregroundStyle(Color.appTextSecondary)
                             }
                             .frame(maxWidth: .infinity)
-                            .padding(.vertical, Theme.spacingLG)
-                            .background(Color.appCardBackground)
-                            .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusLG))
+                            .cardStyle()
                         }
                         .buttonStyle(.plain)
                     }
@@ -209,10 +204,7 @@ struct ProgressDashboardView: View {
 
             HStack(spacing: Theme.spacingMD) {
                 Image("icon_photo_frame")
-                    .resizable()
-                    .renderingMode(.original)
-                    .interpolation(.none)
-                    .aspectRatio(contentMode: .fit)
+                    .pixelArt()
                     .frame(width: 40, height: 40)
 
                 VStack(alignment: .leading, spacing: 2) {
@@ -223,10 +215,7 @@ struct ProgressDashboardView: View {
 
                     HStack(spacing: 4) {
                         Image("icon_plus")
-                            .resizable()
-                            .renderingMode(.original)
-                            .interpolation(.none)
-                            .aspectRatio(contentMode: .fit)
+                            .pixelArt()
                             .frame(width: 16, height: 16)
                         Text("Upload a Photo")
                             .font(.system(size: Theme.captionSize, weight: .semibold))
@@ -242,20 +231,14 @@ struct ProgressDashboardView: View {
     private func navRow(pixelIcon: String, title: String) -> some View {
         HStack(spacing: Theme.spacingMD) {
             Image(pixelIcon)
-                .resizable()
-                .renderingMode(.original)
-                .interpolation(.none)
-                .aspectRatio(contentMode: .fit)
+                .pixelArt()
                 .frame(width: 24, height: 24)
             Text(title)
                 .font(.system(size: Theme.bodySize, weight: .medium))
                 .foregroundStyle(Color.appTextPrimary)
             Spacer()
             Image("icon_chevron_right")
-                .resizable()
-                .renderingMode(.original)
-                .interpolation(.none)
-                .aspectRatio(contentMode: .fit)
+                .pixelArt()
                 .frame(width: 16, height: 16)
         }
         .cardStyle()

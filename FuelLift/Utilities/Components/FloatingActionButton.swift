@@ -17,13 +17,14 @@ struct FloatingActionButton: View {
                 Circle()
                     .fill(Color.appAccent)
                     .frame(width: size, height: size)
-                    .shadow(color: Color.appAccent.opacity(0.4), radius: 8, y: 4)
+                    .overlay(
+                        Circle()
+                            .strokeBorder(Color.appAccentBright.opacity(0.5), lineWidth: 1)
+                    )
+                    .shadow(color: Color.appAccent.opacity(0.5), radius: 12, y: 4)
 
                 Image(pixelIcon)
-                    .resizable()
-                    .renderingMode(.original)
-                    .interpolation(.none)
-                    .aspectRatio(contentMode: .fit)
+                    .pixelArt()
                     .frame(width: size * 0.5, height: size * 0.5)
             }
             .clipped()

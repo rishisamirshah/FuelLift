@@ -34,10 +34,7 @@ struct BMICard: View {
                     .foregroundStyle(Color.appTextPrimary)
                 Spacer()
                 Image("icon_info")
-                    .resizable()
-                    .renderingMode(.original)
-                    .interpolation(.none)
-                    .aspectRatio(contentMode: .fit)
+                    .pixelArt()
                     .frame(width: 24, height: 24)
             }
 

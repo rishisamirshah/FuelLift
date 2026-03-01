@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct ActiveWorkoutView: View {
     @ObservedObject var viewModel: WorkoutViewModel
@@ -17,10 +18,7 @@ struct ActiveWorkoutView: View {
                         // Timer bar
                         HStack(spacing: Theme.spacingSM) {
                             Image("icon_timer")
-                                .resizable()
-                                .renderingMode(.original)
-                                .interpolation(.none)
-                                .aspectRatio(contentMode: .fit)
+                                .pixelArt()
                                 .frame(width: 24, height: 24)
                             Text(viewModel.elapsedFormatted)
                                 .font(.system(size: Theme.subheadlineSize, weight: .bold, design: .monospaced))
@@ -33,10 +31,7 @@ struct ActiveWorkoutView: View {
                         ForEach(viewModel.newPRs, id: \.self) { exerciseName in
                             HStack(spacing: Theme.spacingSM) {
                                 Image("icon_trophy")
-                                    .resizable()
-                                    .renderingMode(.original)
-                                    .interpolation(.none)
-                                    .aspectRatio(contentMode: .fit)
+                                    .pixelArt()
                                     .frame(width: 24, height: 24)
                                 Text("New PR on \(exerciseName)!")
                                     .font(.system(size: Theme.captionSize, weight: .bold))
@@ -62,10 +57,7 @@ struct ActiveWorkoutView: View {
                         } label: {
                             HStack(spacing: Theme.spacingSM) {
                                 Image("icon_plus_circle")
-                                    .resizable()
-                                    .renderingMode(.original)
-                                    .interpolation(.none)
-                                    .aspectRatio(contentMode: .fit)
+                                    .pixelArt()
                                     .frame(width: 24, height: 24)
                                 Text("Add Exercise")
                             }
@@ -136,14 +128,38 @@ struct ActiveWorkoutView: View {
         }
     }
 
+    // MARK: - Helpers
+
+    /// Map exercise name to image asset name
+    private func exerciseImageName(for name: String) -> String {
+        let overrides: [String: String] = [
+            "Chest Fly": "exercise_cable_fly",
+            "OHP": "exercise_overhead_press",
+            "Overhead Press": "exercise_overhead_press"
+        ]
+        if let override = overrides[name] { return override }
+        let id = name.lowercased()
+            .replacingOccurrences(of: " ", with: "_")
+            .replacingOccurrences(of: "-", with: "_")
+        return "exercise_\(id)"
+    }
+
     // MARK: - Exercise Group Card
 
     private func exerciseGroupCard(groupIndex: Int) -> some View {
         let group = viewModel.exerciseGroups[groupIndex]
 
         return VStack(alignment: .leading, spacing: Theme.spacingSM) {
-            // Header
-            HStack {
+            // Header with exercise image
+            HStack(spacing: Theme.spacingSM) {
+                let imgName = exerciseImageName(for: group.exerciseName)
+                if UIImage(named: imgName) != nil {
+                    Image(imgName)
+                        .pixelArt()
+                        .frame(width: 32, height: 32)
+                        .clipShape(RoundedRectangle(cornerRadius: 6))
+                }
+
                 Text(group.exerciseName)
                     .font(.system(size: Theme.subheadlineSize, weight: .bold))
                     .foregroundStyle(Color.appAccent)
@@ -243,10 +259,7 @@ struct ActiveWorkoutView: View {
                     Group {
                         if isCompleted {
                             Image("icon_checkmark_circle")
-                                .resizable()
-                                .renderingMode(.original)
-                                .interpolation(.none)
-                                .aspectRatio(contentMode: .fit)
+                                .pixelArt()
                                 .frame(width: 24, height: 24)
                         } else {
                             Image(systemName: "circle")

@@ -51,7 +51,7 @@ struct FoodDescriptionView: View {
                     } else {
                         // Text input state
                         VStack(spacing: Theme.spacingLG) {
-                            Image("icon_text_bubble").resizable().renderingMode(.original).interpolation(.none).aspectRatio(contentMode: .fit)
+                            Image("icon_text_bubble").pixelArt()
                                 .frame(width: 48, height: 48)
                                 .opacity(0.5)
                                 .padding(.top, Theme.spacingHuge)
@@ -94,7 +94,7 @@ struct FoodDescriptionView: View {
                                 Text("Analyze with AI")
                                     .font(.system(size: Theme.subheadlineSize, weight: .bold))
                             } icon: {
-                                Image("icon_wand_stars").resizable().renderingMode(.original).interpolation(.none).aspectRatio(contentMode: .fit).frame(width: 24, height: 24)
+                                Image("icon_wand_stars").pixelArt().frame(width: 24, height: 24)
                             }
                                 .frame(maxWidth: .infinity)
                                 .padding(Theme.spacingLG)

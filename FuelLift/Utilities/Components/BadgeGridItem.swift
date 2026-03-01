@@ -15,12 +15,9 @@ struct BadgeGridItem: View {
             ZStack {
                 if isEarned {
                     if let imageName, UIImage(named: imageName) != nil {
-                        // Earned badge — custom image
+                        // Earned badge — custom pixel art image
                         Image(imageName)
-                            .resizable()
-                            .renderingMode(.original)
-                            .interpolation(.none)
-                            .aspectRatio(contentMode: .fit)
+                            .pixelArt()
                             .frame(width: Theme.badgeIconSize, height: Theme.badgeIconSize)
                     } else if let category {
                         // Earned badge — gradient circle + white icon
@@ -46,10 +43,7 @@ struct BadgeGridItem: View {
                         if let imageName, UIImage(named: imageName) != nil {
                             // Show the actual badge image desaturated and transparent
                             Image(imageName)
-                                .resizable()
-                                .renderingMode(.original)
-                                .interpolation(.none)
-                                .aspectRatio(contentMode: .fit)
+                                .pixelArt()
                                 .frame(width: Theme.badgeIconSize, height: Theme.badgeIconSize)
                                 .saturation(0)
                                 .opacity(0.25)
@@ -69,7 +63,7 @@ struct BadgeGridItem: View {
                             // Fallback: SF Symbol, desaturated
                             Image(systemName: iconName)
                                 .font(.system(size: 36))
-                                .foregroundStyle(Color.appTextTertiary)
+                                .foregroundStyle(Color.appBadgeLocked)
                                 .frame(width: Theme.badgeIconSize, height: Theme.badgeIconSize)
                                 .opacity(0.25)
                         }
@@ -77,7 +71,7 @@ struct BadgeGridItem: View {
                         // Lock icon overlay
                         Image(systemName: "lock.fill")
                             .font(.system(size: 14, weight: .bold))
-                            .foregroundStyle(Color.appTextTertiary)
+                            .foregroundStyle(Color.appBadgeLocked)
                             .padding(4)
                             .background(
                                 Circle()
@@ -86,6 +80,19 @@ struct BadgeGridItem: View {
                             .offset(x: Theme.badgeIconSize / 2 - 10, y: Theme.badgeIconSize / 2 - 10)
                     }
                 }
+            }
+            .padding(Theme.spacingSM)
+            .background(Color.appCardBackground)
+            .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusMD))
+            .overlay(
+                RoundedRectangle(cornerRadius: Theme.cornerRadiusMD)
+                    .strokeBorder(
+                        isEarned ? Color.appBorderAccent : Color.appBadgeLocked,
+                        lineWidth: isEarned ? 1 : 0.5
+                    )
+            )
+            .if(isEarned) { view in
+                view.accentGlow(radius: 4)
             }
 
             VStack(spacing: 2) {

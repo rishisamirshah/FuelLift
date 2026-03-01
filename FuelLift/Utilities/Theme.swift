@@ -37,74 +37,100 @@ enum Theme {
     static let tabBarIconSize: CGFloat = 24
     static let inlineIconSize: CGFloat = 20
     static let badgeIconSize: CGFloat = 64
+
+    // MARK: Glow
+    static let glowRadius: CGFloat = 8
+    static let glowRadiusLG: CGFloat = 16
+    static let glowOpacity: Double = 0.35
+
+    // MARK: Borders
+    static let borderWidth: CGFloat = 1
+    static let borderWidthThick: CGFloat = 2
+    static let pixelStep: CGFloat = 4
 }
 
-// MARK: - Adaptive Colors
+// MARK: - Retro Dark Palette
 
 extension Color {
-    // Background colors — adaptive
-    static let appBackground = Color(UIColor.systemBackground)
-    static let appCardBackground = Color(UIColor.secondarySystemGroupedBackground)
-    static let appCardSecondary = Color(UIColor.tertiarySystemGroupedBackground)
-    static let appGroupedBackground = Color(UIColor.systemGroupedBackground)
+    // Core backgrounds — intentional dark, not system adaptive
+    static let appBackground = Color(red: 0.03, green: 0.03, blue: 0.06)           // #08080F
+    static let appCardBackground = Color(red: 0.07, green: 0.07, blue: 0.12)       // #12121E
+    static let appCardSecondary = Color(red: 0.10, green: 0.10, blue: 0.16)        // #1A1A2A
+    static let appGroupedBackground = Color(red: 0.05, green: 0.05, blue: 0.09)    // #0D0D17
 
-    // Semantic colors
-    static let appAccent = Color.orange
-    static let appProteinColor = Color(red: 0.29, green: 0.56, blue: 0.85)   // #4A90D9
-    static let appCarbsColor = Color(red: 0.96, green: 0.65, blue: 0.14)      // #F5A623
-    static let appFatColor = Color(red: 0.82, green: 0.01, blue: 0.11)        // #D0021B
-    static let appCaloriesColor = Color(red: 0.49, green: 0.83, blue: 0.13)   // #7ED321
-    static let appWaterColor = Color(red: 0.31, green: 0.89, blue: 0.76)      // #50E3C2
-    static let appStreakColor = Color(red: 1.0, green: 0.58, blue: 0.0)       // #FF9500
-    static let appPRColor = Color(red: 0.0, green: 0.74, blue: 0.83)          // #00BCD4
+    // Accent — hot arcade orange
+    static let appAccent = Color(red: 1.0, green: 0.42, blue: 0.0)                 // #FF6B00
+    static let appAccentBright = Color(red: 1.0, green: 0.55, blue: 0.15)          // #FF8C26
+    static let appAccentDim = Color(red: 0.80, green: 0.33, blue: 0.0)             // #CC5500
 
-    // PR badge colors
-    static let appPR1RM = Color(red: 0.0, green: 0.74, blue: 0.83)       // teal
-    static let appPRVolume = Color(red: 0.30, green: 0.69, blue: 0.31)   // green
-    static let appPRWeight = Color(red: 0.98, green: 0.75, blue: 0.18)   // yellow
+    // Macro colors — neon-tinted for dark backgrounds
+    static let appProteinColor = Color(red: 0.35, green: 0.65, blue: 1.0)          // #59A5FF
+    static let appCarbsColor = Color(red: 1.0, green: 0.75, blue: 0.20)            // #FFBF33
+    static let appFatColor = Color(red: 1.0, green: 0.30, blue: 0.35)              // #FF4D59
+    static let appCaloriesColor = Color(red: 0.40, green: 0.90, blue: 0.25)        // #66E640
+    static let appWaterColor = Color(red: 0.25, green: 0.85, blue: 0.90)           // #40D9E6
 
-    // Text colors — adaptive
-    static let appTextPrimary = Color(UIColor.label)
-    static let appTextSecondary = Color(UIColor.secondaryLabel)
-    static let appTextTertiary = Color(UIColor.tertiaryLabel)
+    // Status
+    static let appStreakColor = Color(red: 1.0, green: 0.58, blue: 0.0)            // #FF9500
+    static let appPRColor = Color(red: 0.0, green: 0.80, blue: 0.90)              // #00CCE6
 
-    // Workout-specific
-    static let appWorkoutGreen = Color(red: 0.30, green: 0.69, blue: 0.31)
+    // PR variants
+    static let appPR1RM = Color(red: 0.0, green: 0.80, blue: 0.90)
+    static let appPRVolume = Color(red: 0.35, green: 0.78, blue: 0.35)
+    static let appPRWeight = Color(red: 1.0, green: 0.80, blue: 0.20)
+
+    // Text — pure white hierarchy on dark
+    static let appTextPrimary = Color.white
+    static let appTextSecondary = Color.white.opacity(0.60)
+    static let appTextTertiary = Color.white.opacity(0.30)
+
+    // Workout
+    static let appWorkoutGreen = Color(red: 0.30, green: 0.80, blue: 0.35)
 
     // Badge states
-    static let appBadgeEarned = Color.orange
-    static let appBadgeLocked = Color(UIColor.tertiaryLabel)
+    static let appBadgeEarned = Color(red: 1.0, green: 0.42, blue: 0.0)
+    static let appBadgeLocked = Color.white.opacity(0.20)
+
+    // Border / divider
+    static let appBorder = Color.white.opacity(0.08)
+    static let appBorderAccent = Color(red: 1.0, green: 0.42, blue: 0.0).opacity(0.30)
 }
 
 // MARK: - Gradients
 
 extension LinearGradient {
     static let calorieRingGradient = LinearGradient(
-        colors: [Color.appCaloriesColor, Color.appCaloriesColor.opacity(0.7)],
+        colors: [Color.appCaloriesColor, Color.appCaloriesColor.opacity(0.6)],
         startPoint: .topLeading,
         endPoint: .bottomTrailing
     )
 
     static let proteinRingGradient = LinearGradient(
-        colors: [Color.appProteinColor, Color.appProteinColor.opacity(0.7)],
+        colors: [Color.appProteinColor, Color.appProteinColor.opacity(0.6)],
         startPoint: .topLeading,
         endPoint: .bottomTrailing
     )
 
     static let carbsRingGradient = LinearGradient(
-        colors: [Color.appCarbsColor, Color.appCarbsColor.opacity(0.7)],
+        colors: [Color.appCarbsColor, Color.appCarbsColor.opacity(0.6)],
         startPoint: .topLeading,
         endPoint: .bottomTrailing
     )
 
     static let fatRingGradient = LinearGradient(
-        colors: [Color.appFatColor, Color.appFatColor.opacity(0.7)],
+        colors: [Color.appFatColor, Color.appFatColor.opacity(0.6)],
         startPoint: .topLeading,
         endPoint: .bottomTrailing
     )
 
     static let streakGradient = LinearGradient(
         colors: [Color.appStreakColor, Color.red],
+        startPoint: .top,
+        endPoint: .bottom
+    )
+
+    static let accentGlow = LinearGradient(
+        colors: [Color.appAccent.opacity(0.6), Color.appAccent.opacity(0.15)],
         startPoint: .top,
         endPoint: .bottom
     )

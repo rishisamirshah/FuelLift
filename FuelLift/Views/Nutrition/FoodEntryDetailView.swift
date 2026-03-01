@@ -37,7 +37,7 @@ struct FoodEntryDetailView: View {
             ToolbarItem(placement: .topBarTrailing) {
                 HStack(spacing: Theme.spacingMD) {
                     Button { } label: {
-                        Image("icon_share").resizable().renderingMode(.original).interpolation(.none).aspectRatio(contentMode: .fit)
+                        Image("icon_share").pixelArt()
                             .frame(width: 24, height: 24)
                             .frame(width: 36, height: 36)
                             .background(Color.appCardSecondary.opacity(0.8))
@@ -101,7 +101,7 @@ struct FoodEntryDetailView: View {
 
             // Calorie card
             HStack(spacing: Theme.spacingMD) {
-                Image("icon_fire_streak").resizable().renderingMode(.original).interpolation(.none).aspectRatio(contentMode: .fit)
+                Image("icon_fire_streak").pixelArt()
                     .frame(width: 28, height: 28)
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Calories")
@@ -168,7 +168,7 @@ struct FoodEntryDetailView: View {
     private func macroCard(label: String, value: Int, icon: String, color: Color) -> some View {
         VStack(spacing: Theme.spacingSM) {
             HStack(spacing: Theme.spacingXS) {
-                Image(icon).resizable().renderingMode(.original).interpolation(.none).aspectRatio(contentMode: .fit)
+                Image(icon).pixelArt()
                     .frame(width: 18, height: 18)
                 Text(label)
                     .font(.system(size: Theme.captionSize))
@@ -236,7 +236,7 @@ struct FoodEntryDetailView: View {
         HStack(spacing: Theme.spacingMD) {
             Button { } label: {
                 HStack(spacing: Theme.spacingSM) {
-                    Image("icon_wand_stars").resizable().renderingMode(.original).interpolation(.none).aspectRatio(contentMode: .fit).frame(width: 24, height: 24)
+                    Image("icon_wand_stars").pixelArt().frame(width: 24, height: 24)
                     Text("Fix Issue")
                 }
                 .font(.system(size: Theme.subheadlineSize, weight: .semibold))

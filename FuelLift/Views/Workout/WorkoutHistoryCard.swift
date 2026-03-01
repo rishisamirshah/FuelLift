@@ -41,10 +41,7 @@ struct WorkoutHistoryCard: View {
                     Text(workout.durationFormatted)
                 } icon: {
                     Image("icon_clock")
-                        .resizable()
-                        .renderingMode(.original)
-                        .interpolation(.none)
-                        .aspectRatio(contentMode: .fit)
+                        .pixelArt()
                         .frame(width: 24, height: 24)
                 }
 
@@ -52,10 +49,7 @@ struct WorkoutHistoryCard: View {
                     Text("\(Int(workout.totalVolume).formattedWithComma) lb")
                 } icon: {
                     Image("icon_scale")
-                        .resizable()
-                        .renderingMode(.original)
-                        .interpolation(.none)
-                        .aspectRatio(contentMode: .fit)
+                        .pixelArt()
                         .frame(width: 24, height: 24)
                 }
 
@@ -65,10 +59,7 @@ struct WorkoutHistoryCard: View {
                         Text("\(prCount) PRs")
                     } icon: {
                         Image("icon_trophy")
-                            .resizable()
-                            .renderingMode(.original)
-                            .interpolation(.none)
-                            .aspectRatio(contentMode: .fit)
+                            .pixelArt()
                             .frame(width: 24, height: 24)
                     }
                     .foregroundStyle(Color.appPRWeight)
@@ -77,10 +68,7 @@ struct WorkoutHistoryCard: View {
                         Text("0 PRs")
                     } icon: {
                         Image("icon_trophy")
-                            .resizable()
-                            .renderingMode(.original)
-                            .interpolation(.none)
-                            .aspectRatio(contentMode: .fit)
+                            .pixelArt()
                             .frame(width: 24, height: 24)
                     }
                 }
@@ -90,6 +78,7 @@ struct WorkoutHistoryCard: View {
 
             if !exerciseGroups.isEmpty {
                 Divider()
+                    .overlay(Color.appBorder)
 
                 // Column headers
                 HStack {

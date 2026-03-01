@@ -14,6 +14,7 @@ struct SettingsView: View {
     private var profile: UserProfile? { profiles.first }
 
     var body: some View {
+        NavigationStack {
         ScrollView {
             VStack(spacing: Theme.spacingXXL) {
                 // MARK: - Profile Header
@@ -27,10 +28,7 @@ struct SettingsView: View {
                                 .fill(Color.appCardSecondary)
                                 .frame(width: 56, height: 56)
                             Image("icon_person")
-                                .resizable()
-                                .renderingMode(.original)
-                                .interpolation(.none)
-                                .aspectRatio(contentMode: .fit)
+                                .pixelArt()
                                 .frame(width: 28, height: 28)
                         }
 
@@ -46,15 +44,10 @@ struct SettingsView: View {
                         Spacer()
 
                         Image("icon_chevron_right")
-                            .resizable()
-                            .renderingMode(.original)
-                            .interpolation(.none)
-                            .aspectRatio(contentMode: .fit)
+                            .pixelArt()
                             .frame(width: 14, height: 14)
                     }
-                    .padding(Theme.spacingLG)
-                    .background(Color.appCardBackground)
-                    .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusLG))
+                    .cardStyle()
                 }
                 .buttonStyle(.plain)
                 .padding(.horizontal, Theme.spacingLG)
@@ -87,10 +80,7 @@ struct SettingsView: View {
                 VStack(spacing: 0) {
                     HStack(spacing: Theme.spacingMD) {
                         Image("icon_moon")
-                            .resizable()
-                            .renderingMode(.original)
-                            .interpolation(.none)
-                            .aspectRatio(contentMode: .fit)
+                            .pixelArt()
                             .frame(width: 24, height: 24)
                         Text("Dark Mode")
                             .font(.system(size: Theme.bodySize, weight: .medium))
@@ -160,10 +150,7 @@ struct SettingsView: View {
                     // Apple Health row
                     HStack(spacing: Theme.spacingMD) {
                         Image("icon_heart")
-                            .resizable()
-                            .renderingMode(.original)
-                            .interpolation(.none)
-                            .aspectRatio(contentMode: .fit)
+                            .pixelArt()
                             .frame(width: 24, height: 24)
                         Text("Apple Health")
                             .font(.system(size: Theme.bodySize, weight: .medium))
@@ -257,6 +244,7 @@ struct SettingsView: View {
         }
         .screenBackground()
         .navigationTitle("Profile")
+        } // NavigationStack
         .onAppear {
             if let profile {
                 useMetric = profile.useMetricUnits
@@ -299,20 +287,14 @@ struct SettingsView: View {
         } label: {
             HStack(spacing: Theme.spacingMD) {
                 Image(pixelIcon)
-                    .resizable()
-                    .renderingMode(.original)
-                    .interpolation(.none)
-                    .aspectRatio(contentMode: .fit)
+                    .pixelArt()
                     .frame(width: 24, height: 24)
                 Text(title)
                     .font(.system(size: Theme.bodySize, weight: .medium))
                     .foregroundStyle(Color.appTextPrimary)
                 Spacer()
                 Image("icon_chevron_right")
-                    .resizable()
-                    .renderingMode(.original)
-                    .interpolation(.none)
-                    .aspectRatio(contentMode: .fit)
+                    .pixelArt()
                     .frame(width: 14, height: 14)
             }
             .padding(.horizontal, Theme.spacingLG)
@@ -324,10 +306,7 @@ struct SettingsView: View {
     private func dashboardToggle(_ title: String, pixelIcon: String, isOn: Binding<Bool>) -> some View {
         HStack(spacing: Theme.spacingMD) {
             Image(pixelIcon)
-                .resizable()
-                .renderingMode(.original)
-                .interpolation(.none)
-                .aspectRatio(contentMode: .fit)
+                .pixelArt()
                 .frame(width: 24, height: 24)
             Text(title)
                 .font(.system(size: Theme.bodySize, weight: .medium))
@@ -343,7 +322,7 @@ struct SettingsView: View {
 
     private func divider() -> some View {
         Divider()
-            .overlay(Color.appTextTertiary.opacity(0.2))
+            .overlay(Color.appBorder)
             .padding(.leading, 56)
     }
 }

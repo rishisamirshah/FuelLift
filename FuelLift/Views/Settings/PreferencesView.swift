@@ -17,10 +17,7 @@ struct PreferencesView: View {
                 VStack(spacing: 0) {
                     HStack(spacing: Theme.spacingMD) {
                         Image("icon_moon")
-                            .resizable()
-                            .renderingMode(.original)
-                            .interpolation(.none)
-                            .aspectRatio(contentMode: .fit)
+                            .pixelArt()
                             .frame(width: 24, height: 24)
                         Text("Dark Mode")
                             .font(.system(size: Theme.bodySize, weight: .medium))
@@ -44,20 +41,14 @@ struct PreferencesView: View {
                     } label: {
                         HStack(spacing: Theme.spacingMD) {
                             Image("icon_ruler")
-                                .resizable()
-                                .renderingMode(.original)
-                                .interpolation(.none)
-                                .aspectRatio(contentMode: .fit)
+                                .pixelArt()
                                 .frame(width: 24, height: 24)
                             Text("Units")
                                 .font(.system(size: Theme.bodySize, weight: .medium))
                                 .foregroundStyle(Color.appTextPrimary)
                             Spacer()
                             Image("icon_chevron_right")
-                                .resizable()
-                                .renderingMode(.original)
-                                .interpolation(.none)
-                                .aspectRatio(contentMode: .fit)
+                                .pixelArt()
                                 .frame(width: 14, height: 14)
                         }
                         .padding(.horizontal, Theme.spacingLG)
@@ -73,10 +64,7 @@ struct PreferencesView: View {
                 VStack(spacing: 0) {
                     HStack(spacing: Theme.spacingMD) {
                         Image("icon_water_drop")
-                            .resizable()
-                            .renderingMode(.original)
-                            .interpolation(.none)
-                            .aspectRatio(contentMode: .fit)
+                            .pixelArt()
                             .frame(width: 24, height: 24)
                         Text("Default Water Goal (mL)")
                             .font(.system(size: Theme.bodySize, weight: .medium))

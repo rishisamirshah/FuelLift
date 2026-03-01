@@ -58,28 +58,28 @@ struct FoodLogView: View {
                             Label {
                                 Text("Scan Food Photo")
                             } icon: {
-                                Image("icon_camera").resizable().renderingMode(.original).interpolation(.none).aspectRatio(contentMode: .fit).frame(width: 24, height: 24)
+                                Image("icon_camera").pixelArt().frame(width: 24, height: 24)
                             }
                         }
                         Button { showBarcode = true } label: {
                             Label {
                                 Text("Scan Barcode")
                             } icon: {
-                                Image("icon_barcode").resizable().renderingMode(.original).interpolation(.none).aspectRatio(contentMode: .fit).frame(width: 24, height: 24)
+                                Image("icon_barcode").pixelArt().frame(width: 24, height: 24)
                             }
                         }
                         Button { showDescriptionSheet = true } label: {
                             Label {
                                 Text("Describe Food")
                             } icon: {
-                                Image("icon_text_bubble").resizable().renderingMode(.original).interpolation(.none).aspectRatio(contentMode: .fit).frame(width: 24, height: 24)
+                                Image("icon_text_bubble").pixelArt().frame(width: 24, height: 24)
                             }
                         }
                         Button { showAddSheet = true } label: {
                             Label {
                                 Text("Manual Entry")
                             } icon: {
-                                Image("icon_pencil").resizable().renderingMode(.original).interpolation(.none).aspectRatio(contentMode: .fit).frame(width: 24, height: 24)
+                                Image("icon_pencil").pixelArt().frame(width: 24, height: 24)
                             }
                         }
                     } label: {
@@ -156,7 +156,7 @@ struct FoodLogView: View {
 
     private var waterCard: some View {
         HStack(spacing: Theme.spacingMD) {
-            Image("icon_water_drop").resizable().renderingMode(.original).interpolation(.none).aspectRatio(contentMode: .fit)
+            Image("icon_water_drop").pixelArt()
                 .frame(width: 24, height: 24)
 
             Text("\(viewModel.totalWaterML) mL")
@@ -270,7 +270,7 @@ struct FoodLogView: View {
                 Label {
                     Text("Delete")
                 } icon: {
-                    Image("icon_trash").resizable().renderingMode(.original).interpolation(.none).aspectRatio(contentMode: .fit).frame(width: 24, height: 24)
+                    Image("icon_trash").pixelArt().frame(width: 24, height: 24)
                 }
             }
         }

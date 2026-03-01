@@ -27,10 +27,7 @@ struct WeightChartView: View {
                 if goalPercent > 0 {
                     HStack(spacing: 4) {
                         Image("icon_flag")
-                            .resizable()
-                            .renderingMode(.original)
-                            .interpolation(.none)
-                            .aspectRatio(contentMode: .fit)
+                            .pixelArt()
                             .frame(width: 16, height: 16)
                         Text("\(goalPercent)% of goal")
                             .font(.system(size: Theme.captionSize, weight: .semibold))

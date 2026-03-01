@@ -18,10 +18,7 @@ struct OnboardingView: View {
                         Spacer()
 
                         Image(pages[index].heroImage)
-                            .resizable()
-                            .renderingMode(.original)
-                            .interpolation(.none)
-                            .aspectRatio(contentMode: .fit)
+                            .pixelArt()
                             .frame(width: 160, height: 160)
 
                         VStack(spacing: Theme.spacingMD) {

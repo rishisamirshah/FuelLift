@@ -23,10 +23,7 @@ struct StreakBadge: View {
     private var compactBadge: some View {
         HStack(spacing: 4) {
             Image("icon_fire_streak")
-                .resizable()
-                .renderingMode(.original)
-                .interpolation(.none)
-                .aspectRatio(contentMode: .fit)
+                .pixelArt()
                 .frame(width: 20, height: 20)
                 .scaleEffect(isPulsing ? 1.15 : 1.0)
 
@@ -38,6 +35,7 @@ struct StreakBadge: View {
         .padding(.vertical, 6)
         .background(Color.appCardBackground)
         .clipShape(Capsule())
+        .overlay(Capsule().strokeBorder(Color.appBorderAccent, lineWidth: 1))
         .onAppear {
             withAnimation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true)) {
                 isPulsing = true
@@ -48,10 +46,7 @@ struct StreakBadge: View {
     private var expandedBadge: some View {
         VStack(spacing: Theme.spacingSM) {
             Image("icon_fire_streak")
-                .resizable()
-                .renderingMode(.original)
-                .interpolation(.none)
-                .aspectRatio(contentMode: .fit)
+                .pixelArt()
                 .frame(width: 56, height: 56)
                 .scaleEffect(isPulsing ? 1.1 : 1.0)
 
@@ -67,6 +62,13 @@ struct StreakBadge: View {
         .padding(.vertical, Theme.spacingLG)
         .background(Color.appCardBackground)
         .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusLG))
+        .overlay(
+            RoundedRectangle(cornerRadius: Theme.cornerRadiusLG)
+                .strokeBorder(Color.appBorderAccent, lineWidth: 1)
+        )
+        .if(count > 0) { view in
+            view.accentGlow(radius: 4)
+        }
         .onAppear {
             withAnimation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true)) {
                 isPulsing = true

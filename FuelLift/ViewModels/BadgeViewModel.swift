@@ -157,6 +157,10 @@ class BadgeViewModel {
     // MARK: - Award Badge
 
     private func awardBadge(key: BadgeKey, context: ModelContext) {
+        // Auto-reload badges if array is empty (safety net)
+        if badges.isEmpty {
+            initializeBadgesIfNeeded(context: context)
+        }
         guard let badge = badges.first(where: { $0.key == key.rawValue }) else { return }
         guard !badge.isEarned else { return }
 
@@ -172,5 +176,22 @@ class BadgeViewModel {
     func dismissBadgeOverlay() {
         newlyEarnedBadge = nil
         showConfetti = false
+    }
+
+    /// Recheck all badges based on current data — call on dashboard appear as safety net
+    func recheckAllBadges(context: ModelContext) {
+        if badges.isEmpty {
+            initializeBadgesIfNeeded(context: context)
+        }
+
+        let mealCount = (try? context.fetchCount(FetchDescriptor<FoodEntry>())) ?? 0
+        if mealCount > 0 {
+            checkMealBadges(mealCount: mealCount, context: context)
+        }
+
+        let workoutCount = (try? context.fetchCount(FetchDescriptor<Workout>())) ?? 0
+        if workoutCount > 0 {
+            checkWorkoutBadges(workoutCount: workoutCount, context: context)
+        }
     }
 }

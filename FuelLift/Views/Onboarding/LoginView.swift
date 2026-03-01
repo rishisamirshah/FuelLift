@@ -12,10 +12,7 @@ struct LoginView: View {
                 // Logo
                 VStack(spacing: Theme.spacingMD) {
                     Image("logo_fuellift")
-                        .resizable()
-                        .renderingMode(.original)
-                        .interpolation(.none)
-                        .aspectRatio(contentMode: .fit)
+                        .pixelArt()
                         .frame(width: 80, height: 80)
 
                     Text("FuelLift")

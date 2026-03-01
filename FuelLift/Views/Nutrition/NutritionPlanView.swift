@@ -135,7 +135,7 @@ struct NutritionPlanView: View {
                             }
                             Spacer()
                             if goal == g {
-                                Image("icon_checkmark_circle").resizable().renderingMode(.original).interpolation(.none).aspectRatio(contentMode: .fit)
+                                Image("icon_checkmark_circle").pixelArt()
                                     .frame(width: 24, height: 24)
                             }
                         }
@@ -247,7 +247,7 @@ struct NutritionPlanView: View {
                         ProgressView()
                             .tint(.white)
                     } else {
-                        Image("icon_wand_stars").resizable().renderingMode(.original).interpolation(.none).aspectRatio(contentMode: .fit).frame(width: 24, height: 24)
+                        Image("icon_wand_stars").pixelArt().frame(width: 24, height: 24)
                     }
                     Text("Generate My Plan")
                         .font(.system(size: Theme.bodySize, weight: .bold))

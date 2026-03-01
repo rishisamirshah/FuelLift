@@ -30,10 +30,7 @@ struct WorkoutCompletionView: View {
                         .frame(width: 120, height: 120)
 
                     Image("icon_trophy")
-                        .resizable()
-                        .renderingMode(.original)
-                        .interpolation(.none)
-                        .aspectRatio(contentMode: .fit)
+                        .pixelArt()
                         .frame(width: 72, height: 72)
                 }
                 .scaleEffect(trophyScale)
@@ -77,10 +74,7 @@ struct WorkoutCompletionView: View {
                         ForEach(data.personalRecords, id: \.self) { exercise in
                             HStack(spacing: Theme.spacingSM) {
                                 Image("icon_trophy")
-                                    .resizable()
-                                    .renderingMode(.original)
-                                    .interpolation(.none)
-                                    .aspectRatio(contentMode: .fit)
+                                    .pixelArt()
                                     .frame(width: 24, height: 24)
 
                                 Text(exercise)
@@ -187,10 +181,7 @@ struct WorkoutCompletionView: View {
     private func pixelStatCard(iconName: String, label: String, value: String) -> some View {
         VStack(spacing: Theme.spacingSM) {
             Image(iconName)
-                .resizable()
-                .renderingMode(.original)
-                .interpolation(.none)
-                .aspectRatio(contentMode: .fit)
+                .pixelArt()
                 .frame(width: 28, height: 28)
 
             Text(value)

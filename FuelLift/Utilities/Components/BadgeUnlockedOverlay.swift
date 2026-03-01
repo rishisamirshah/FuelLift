@@ -29,10 +29,7 @@ struct BadgeUnlockedOverlay: View {
                     if let def = definition, def.hasCustomImage, let imgName = def.imageName {
                         // Custom pixel art badge
                         Image(imgName)
-                            .resizable()
-                            .renderingMode(.original)
-                            .interpolation(.none)
-                            .aspectRatio(contentMode: .fit)
+                            .pixelArt()
                             .frame(width: 160, height: 160)
                     } else {
                         Circle()

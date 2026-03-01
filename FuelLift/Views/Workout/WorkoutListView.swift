@@ -32,12 +32,7 @@ struct WorkoutListView: View {
                             showActiveWorkout = true
                         } label: {
                             Text("Start an Empty Workout")
-                                .font(.system(size: Theme.subheadlineSize, weight: .bold))
-                                .foregroundStyle(.white)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, Theme.spacingMD)
-                                .background(Color.appWorkoutGreen)
-                                .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusMD))
+                                .primaryButtonStyle()
                         }
                     }
 
@@ -54,10 +49,7 @@ struct WorkoutListView: View {
                             } label: {
                                 HStack(spacing: Theme.spacingXS) {
                                     Image("icon_wand_stars")
-                                        .resizable()
-                                        .renderingMode(.original)
-                                        .interpolation(.none)
-                                        .aspectRatio(contentMode: .fit)
+                                        .pixelArt()
                                         .frame(width: 24, height: 24)
                                     Text("AI Plan")
                                 }
