@@ -118,7 +118,7 @@ struct RestaurantDetailView: View {
         VStack(spacing: Theme.spacingSM) {
             Map {
                 Marker(restaurant.name, coordinate: restaurant.coordinate)
-                    .tint(.appAccent)
+                    .tint(Color.appAccent)
             }
             .frame(height: 150)
             .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusMD))
