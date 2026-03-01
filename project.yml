@@ -46,6 +46,8 @@ targets:
         ANTHROPIC_API_KEY: $(ANTHROPIC_API_KEY)
         OPENAI_API_KEY: $(OPENAI_API_KEY)
         GEMINI_API_KEY: $(GEMINI_API_KEY)
+        GOOGLE_PLACES_API_KEY: $(GOOGLE_PLACES_API_KEY)
+        SPOONACULAR_API_KEY: $(SPOONACULAR_API_KEY)
         CFBundleIconName: AppIcon
         UILaunchScreen: {}
         UISupportedInterfaceOrientations:
@@ -57,6 +59,7 @@ targets:
         NSHealthUpdateUsageDescription: "FuelLift writes your meals, workouts, and body weight to Apple Health."
         NSCameraUsageDescription: "FuelLift uses your camera to scan food and barcodes for instant calorie tracking."
         NSPhotoLibraryUsageDescription: "FuelLift uses your photo library to log food photos and progress pictures."
+        NSLocationWhenInUseUsageDescription: "FuelLift uses your location to find healthy meal options at nearby restaurants."
         UIBackgroundModes:
           - remote-notification
         ITSAppUsesNonExemptEncryption: false

@@ -43,6 +43,19 @@ enum AppConstants {
     static let geminiBaseURL = "https://generativelanguage.googleapis.com/v1beta/models"
     static let geminiModel = "gemini-2.5-flash"
 
+    // MARK: - Google Places
+    static var googlePlacesAPIKey: String {
+        Bundle.main.infoDictionary?["GOOGLE_PLACES_API_KEY"] as? String ?? ""
+    }
+    static let googlePlacesBaseURL = "https://places.googleapis.com/v1"
+    static let googlePlacesNearbyRadiusMeters: Int = 8000  // ~5 miles
+
+    // MARK: - Spoonacular
+    static var spoonacularAPIKey: String {
+        Bundle.main.infoDictionary?["SPOONACULAR_API_KEY"] as? String ?? ""
+    }
+    static let spoonacularBaseURL = "https://api.spoonacular.com"
+
     // MARK: - Rest Timer Presets (seconds)
     static let restTimerPresets: [Int] = [30, 60, 90, 120, 180, 300]
 }

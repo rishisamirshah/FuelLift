@@ -7,6 +7,7 @@ struct ContentView: View {
     enum Tab: String, CaseIterable {
         case home = "Home"
         case progress = "Progress"
+        case fuelFinder = "FuelFinder"
         case workout = "Workout"
         case profile = "Profile"
 
@@ -14,9 +15,14 @@ struct ContentView: View {
             switch self {
             case .home: return "icon_house"
             case .progress: return "icon_chart_bar"
+            case .fuelFinder: return "mappin.and.ellipse"
             case .workout: return "icon_dumbbell"
             case .profile: return "icon_person"
             }
+        }
+
+        var useSFSymbol: Bool {
+            self == .fuelFinder
         }
     }
 
@@ -27,6 +33,7 @@ struct ContentView: View {
                 switch selectedTab {
                 case .home: DashboardView()
                 case .progress: ProgressDashboardView()
+                case .fuelFinder: FuelFinderView()
                 case .workout: WorkoutListView()
                 case .profile: SettingsView()
                 }
@@ -62,11 +69,19 @@ struct ContentView: View {
                             }
                         } label: {
                             VStack(spacing: 6) {
-                                Image(tab.iconName)
-                                    .pixelArt()
-                                    .frame(width: Theme.tabBarIconSize, height: Theme.tabBarIconSize)
-                                    .scaleEffect(isSelected ? 1.1 : 1.0)
-                                    .opacity(isSelected ? 1.0 : 0.35)
+                                Group {
+                                    if tab.useSFSymbol {
+                                        Image(systemName: tab.iconName)
+                                            .font(.system(size: Theme.tabBarIconSize, weight: .medium))
+                                            .foregroundStyle(isSelected ? Color.appAccent : Color.appTextTertiary)
+                                    } else {
+                                        Image(tab.iconName)
+                                            .pixelArt()
+                                            .opacity(isSelected ? 1.0 : 0.35)
+                                    }
+                                }
+                                .frame(width: Theme.tabBarIconSize, height: Theme.tabBarIconSize)
+                                .scaleEffect(isSelected ? 1.1 : 1.0)
 
                                 Text(tab.rawValue)
                                     .font(.system(
