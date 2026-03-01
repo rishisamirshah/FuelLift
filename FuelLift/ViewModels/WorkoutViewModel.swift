@@ -25,6 +25,9 @@ final class WorkoutViewModel: ObservableObject {
     @Published var newPRs: [String] = []  // exercise names with new PRs
     @Published var completionData: WorkoutCompletionData?
 
+    /// Set by the view layer so badge checks can fire after workout completion.
+    var badgeViewModel: BadgeViewModel?
+
     private var timer: Timer?
     private var restTimer: Timer?
 
@@ -102,6 +105,29 @@ final class WorkoutViewModel: ObservableObject {
             personalRecords: capturedPRs,
             workoutNumber: workoutCount
         )
+
+        // Check workout and PR badges
+        if let badgeVM = badgeViewModel {
+            badgeVM.checkWorkoutBadges(workoutCount: workoutCount, context: context)
+
+            // Count total PRs and volume across all saved sets
+            let prDescriptor = FetchDescriptor<ExerciseSet>(
+                predicate: #Predicate { $0.isPersonalRecord }
+            )
+            let prCount = (try? context.fetchCount(prDescriptor)) ?? 0
+
+            let allSetsDescriptor = FetchDescriptor<ExerciseSet>(
+                predicate: #Predicate { $0.isCompleted && !$0.isWarmup }
+            )
+            let allSets = (try? context.fetch(allSetsDescriptor)) ?? []
+            let totalVol = allSets.reduce(0.0) { $0 + ($1.weight * Double($1.reps)) }
+
+            badgeVM.checkPRBadges(prCount: prCount, totalVolume: totalVol, context: context)
+
+            // Also recheck streak badges since a workout was just completed
+            let streak = DashboardViewModel().calculateStreak(context: context)
+            badgeVM.checkStreakBadges(currentStreak: streak, context: context)
+        }
 
         // Clear active state
         activeWorkout = nil

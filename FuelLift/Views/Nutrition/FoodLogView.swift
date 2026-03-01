@@ -3,6 +3,7 @@ import SwiftData
 
 struct FoodLogView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(BadgeViewModel.self) private var badgeViewModel: BadgeViewModel?
     @StateObject private var viewModel = NutritionViewModel()
     @State private var showAddSheet = false
     @State private var showCamera = false
@@ -101,6 +102,7 @@ struct FoodLogView: View {
                 FoodDescriptionView(nutritionViewModel: viewModel)
             }
             .onAppear {
+                viewModel.badgeViewModel = badgeViewModel
                 viewModel.loadEntries(context: modelContext)
             }
         }

@@ -12,7 +12,7 @@ struct NotificationSettingsView: View {
     @State private var workoutReminder = true
     @State private var breakfastTime = dateFrom(hour: 8, minute: 0)
     @State private var lunchTime = dateFrom(hour: 12, minute: 0)
-    @State private var dinnerTime = dateFrom(hour: 18, minute: 30)
+    @State private var dinnerTime = dateFrom(hour: 18, minute: 0)
     @State private var workoutTime = dateFrom(hour: 17, minute: 0)
 
     var body: some View {

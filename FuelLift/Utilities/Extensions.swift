@@ -80,6 +80,10 @@ extension View {
             .padding(Theme.spacingLG)
             .background(Color.appCardBackground)
             .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusLG))
+            .overlay(
+                RoundedRectangle(cornerRadius: Theme.cornerRadiusLG)
+                    .strokeBorder(Color.appAccent.opacity(0.25), lineWidth: 1)
+            )
     }
 
     func secondaryCardStyle() -> some View {
@@ -87,6 +91,33 @@ extension View {
             .padding(Theme.spacingLG)
             .background(Color.appCardSecondary)
             .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusMD))
+    }
+
+    /// Retro pixel art styled button background
+    func pixelButtonStyle() -> some View {
+        self
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 14)
+            .padding(.horizontal, Theme.spacingLG)
+            .background(
+                ZStack {
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.appCardBackground)
+                    RoundedRectangle(cornerRadius: 8)
+                        .strokeBorder(
+                            LinearGradient(
+                                colors: [Color.appAccent.opacity(0.6), Color.appAccent.opacity(0.2)],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            ),
+                            lineWidth: 2
+                        )
+                    // Inner highlight line at top
+                    RoundedRectangle(cornerRadius: 6)
+                        .strokeBorder(Color.appAccent.opacity(0.1), lineWidth: 1)
+                        .padding(2)
+                }
+            )
     }
 
     func sectionHeaderStyle() -> some View {

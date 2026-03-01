@@ -34,31 +34,53 @@ struct ContentView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .clipped()
 
-            // Custom tab bar
-            HStack {
-                ForEach(Tab.allCases, id: \.self) { tab in
-                    Button {
-                        selectedTab = tab
-                    } label: {
-                        VStack(spacing: 4) {
-                            Image(tab.iconName)
-                                .resizable()
-                                .interpolation(.none)
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: 24, height: 24)
-                                .foregroundStyle(selectedTab == tab ? Color.appAccent : Color.appTextTertiary)
+            // Retro pixel art tab bar
+            VStack(spacing: 0) {
+                // Top accent line
+                Rectangle()
+                    .fill(
+                        LinearGradient(
+                            colors: [Color.appAccent.opacity(0.1), Color.appAccent.opacity(0.5), Color.appAccent.opacity(0.1)],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .frame(height: 2)
 
-                            Text(tab.rawValue)
-                                .font(.system(size: 10, weight: selectedTab == tab ? .semibold : .regular))
-                                .foregroundStyle(selectedTab == tab ? Color.appAccent : Color.appTextTertiary)
+                HStack {
+                    ForEach(Tab.allCases, id: \.self) { tab in
+                        Button {
+                            selectedTab = tab
+                        } label: {
+                            VStack(spacing: 4) {
+                                Image(tab.iconName)
+                                    .resizable()
+                                    .renderingMode(.original)
+                                    .interpolation(.none)
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 24, height: 24)
+                                    .opacity(selectedTab == tab ? 1.0 : 0.4)
+
+                                Text(tab.rawValue)
+                                    .font(.system(size: 10, weight: selectedTab == tab ? .bold : .regular))
+                                    .foregroundStyle(selectedTab == tab ? Color.appAccent : Color.appTextTertiary)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 6)
+                            .background(
+                                selectedTab == tab ?
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .fill(Color.appAccent.opacity(0.1))
+                                        .padding(.horizontal, 8)
+                                    : nil
+                            )
                         }
-                        .frame(maxWidth: .infinity)
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
                 }
+                .padding(.top, 8)
+                .padding(.bottom, 28)
             }
-            .padding(.top, 10)
-            .padding(.bottom, 28)
             .background(Color.appCardBackground)
         }
         .overlay(alignment: .bottomTrailing) {

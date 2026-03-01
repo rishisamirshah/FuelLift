@@ -15,9 +15,18 @@ struct ExerciseDetailView: View {
 
     private let tabs = ["About", "History", "Charts", "Records"]
 
+    /// Overrides for exercise IDs whose auto-generated image names don't match the actual asset catalog names.
+    private static let exerciseImageOverrides: [String: String] = [
+        "chest-fly": "exercise_cable_fly",
+        "ohp": "exercise_overhead_press"
+    ]
+
     /// Local pixel art asset name derived from exercise ID (e.g. "bench-press" → "exercise_bench_press")
     private var localExerciseImageName: String {
-        "exercise_\(exercise.id.replacingOccurrences(of: "-", with: "_"))"
+        if let override = Self.exerciseImageOverrides[exercise.id] {
+            return override
+        }
+        return "exercise_\(exercise.id.replacingOccurrences(of: "-", with: "_"))"
     }
 
     private var hasLocalExerciseImage: Bool {

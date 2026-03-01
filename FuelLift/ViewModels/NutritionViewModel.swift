@@ -9,6 +9,9 @@ final class NutritionViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
 
+    /// Set by the view layer so badge checks can fire after food logging.
+    var badgeViewModel: BadgeViewModel?
+
     var totalCalories: Int { todayEntries.reduce(0) { $0 + $1.calories } }
     var totalProtein: Double { todayEntries.reduce(0) { $0 + $1.proteinG } }
     var totalCarbs: Double { todayEntries.reduce(0) { $0 + $1.carbsG } }
@@ -59,6 +62,16 @@ final class NutritionViewModel: ObservableObject {
         }
 
         loadEntries(context: context)
+
+        // Check meal and streak badges
+        if let badgeVM = badgeViewModel {
+            let totalMeals = (try? context.fetchCount(FetchDescriptor<FoodEntry>())) ?? 0
+            badgeVM.checkMealBadges(mealCount: totalMeals, context: context)
+
+            // Recheck streak badges since logging food extends the streak
+            let streak = DashboardViewModel().calculateStreak(context: context)
+            badgeVM.checkStreakBadges(currentStreak: streak, context: context)
+        }
     }
 
     func deleteFoodEntry(_ entry: FoodEntry, context: ModelContext) {

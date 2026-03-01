@@ -97,7 +97,7 @@ final class UserProfile {
         self.lunchReminderHour = 12
         self.lunchReminderMinute = 0
         self.dinnerReminderHour = 18
-        self.dinnerReminderMinute = 30
+        self.dinnerReminderMinute = 0
         self.workoutReminderHour = 17
         self.workoutReminderMinute = 0
         self.currentStreak = 0

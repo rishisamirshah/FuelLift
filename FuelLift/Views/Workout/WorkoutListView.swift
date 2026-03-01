@@ -3,6 +3,7 @@ import SwiftData
 
 struct WorkoutListView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(BadgeViewModel.self) private var badgeViewModel: BadgeViewModel?
     @Query(sort: \Workout.date, order: .reverse) private var workouts: [Workout]
     @Query(sort: \WorkoutRoutine.lastUsedAt, order: .reverse) private var routines: [WorkoutRoutine]
     @Query private var profiles: [UserProfile]
@@ -134,6 +135,9 @@ struct WorkoutListView: View {
                 .padding(.bottom, Theme.spacingHuge)
             }
             .screenBackground()
+            .onAppear {
+                workoutVM.badgeViewModel = badgeViewModel
+            }
             .navigationTitle("Start Workout")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {

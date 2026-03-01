@@ -50,16 +50,24 @@ struct ExerciseDefinition: Codable, Identifiable, Hashable {
         ExerciseDefinition(id: "db-bench", name: "Dumbbell Bench Press", muscleGroup: "Chest", equipment: "Dumbbell", instructions: "Lie on bench with dumbbells, press up and together."),
         ExerciseDefinition(id: "chest-fly", name: "Cable Fly", muscleGroup: "Chest", equipment: "Cable", instructions: "Stand between cables, bring hands together in front of chest."),
         ExerciseDefinition(id: "push-up", name: "Push Up", muscleGroup: "Chest", equipment: "Bodyweight", instructions: "Hands shoulder-width, lower chest to floor, push up."),
+        ExerciseDefinition(id: "dip", name: "Dip", muscleGroup: "Chest", equipment: "Bodyweight", instructions: "Grip parallel bars, lower body until upper arms are parallel to floor, press back up."),
+        ExerciseDefinition(id: "decline-bench", name: "Decline Bench Press", muscleGroup: "Chest", equipment: "Barbell", instructions: "Lie on decline bench, grip bar shoulder-width, lower to lower chest, press up."),
         // Back
         ExerciseDefinition(id: "deadlift", name: "Deadlift", muscleGroup: "Back", equipment: "Barbell", instructions: "Stand over bar, hinge at hips, grip bar, drive through legs."),
         ExerciseDefinition(id: "barbell-row", name: "Barbell Row", muscleGroup: "Back", equipment: "Barbell", instructions: "Hinge forward, pull bar to lower chest, squeeze shoulder blades."),
         ExerciseDefinition(id: "pull-up", name: "Pull Up", muscleGroup: "Back", equipment: "Bodyweight", instructions: "Hang from bar, pull chin above bar."),
         ExerciseDefinition(id: "lat-pulldown", name: "Lat Pulldown", muscleGroup: "Back", equipment: "Cable", instructions: "Grip wide bar, pull to upper chest, control back up."),
         ExerciseDefinition(id: "seated-row", name: "Seated Cable Row", muscleGroup: "Back", equipment: "Cable", instructions: "Sit upright, pull handle to torso, squeeze back."),
+        ExerciseDefinition(id: "tbar-row", name: "T-Bar Row", muscleGroup: "Back", equipment: "Barbell", instructions: "Straddle bar, hinge forward, pull bar to chest, squeeze shoulder blades."),
+        ExerciseDefinition(id: "cable-pullover", name: "Cable Pullover", muscleGroup: "Back", equipment: "Cable", instructions: "Stand facing cable, arms extended overhead, pull bar down to thighs in an arc."),
+        ExerciseDefinition(id: "db-row", name: "Dumbbell Row", muscleGroup: "Back", equipment: "Dumbbell", instructions: "One knee on bench, pull dumbbell to hip, squeeze back at top."),
         // Shoulders
         ExerciseDefinition(id: "ohp", name: "Overhead Press", muscleGroup: "Shoulders", equipment: "Barbell", instructions: "Press bar from front of shoulders overhead to lockout."),
         ExerciseDefinition(id: "lateral-raise", name: "Lateral Raise", muscleGroup: "Shoulders", equipment: "Dumbbell", instructions: "Arms at sides, raise dumbbells to shoulder height."),
         ExerciseDefinition(id: "face-pull", name: "Face Pull", muscleGroup: "Shoulders", equipment: "Cable", instructions: "Pull rope to face, external rotate at top."),
+        ExerciseDefinition(id: "arnold-press", name: "Arnold Press", muscleGroup: "Shoulders", equipment: "Dumbbell", instructions: "Start with palms facing you at chin level, rotate and press overhead."),
+        ExerciseDefinition(id: "rear-delt-fly", name: "Rear Delt Fly", muscleGroup: "Shoulders", equipment: "Dumbbell", instructions: "Bend forward, raise dumbbells out to sides, squeeze rear delts."),
+        ExerciseDefinition(id: "shrug", name: "Shrug", muscleGroup: "Shoulders", equipment: "Barbell", instructions: "Hold bar at arms length, shrug shoulders up toward ears, hold at top."),
         // Legs
         ExerciseDefinition(id: "squat", name: "Squat", muscleGroup: "Legs", equipment: "Barbell", instructions: "Bar on upper back, squat to parallel, drive up."),
         ExerciseDefinition(id: "leg-press", name: "Leg Press", muscleGroup: "Legs", equipment: "Machine", instructions: "Feet shoulder-width on platform, lower and press."),
@@ -67,15 +75,25 @@ struct ExerciseDefinition: Codable, Identifiable, Hashable {
         ExerciseDefinition(id: "leg-curl", name: "Leg Curl", muscleGroup: "Legs", equipment: "Machine", instructions: "Lie face down, curl weight toward glutes."),
         ExerciseDefinition(id: "leg-extension", name: "Leg Extension", muscleGroup: "Legs", equipment: "Machine", instructions: "Sit upright, extend legs to straighten knees."),
         ExerciseDefinition(id: "calf-raise", name: "Calf Raise", muscleGroup: "Legs", equipment: "Machine", instructions: "Rise onto toes, pause at top, lower slowly."),
+        ExerciseDefinition(id: "bulgarian-split-squat", name: "Bulgarian Split Squat", muscleGroup: "Legs", equipment: "Dumbbell", instructions: "Rear foot elevated on bench, lunge down until front thigh is parallel, drive up."),
+        ExerciseDefinition(id: "hip-thrust", name: "Hip Thrust", muscleGroup: "Legs", equipment: "Barbell", instructions: "Upper back on bench, bar across hips, drive hips up squeezing glutes at top."),
+        ExerciseDefinition(id: "hack-squat", name: "Hack Squat", muscleGroup: "Legs", equipment: "Machine", instructions: "Shoulders under pads, feet shoulder-width, squat down and press back up."),
+        ExerciseDefinition(id: "goblet-squat", name: "Goblet Squat", muscleGroup: "Legs", equipment: "Dumbbell", instructions: "Hold dumbbell at chest, squat down keeping torso upright, drive up."),
         // Arms
         ExerciseDefinition(id: "barbell-curl", name: "Barbell Curl", muscleGroup: "Arms", equipment: "Barbell", instructions: "Curl bar up keeping elbows pinned to sides."),
         ExerciseDefinition(id: "tricep-pushdown", name: "Tricep Pushdown", muscleGroup: "Arms", equipment: "Cable", instructions: "Push cable down, lock out elbows, control back up."),
         ExerciseDefinition(id: "hammer-curl", name: "Hammer Curl", muscleGroup: "Arms", equipment: "Dumbbell", instructions: "Curl dumbbells with neutral grip (palms facing in)."),
         ExerciseDefinition(id: "skull-crusher", name: "Skull Crusher", muscleGroup: "Arms", equipment: "Barbell", instructions: "Lie on bench, lower bar to forehead, extend arms."),
+        ExerciseDefinition(id: "preacher-curl", name: "Preacher Curl", muscleGroup: "Arms", equipment: "Barbell", instructions: "Arms on preacher pad, curl bar up, lower slowly under control."),
+        ExerciseDefinition(id: "overhead-tricep-ext", name: "Overhead Tricep Extension", muscleGroup: "Arms", equipment: "Cable", instructions: "Face away from cable, extend arms overhead, control back behind head."),
+        ExerciseDefinition(id: "concentration-curl", name: "Concentration Curl", muscleGroup: "Arms", equipment: "Dumbbell", instructions: "Sit with elbow braced on inner thigh, curl dumbbell up, squeeze at top."),
         // Core
         ExerciseDefinition(id: "plank", name: "Plank", muscleGroup: "Core", equipment: "Bodyweight", instructions: "Hold push-up position on forearms. Keep body straight."),
         ExerciseDefinition(id: "cable-crunch", name: "Cable Crunch", muscleGroup: "Core", equipment: "Cable", instructions: "Kneel at cable, crunch down bringing elbows to knees."),
         ExerciseDefinition(id: "hanging-leg-raise", name: "Hanging Leg Raise", muscleGroup: "Core", equipment: "Bodyweight", instructions: "Hang from bar, raise legs to parallel."),
+        ExerciseDefinition(id: "ab-wheel", name: "Ab Wheel Rollout", muscleGroup: "Core", equipment: "Bodyweight", instructions: "Kneel with ab wheel, roll forward extending body, pull back using core."),
+        ExerciseDefinition(id: "russian-twist", name: "Russian Twist", muscleGroup: "Core", equipment: "Bodyweight", instructions: "Sit with knees bent, lean back slightly, rotate torso side to side."),
+        ExerciseDefinition(id: "decline-crunch", name: "Decline Crunch", muscleGroup: "Core", equipment: "Bodyweight", instructions: "Lie on decline bench, cross arms over chest, crunch up contracting abs."),
     ]
 
     static let muscleGroups = ["Chest", "Back", "Shoulders", "Legs", "Arms", "Core"]

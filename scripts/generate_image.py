@@ -40,11 +40,11 @@ MODELS = {
 }
 
 
-def generate_image(prompt: str, output_path: str = "output.png", model: str = "nano") -> str:
+def generate_image(prompt: str, output_path: str = "output.png", model: str = "nano", raw: bool = False) -> str:
     """Generate an image using Nano Banana and save to disk."""
     client = genai.Client(api_key=API_KEY)
     model_id = MODELS[model]
-    full_prompt = STYLE_PREFIX + prompt
+    full_prompt = prompt if raw else STYLE_PREFIX + prompt
 
     print(f"Model:  {model_id} (Nano Banana {'Pro' if model == 'pro' else '2' if model == 'nano2' else ''})")
     print(f"Prompt: {full_prompt[:150]}...")
@@ -80,8 +80,9 @@ def main():
         "-m", "--model", choices=list(MODELS.keys()), default="nano",
         help="nano=fast, pro=high quality, nano2=latest (default: nano)"
     )
+    parser.add_argument("--raw", action="store_true", help="Skip style prefix, use prompt as-is")
     args = parser.parse_args()
-    generate_image(args.prompt, args.output, args.model)
+    generate_image(args.prompt, args.output, args.model, args.raw)
 
 
 if __name__ == "__main__":

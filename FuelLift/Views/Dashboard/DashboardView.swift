@@ -3,6 +3,7 @@ import SwiftData
 
 struct DashboardView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(BadgeViewModel.self) private var badgeViewModel: BadgeViewModel?
     @StateObject private var viewModel = DashboardViewModel()
     @Query private var profiles: [UserProfile]
     @State private var showCamera = false
@@ -97,6 +98,12 @@ struct DashboardView: View {
             .navigationBarHidden(true)
             .onAppear {
                 viewModel.loadDashboard(context: modelContext)
+                // Wire badge VM to workout VM
+                workoutVM.badgeViewModel = badgeViewModel
+                // Check streak badges after dashboard recalculates streak
+                if let badgeVM = badgeViewModel {
+                    badgeVM.checkStreakBadges(currentStreak: viewModel.currentStreak, context: modelContext)
+                }
                 withAnimation(.easeOut(duration: 0.6)) {
                     appeared = true
                 }
@@ -107,7 +114,11 @@ struct DashboardView: View {
             .sheet(isPresented: $showCamera, onDismiss: {
                 viewModel.loadDashboard(context: modelContext)
             }) {
-                CameraScanView(nutritionViewModel: NutritionViewModel())
+                CameraScanView(nutritionViewModel: {
+                    let vm = NutritionViewModel()
+                    vm.badgeViewModel = badgeViewModel
+                    return vm
+                }())
             }
             .sheet(isPresented: $showNutritionPlan, onDismiss: {
                 viewModel.loadDashboard(context: modelContext)
@@ -124,7 +135,7 @@ struct DashboardView: View {
 
     private func quickAction(iconName: String, label: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            HStack(spacing: Theme.spacingSM) {
+            HStack(spacing: Theme.spacingMD) {
                 Image(iconName)
                     .resizable()
                     .renderingMode(.original)
@@ -132,13 +143,10 @@ struct DashboardView: View {
                     .aspectRatio(contentMode: .fit)
                     .frame(width: 28, height: 28)
                 Text(label)
-                    .font(.system(size: Theme.bodySize, weight: .semibold))
+                    .font(.system(size: Theme.bodySize, weight: .bold))
                     .foregroundStyle(Color.appTextPrimary)
             }
-            .frame(maxWidth: .infinity)
-            .padding(Theme.spacingLG)
-            .background(Color.appCardBackground)
-            .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusLG))
+            .pixelButtonStyle()
         }
         .buttonStyle(.plain)
     }

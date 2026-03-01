@@ -66,7 +66,60 @@ final class DashboardViewModel: ObservableObject {
             carbsGoal = profile.carbsGoal
             fatGoal = profile.fatGoal
             waterGoal = profile.waterGoalML
-            currentStreak = profile.currentStreak
+
+            // Calculate streak from actual logged data
+            let calculatedStreak = calculateStreak(context: context)
+            currentStreak = calculatedStreak
+
+            // Persist back to profile if changed
+            if profile.currentStreak != calculatedStreak {
+                profile.currentStreak = calculatedStreak
+                profile.lastLogDate = calculatedStreak > 0 ? Date() : profile.lastLogDate
+                if calculatedStreak > profile.longestStreak {
+                    profile.longestStreak = calculatedStreak
+                }
+            }
         }
+    }
+
+    /// Calculates the current streak by counting consecutive days (ending today or yesterday)
+    /// where the user either logged food or completed a workout.
+    func calculateStreak(context: ModelContext) -> Int {
+        let calendar = Calendar.current
+        var streak = 0
+        var checkDate = Date().startOfDay
+
+        // Allow streak to start from yesterday if nothing logged today yet
+        if !hasActivityOn(date: checkDate, context: context) {
+            checkDate = calendar.date(byAdding: .day, value: -1, to: checkDate)!
+            if !hasActivityOn(date: checkDate, context: context) {
+                return 0
+            }
+        }
+
+        // Count consecutive days backward
+        while hasActivityOn(date: checkDate, context: context) {
+            streak += 1
+            checkDate = calendar.date(byAdding: .day, value: -1, to: checkDate)!
+        }
+
+        return streak
+    }
+
+    /// Returns true if the user logged food or completed a workout on the given date.
+    private func hasActivityOn(date: Date, context: ModelContext) -> Bool {
+        let nextDay = Calendar.current.date(byAdding: .day, value: 1, to: date)!
+
+        let foodDescriptor = FetchDescriptor<FoodEntry>(
+            predicate: #Predicate { $0.date >= date && $0.date < nextDay }
+        )
+        let foodCount = (try? context.fetchCount(foodDescriptor)) ?? 0
+        if foodCount > 0 { return true }
+
+        let workoutDescriptor = FetchDescriptor<Workout>(
+            predicate: #Predicate { $0.date >= date && $0.date < nextDay && $0.isCompleted }
+        )
+        let workoutCount = (try? context.fetchCount(workoutDescriptor)) ?? 0
+        return workoutCount > 0
     }
 }

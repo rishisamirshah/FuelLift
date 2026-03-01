@@ -41,19 +41,50 @@ struct BadgeGridItem: View {
                             .frame(width: Theme.badgeIconSize, height: Theme.badgeIconSize)
                     }
                 } else {
-                    // Unearned — gray circle + star
-                    Circle()
-                        .fill(Color.appBadgeLocked.opacity(0.12))
-                        .frame(width: Theme.badgeIconSize, height: Theme.badgeIconSize)
-                        .overlay(
-                            Image("icon_star")
+                    // Unearned — show desaturated preview of actual badge with lock overlay
+                    ZStack {
+                        if let imageName, UIImage(named: imageName) != nil {
+                            // Show the actual badge image desaturated and transparent
+                            Image(imageName)
                                 .resizable()
                                 .renderingMode(.original)
                                 .interpolation(.none)
                                 .aspectRatio(contentMode: .fit)
-                                .frame(width: 32, height: 32)
-                                .opacity(0.5)
-                        )
+                                .frame(width: Theme.badgeIconSize, height: Theme.badgeIconSize)
+                                .saturation(0)
+                                .opacity(0.25)
+                        } else if let category {
+                            // Fallback: gradient circle + icon, desaturated
+                            Circle()
+                                .fill(category.gradient)
+                                .frame(width: Theme.badgeIconSize, height: Theme.badgeIconSize)
+                                .overlay(
+                                    Image(systemName: iconName)
+                                        .font(.system(size: 28, weight: .semibold))
+                                        .foregroundStyle(Color.white)
+                                )
+                                .saturation(0)
+                                .opacity(0.25)
+                        } else {
+                            // Fallback: SF Symbol, desaturated
+                            Image(systemName: iconName)
+                                .font(.system(size: 36))
+                                .foregroundStyle(Color.appTextTertiary)
+                                .frame(width: Theme.badgeIconSize, height: Theme.badgeIconSize)
+                                .opacity(0.25)
+                        }
+
+                        // Lock icon overlay
+                        Image(systemName: "lock.fill")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundStyle(Color.appTextTertiary)
+                            .padding(4)
+                            .background(
+                                Circle()
+                                    .fill(Color.appCardBackground.opacity(0.9))
+                            )
+                            .offset(x: Theme.badgeIconSize / 2 - 10, y: Theme.badgeIconSize / 2 - 10)
+                    }
                 }
             }
 

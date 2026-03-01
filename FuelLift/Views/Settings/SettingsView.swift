@@ -69,7 +69,7 @@ struct SettingsView: View {
                     }
                     divider()
                     settingsRow(pixelIcon: "icon_gear", title: "Preferences") {
-                        NotificationSettingsView()
+                        PreferencesView()
                     }
                     divider()
                     settingsRow(pixelIcon: "icon_ruler", title: "Units") {
@@ -183,7 +183,7 @@ struct SettingsView: View {
 
                     divider()
 
-                    settingsRow(pixelIcon: "icon_target", title: "Edit Nutrition Goals") {
+                    settingsRow(pixelIcon: "icon_target", title: "Reset AI Plan") {
                         NutritionPlanView()
                     }
 

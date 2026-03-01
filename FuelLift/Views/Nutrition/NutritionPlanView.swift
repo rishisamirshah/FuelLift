@@ -309,7 +309,7 @@ struct NutritionPlanView: View {
             fatGoal = String(AppConstants.defaultFatGoal)
             aiReasoning = nil
         } label: {
-            Text("Reset to Defaults")
+            Text("Reset AI Plan")
                 .font(.system(size: Theme.bodySize, weight: .medium))
                 .foregroundStyle(Color.appFatColor)
         }

@@ -39,6 +39,7 @@ struct RootView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @Environment(\.modelContext) private var modelContext
     @Query private var profiles: [UserProfile]
+    @State private var badgeViewModel = BadgeViewModel()
 
     private var profile: UserProfile? { profiles.first }
 
@@ -51,6 +52,7 @@ struct RootView: View {
                     OnboardingView()
                 } else {
                     ContentView()
+                        .environment(badgeViewModel)
                 }
             } else {
                 LoginView()
@@ -64,6 +66,13 @@ struct RootView: View {
                 modelContext.insert(profile)
                 try? modelContext.save()
             }
+
+            // Initialize badges and check streak-based badges on launch
+            badgeViewModel.initializeBadgesIfNeeded(context: modelContext)
+
+            let dashVM = DashboardViewModel()
+            let streak = dashVM.calculateStreak(context: modelContext)
+            badgeViewModel.checkStreakBadges(currentStreak: streak, context: modelContext)
         }
         .preferredColorScheme(profile?.darkModeEnabled == true ? .dark : nil)
     }
