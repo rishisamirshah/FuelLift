@@ -35,6 +35,10 @@ final class UserProfile {
     var notificationsEnabled: Bool
     var healthKitEnabled: Bool
     var appearanceMode: String = "auto"  // "auto", "light", "dark"
+    var enableBadgeCelebrations: Bool = true
+    var enableLiveActivity: Bool = false
+    var addBurnedCalories: Bool = false
+    var rolloverCalories: Bool = false
 
     // Dashboard display preferences
     var showWaterTracker: Bool

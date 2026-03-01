@@ -180,6 +180,24 @@ extension LinearGradient {
         endPoint: .bottomTrailing
     )
 
+    static let stepsRingGradient = LinearGradient(
+        colors: [Color.appAccent, Color.appAccentBright],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
+    )
+
+    static let burnedRingGradient = LinearGradient(
+        colors: [Color.appFatColor, Color.appFatColor.opacity(0.6)],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
+    )
+
+    static let waterRingGradient = LinearGradient(
+        colors: [Color.appWaterColor, Color.appWaterColor.opacity(0.6)],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
+    )
+
     static let streakGradient = LinearGradient(
         colors: [Color.appStreakColor, Color.red],
         startPoint: .top,

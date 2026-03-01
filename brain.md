@@ -1,6 +1,6 @@
 # FuelLift Brain - Complete Project Context
 
-> Last updated: 2026-03-01 (v7 — Gemini Vision + Light Mode + Appearance Setting)
+> Last updated: 2026-03-01 (v8 — Cal AI-Inspired Feature Overhaul)
 > Auto-maintained by "Update all" task
 
 ---
@@ -28,16 +28,16 @@ FuelLift/
 │   ├── AppDelegate.swift   # Notifications (Firebase disabled)
 │   └── ContentView.swift   # Custom 4-tab bar + FAB overlay + scanline CRT
 ├── Models/                 # SwiftData @Model + structs (11 files)
-├── ViewModels/             # State managers (9 files)
-├── Views/                  # SwiftUI views (51 files)
-│   ├── Dashboard/          # 3 files
-│   ├── Nutrition/          # 10 files
+├── ViewModels/             # State managers (10 files)
+├── Views/                  # SwiftUI views (55 files)
+│   ├── Dashboard/          # 6 files (added DashboardPagerView, StepsBurnedPage, WaterPage)
+│   ├── Nutrition/          # 11 files (added FixIssueSheet)
 │   ├── Workout/            # 10 files
 │   ├── Progress/           # 12 files
 │   ├── Social/             # 5 files
-│   ├── Settings/           # 5 files (added PreferencesView)
+│   ├── Settings/           # 5 files
 │   └── Onboarding/         # 3 files
-├── Services/               # Singletons (9 files — added GeminiService)
+├── Services/               # Singletons (11 files)
 ├── Utilities/              # Theme, Extensions, Constants, ImagePicker
 │   └── Components/         # 9 shared UI components
 └── Resources/              # Info.plist, Entitlements, Assets.xcassets (123 images)
@@ -80,9 +80,9 @@ All colors adapt automatically based on color scheme (dark/light).
 - **Dark** — forces dark mode
 - Controlled via `UserProfile.appearanceMode` ("auto" | "light" | "dark")
 - Applied in `RootView` via `.preferredColorScheme()`
-- Settings UI: segmented picker (Auto / Light / Dark) in both SettingsView and PreferencesView
+- Settings UI: visual card picker (mini app preview thumbnails) with checkmark in PreferencesView
 
-### View Modifiers (Extensions.swift)
+### View Modifiers (Extensions.swift + DashboardView.swift)
 - `.cardStyle()` — padding(LG) + appCardBackground + cornerRadiusLG + orange accent border + subtle shadow
 - `.secondaryCardStyle()` — padding(LG) + appCardSecondary + cornerRadiusMD + subtle border + shadow
 - `.pixelCardStyle()` — pixel-stepped corners (PixelBorder shape) + orange accent
@@ -94,6 +94,7 @@ All colors adapt automatically based on color scheme (dark/light).
 - `.scanlineOverlay(opacity:)` — CRT horizontal lines for retro atmosphere
 - `.pixelDivider()` — thin line with subtle accent
 - `.if(_:transform:)` — conditional view modifier
+- `.shimmer()` — animated shimmer overlay for loading placeholders (defined in DashboardView)
 
 ### Image Helper
 - `Image("name").pixelArt()` — `.resizable().renderingMode(.original).interpolation(.none).aspectRatio(contentMode: .fit)` (returns `some View`, chain `.frame()` after)
@@ -104,6 +105,7 @@ All colors adapt automatically based on color scheme (dark/light).
 
 ### Gradients
 - calorieRing, proteinRing, carbsRing, fatRing (color → 60% opacity)
+- stepsRing (appAccent → appAccentBright), burnedRing (appFatColor), waterRing (appWaterColor)
 - streakGradient (orange → red, vertical)
 - accentGlow (orange 60% → 15%, vertical)
 
@@ -135,6 +137,7 @@ All colors adapt automatically based on color scheme (dark/light).
 - Nutrition Plan: dietaryPreference (String?), workoutsPerWeek (Int?), targetWeightKG (Double?)
 - Prefs: useMetricUnits, darkModeEnabled (legacy), notificationsEnabled, healthKitEnabled
 - **Appearance:** appearanceMode (String, default "auto") — "auto", "light", "dark"
+- **Feature Toggles (v8):** enableBadgeCelebrations (true), enableLiveActivity (false), addBurnedCalories (false), rolloverCalories (false)
 - Dashboard toggles: showStreakBadge, showQuickActions, showMacrosBreakdown, showWaterTracker, showWorkoutSummary
 - Streaks: currentStreak, longestStreak, lastLogDate
 - Onboarding: hasCompletedOnboarding; Profile: displayName, email, firestoreId
@@ -142,7 +145,10 @@ All colors adapt automatically based on color scheme (dark/light).
 - **Auto-created:** RootView creates default UserProfile on launch if none exists
 
 ### FoodEntry
-- name, calories (Int), proteinG, carbsG, fatG, servingSize, mealType, date, imageData, barcode, source, firestoreId
+- name, calories (Int), proteinG, carbsG, fatG, servingSize, mealType, date, imageData, barcode, source, firestoreId, ingredientsJSON
+- **v8 Fields:** analysisStatus (String, default "completed") — "pending", "analyzing", "completed", "failed"
+- **v8 Fields:** aiFeedback (String, default "none") — "none", "thumbs_up", "thumbs_down"
+- Computed: ingredients ([NutritionData.Ingredient]), nutrition (NutritionData)
 
 ### WaterEntry — amountML (Int), date
 ### Exercise — name, muscleGroup, equipment, instructions, isCustom (45 predefined exercises)
@@ -171,38 +177,95 @@ All colors adapt automatically based on color scheme (dark/light).
 |-----------|------|----------------|-------------|
 | AuthViewModel | ObservableObject | isAuthenticated, isLoading, needsOnboarding | signIn(), signUp(), signInWithApple() — bypassed |
 | BadgeViewModel | @Observable | badges, newlyEarnedBadge, showConfetti | initializeBadgesIfNeeded(), check*Badges(), recheckAllBadges(), awardBadge() |
-| DashboardViewModel | ObservableObject | caloriesEaten, calorieGoal, macros, waterML, todayWorkout, currentStreak | loadDashboard(), calculateStreak() |
-| NutritionViewModel | ObservableObject | selectedDate, todayEntries, todayWater, totals, badgeViewModel | addFoodEntry() (checks meal+streak badges) |
+| DashboardViewModel | ObservableObject | caloriesEaten, calorieGoal, macros, waterML, todayWorkout, currentStreak, stepsToday, activeCaloriesBurned, pendingEntries | loadDashboard(for:), calculateStreak() |
+| NutritionViewModel | ObservableObject | selectedDate, todayEntries, todayWater, totals, badgeViewModel | addFoodEntry() (checks meal+streak badges), deleteFoodEntry() |
 | WorkoutViewModel | ObservableObject | activeWorkout, exerciseGroups, elapsedSeconds, newPRs, badgeViewModel | startWorkout(), finishWorkout() (checks workout+PR badges) |
 | ProgressViewModel | ObservableObject | weightHistory, calorieHistory, exercisePRs | loadData() |
-| FoodScanViewModel | ObservableObject | capturedImage, scannedNutrition | analyzePhoto(), analyzeDescription() — **uses GeminiService** |
+| FoodScanViewModel | ObservableObject | capturedImage, scannedNutrition, onPendingEntry | analyzePhoto(), analyzeDescription(), createPendingEntry() — **uses GeminiService** |
 | WorkoutPlannerViewModel | ObservableObject | selectedGoal, generatedPlan | generatePlan(), savePlan(), refinePlan() — **uses ClaudeService** |
 | ExerciseLibraryViewModel | ObservableObject | exercises, searchText | filteredExercises |
 | SocialViewModel | ObservableObject | groups, friends | — Firebase dependent |
 
 ---
 
+## Dashboard (v8 Redesign)
+
+### Layout (DashboardView.swift)
+1. **Header** — logo + StreakBadge (if streak > 0)
+2. **WeekDaySelector** — scrollable 21-day (3 weeks back) horizontal ScrollViewReader, auto-scrolls to selected date, month labels on week boundaries
+3. **DashboardPagerView** — swipeable 3-page TabView with page dots:
+   - Page 1: CalorieSummaryCard (calorie ring + macro rings)
+   - Page 2: StepsBurnedPage (steps + active calories from HealthKit, dual progress rings)
+   - Page 3: WaterPage (water ring + add buttons)
+4. **Quick Actions** — Scan Food, Start Workout, AI Nutrition Plan
+5. **WorkoutSummaryCard** — today's completed workout
+6. **Recently Uploaded** — food list with shimmer loading cards for pending entries, context menu delete
+
+### Instant Food Add Flow
+1. User opens camera → takes photo
+2. Pending FoodEntry created immediately (analysisStatus="pending", name="Analyzing...", zero macros)
+3. Camera sheet dismisses → dashboard shows shimmer card with food thumbnail
+4. Gemini analysis continues in background
+5. On completion → entry updated with real data, analysisStatus="completed", shimmer resolves to real card
+6. On failure → analysisStatus="failed", name="Analysis failed"
+
+---
+
 ## AI Services
 
-### GeminiService (Food Scanning — NEW)
+### GeminiService (Food Scanning)
 - **File:** `Services/GeminiService.swift`
 - **Singleton:** `GeminiService.shared`
 - **Model:** `gemini-2.5-flash` (stable, text+vision)
 - **API:** REST direct (no SDK), API key as query param
-- **Methods:** `analyzeFoodPhoto(_:)`, `analyzeFoodDescription(_:)` → `NutritionData`
+- **Methods:**
+  - `analyzeFoodPhoto(_:)` → `NutritionData`
+  - `analyzeFoodDescription(_:)` → `NutritionData`
+  - `correctFoodAnalysis(original:issue:image:)` → `NutritionData` **(v8 — Fix Issue reprompt)**
 - **Features:** `responseMimeType: "application/json"` + `responseSchema` for clean JSON, 30s timeout, fallback Int/Double decoding, safety filter detection
-- **API Key:** `GEMINI_API_KEY` via Info.plist → `AppConstants.geminiAPIKey`
 
 ### ClaudeService (Workout Plans & Nutrition Goals)
 - **File:** `Services/ClaudeService.swift`
 - **Singleton:** `ClaudeService.shared`
 - **Model:** `claude-sonnet-4-6`
 - **API:** Anthropic REST API with `x-api-key` header
-- **Methods:** `generateWorkoutPlan()`, `refineWorkoutPlan()`, `calculateNutritionGoals()` (food scanning removed — moved to Gemini)
+- **Methods:** `generateWorkoutPlan()`, `refineWorkoutPlan()`, `calculateNutritionGoals()`
 - **API Key:** `ANTHROPIC_API_KEY` via Info.plist → `AppConstants.anthropicAPIKey`
 
 ### API Key Chain (for both services)
 GitHub Secrets → testflight.yml env → Fastfile xcargs → project.yml build settings → Info.plist → Bundle.main.infoDictionary → Constants.swift
+
+---
+
+## Food Entry Detail (v8)
+
+### FoodEntryDetailView
+- Full-bleed photo (380pt) with rounded-top content overlay
+- Calorie card, macro cards (Protein/Carbs/Fats), ingredients list
+- **AI Feedback Row** — thumbs up (green highlight) / thumbs down (red highlight, opens Fix Issue sheet)
+  - Saves to `entry.aiFeedback` via modelContext
+- **Fix Issue Button** — presents FixIssueSheet
+
+### FixIssueSheet (NEW v8)
+- Shows current analysis (thumbnail + name + macros)
+- TextEditor for user to describe the issue
+- "Re-analyze with AI" button → calls `GeminiService.correctFoodAnalysis()`
+- Updates entry with corrected data on success, dismisses
+
+---
+
+## Preferences (v8 Redesign)
+
+### PreferencesView (full rewrite)
+- **Appearance Section** — 3 visual card thumbnails (Light/Dark/Auto) with mini app preview, orange border + checkmark on selected
+- **Feature Toggles Section** — card with 4 toggle rows:
+  - Badge Celebrations (confetti on badge earn) → `enableBadgeCelebrations`
+  - Live Activity (lock screen calories) → `enableLiveActivity`
+  - Add Burned Calories (HealthKit active cals to budget) → `addBurnedCalories`
+  - Rollover Calories (unused cals carry forward) → `rolloverCalories`
+- **Water Goal** — stepper 500–5000 mL in 250 mL steps
+- **Units** — NavigationLink to UnitsSettingsView
+- All toggles persist immediately via `onChange` → `modelContext.save()`
 
 ---
 
@@ -254,11 +317,11 @@ GitHub Secrets → testflight.yml env → Fastfile xcargs → project.yml build 
 - **Firebase:** Disabled. All services guard with `FirebaseApp.app() != nil`.
 - **Auth:** Bypassed — isAuthenticated = true on init.
 - **Local data:** SwiftData fully functional.
-- **Gemini AI:** Active — food photo scanning, food description analysis (key: GEMINI_API_KEY in Constants.swift).
-- **Claude AI:** Active — workout plans, nutrition goals (key: ANTHROPIC_API_KEY in Constants.swift).
-- **HealthKit:** Active (requires device support).
+- **Gemini AI:** Active — food photo scanning, food description analysis, Fix Issue reprompt (key: GEMINI_API_KEY).
+- **Claude AI:** Active — workout plans, nutrition goals (key: ANTHROPIC_API_KEY).
+- **HealthKit:** Active — steps + active calories fetched for dashboard (requires device support).
 - **UI:** Retro-futuristic adaptive — dark arcade (#08080F) or clean light (#F7F7F9), hot orange accents (#FF6B00), neon macro colors, pixel-stepped borders, CRT scanline overlay, glow effects. 123 custom pixel art assets. `.pixelArt()` helper on all asset images.
-- **Appearance:** Auto/Light/Dark via segmented picker in Settings. Colors adapt using UIColor dynamic provider.
+- **Appearance:** Auto/Light/Dark via visual card picker in Preferences. Colors adapt using UIColor dynamic provider.
 - **Build:** Compiles cleanly (0 errors). CI/CD fully operational.
 - **TestFlight:** Live, internal testing.
 
@@ -267,39 +330,31 @@ GitHub Secrets → testflight.yml env → Fastfile xcargs → project.yml build 
 - Unused StorageReference (StorageService)
 - "All interface orientations must be supported" (build warning, non-blocking)
 
-### Recently Implemented (v7 — Gemini Vision + Light Mode)
-- **Gemini Vision food scanning** — GeminiService.swift replaces Claude for food photo/description analysis
-- **JSON mode** — responseMimeType + responseSchema for reliable Gemini JSON output
-- **Light mode support** — all Theme colors adaptive via UIColor dynamic provider
-- **Appearance setting** — Auto/Light/Dark segmented picker replaces broken dark mode toggle
-- **UserProfile.appearanceMode** — new property (default "auto"), applied in RootView.preferredColorScheme
-- **Card shadows** — subtle shadow on cardStyle/secondaryCardStyle for light mode depth
+### Recently Implemented (v8 — Cal AI-Inspired Feature Overhaul)
+- **Swipeable 3-page dashboard** — TabView pager: Calories+Macros → Steps+Burned → Water tracker
+- **Scrollable 3-week calendar** — WeekDaySelector rewritten with ScrollViewReader, 21 days, month labels
+- **Instant food add** — camera dismisses immediately, shimmer placeholder card, background Gemini analysis
+- **Fix Issue AI reprompt** — FixIssueSheet with text description, calls correctFoodAnalysis(), updates entry
+- **AI feedback** — thumbs up/down on FoodEntryDetailView, persists to FoodEntry.aiFeedback
+- **Shimmer loading cards** — animated shimmer modifier for pending food entries on dashboard
+- **Context menu delete** — long-press food entry cards to delete from dashboard
+- **Preferences redesign** — visual appearance card picker (mini previews), 4 new feature toggles
+- **HealthKit dashboard integration** — steps + active calories burned fetched and displayed
+- **New model fields** — FoodEntry: analysisStatus, aiFeedback; UserProfile: enableBadgeCelebrations, enableLiveActivity, addBurnedCalories, rolloverCalories
+- **New files** — DashboardPagerView, StepsBurnedPage, WaterPage, FixIssueSheet
+- **New gradients** — stepsRing, burnedRing, waterRing
+
+### Previously Implemented (v7 — Gemini Vision + Light Mode)
+- Gemini Vision food scanning, JSON mode, light mode support, appearance setting
 
 ### Previously Implemented (v6 — Retro-Futuristic Dark UI + Badge System)
-- **Dark design system overhaul** — replaced system-adaptive colors with intentional dark palette
-- **New color tokens** — neon macro colors, border/glow tokens, accent variants
-- **New view modifiers** — pixelButtonStyle, primaryButtonStyle, accentGlow, scanlineOverlay, pixelCardStyle, PixelBorder shape, ScanlinePattern
-- **`.pixelArt()` helper** — replaces verbose 4-line image rendering chain (50+ replacements across all views)
-- **Tab bar redesign** — custom VStack with glowing orange underline indicator, spring animations, icon scale on select
-- **Badge system fixes** — recheckAllBadges() on dashboard appear, auto-reload badges if empty in awardBadge
-- **Tappable badges** — MilestonesView badges link to BadgeDetailView, locked badges show greyed-out image + lock overlay
-- **Settings fixes** — NavigationStack added (fixes navigation), PreferencesView (dark mode, units, water goal), nutrition goals in ProfileEditView, "Reset AI Plan" rename
-- **Exercise library expansion** — 18 new exercises (45 total), image mapping fixes
-- **Exercise images in workout views** — thumbnails in ExercisePickerView (40x40) and ActiveWorkoutView (32x32)
+- Dark design system overhaul, badge system fixes, tappable badges, settings fixes
 
 ### Previously Implemented (v5 — Pixel Art Visual Overhaul)
-- 122 pixel art assets via Gemini Nano Banana, background removal, content cropping
-- Custom tab bar replacing SwiftUI TabView (fixes icon sizing)
-- App icon, logo, badge artwork, exercise illustrations
-
-### Gemini Image Generation
-- **Script:** `scripts/generate_image.py` — Python, `google-genai` SDK
-- **Model:** Nano Banana (`gemini-2.5-flash-image`)
-- **API Key:** Set via env var `GEMINI_API_KEY` (NOT hardcoded — previous key was leaked)
-- **Usage:** `python generate_image.py "prompt" -o output.png -m nano [--raw]`
-- **Models:** `nano` (default), `pro` (high quality), `nano2` (latest)
+- 122 pixel art assets, custom tab bar, app icon
 
 ### Deferred Features
+- **Widgets + Live Activity + Dynamic Island** — requires Apple Developer Portal setup (App Groups, widget target)
 - **Firebase Integration** — Re-enable Auth, Firestore sync, Storage
 - **Custom Exercise Creation** — `isCustom` flag exists but no creation UI
 - **Superset/Dropset Support** — SupersetGroupView exists but not integrated
@@ -315,11 +370,11 @@ GitHub Secrets → testflight.yml env → Fastfile xcargs → project.yml build 
 | App | 3 |
 | Models | 11 |
 | ViewModels | 10 |
-| Views | 51 |
+| Views | 55 (added 4 new) |
 | Components | 9 |
-| Services | 11 (added GeminiService) |
+| Services | 11 |
 | Utilities | 4 |
 | Resources | 5 |
-| Scripts | 3 (generate_image, remove_backgrounds, crop_images) |
+| Scripts | 3 |
 | Asset Images | 123 |
-| **Total Swift** | **96** |
+| **Total Swift** | **100** |

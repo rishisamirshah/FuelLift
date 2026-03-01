@@ -16,7 +16,9 @@ final class DashboardViewModel: ObservableObject {
     @Published var todayWorkout: Workout?
     @Published var currentStreak: Int = 0
     @Published var stepsToday: Int = 0
+    @Published var activeCaloriesBurned: Int = 0
     @Published var todayEntries: [FoodEntry] = []
+    @Published var pendingEntries: [FoodEntry] = []
 
     var calorieProgress: Double {
         guard calorieGoal > 0 else { return 0 }
@@ -27,8 +29,8 @@ final class DashboardViewModel: ObservableObject {
         max(calorieGoal - caloriesEaten, 0)
     }
 
-    func loadDashboard(context: ModelContext) {
-        let today = Date().startOfDay
+    func loadDashboard(context: ModelContext, for date: Date = Date()) {
+        let today = date.startOfDay
         let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: today)!
 
         // Load food entries
@@ -36,11 +38,23 @@ final class DashboardViewModel: ObservableObject {
             predicate: #Predicate { $0.date >= today && $0.date < tomorrow }
         )
         if let entries = try? context.fetch(foodDescriptor) {
+            let completed = entries.filter { $0.analysisStatus == "completed" }
+            pendingEntries = entries.filter { $0.analysisStatus != "completed" }
             todayEntries = entries.sorted { $0.date > $1.date }
-            caloriesEaten = entries.reduce(0) { $0 + $1.calories }
-            proteinG = entries.reduce(0) { $0 + $1.proteinG }
-            carbsG = entries.reduce(0) { $0 + $1.carbsG }
-            fatG = entries.reduce(0) { $0 + $1.fatG }
+            caloriesEaten = completed.reduce(0) { $0 + $1.calories }
+            proteinG = completed.reduce(0) { $0 + $1.proteinG }
+            carbsG = completed.reduce(0) { $0 + $1.carbsG }
+            fatG = completed.reduce(0) { $0 + $1.fatG }
+        }
+
+        // Fetch HealthKit data
+        Task {
+            do {
+                stepsToday = try await HealthKitService.shared.fetchTodaySteps()
+                activeCaloriesBurned = try await HealthKitService.shared.fetchTodayActiveCalories()
+            } catch {
+                // HealthKit may not be authorized — silently ignore
+            }
         }
 
         // Load water

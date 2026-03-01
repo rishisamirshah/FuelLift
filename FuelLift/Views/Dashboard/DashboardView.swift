@@ -19,7 +19,7 @@ struct DashboardView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: Theme.spacingXXL) {
-                    // Header with streak
+                    // 1. Header with streak — unchanged
                     HStack {
                         Image("logo_fuellift")
                             .pixelArt()
@@ -31,18 +31,20 @@ struct DashboardView: View {
                     }
                     .padding(.horizontal, Theme.spacingLG)
 
-                    // Week day selector
+                    // 2. Scrollable week day selector
                     WeekDaySelector(selectedDate: $selectedDate)
-                        .padding(.horizontal, Theme.spacingSM)
 
-                    // Calorie ring card
-                    CalorieSummaryCard(viewModel: viewModel, showMacros: profile?.showMacrosBreakdown ?? true)
-                        .padding(.horizontal, Theme.spacingLG)
-                        .opacity(appeared ? 1 : 0)
-                        .offset(y: appeared ? 0 : 20)
-                        .animation(.easeOut(duration: 0.4).delay(0.05), value: appeared)
+                    // 3. Swipeable 3-page pager (Calories, Steps, Water)
+                    DashboardPagerView(
+                        viewModel: viewModel,
+                        showMacros: profile?.showMacrosBreakdown ?? true
+                    )
+                    .padding(.horizontal, Theme.spacingLG)
+                    .opacity(appeared ? 1 : 0)
+                    .offset(y: appeared ? 0 : 20)
+                    .animation(.easeOut(duration: 0.4).delay(0.05), value: appeared)
 
-                    // Quick actions
+                    // 4. Quick actions — unchanged
                     if profile?.showQuickActions ?? true {
                         VStack(spacing: Theme.spacingMD) {
                             HStack(spacing: Theme.spacingMD) {
@@ -64,40 +66,29 @@ struct DashboardView: View {
                         .animation(.easeOut(duration: 0.4).delay(0.15), value: appeared)
                     }
 
-                    // Water tracker
-                    if profile?.showWaterTracker ?? true {
-                        waterCard
+                    // 5. Today's workout
+                    if profile?.showWorkoutSummary ?? true {
+                        WorkoutSummaryCard(workout: viewModel.todayWorkout)
                             .padding(.horizontal, Theme.spacingLG)
                             .opacity(appeared ? 1 : 0)
                             .offset(y: appeared ? 0 : 20)
                             .animation(.easeOut(duration: 0.4).delay(0.25), value: appeared)
                     }
 
-                    // Today's workout
-                    if profile?.showWorkoutSummary ?? true {
-                        WorkoutSummaryCard(workout: viewModel.todayWorkout)
-                            .padding(.horizontal, Theme.spacingLG)
-                            .opacity(appeared ? 1 : 0)
-                            .offset(y: appeared ? 0 : 20)
-                            .animation(.easeOut(duration: 0.4).delay(0.35), value: appeared)
-                    }
-
-                    // Recently uploaded section
+                    // 6. Recently uploaded food list (always visible below all pages)
                     recentlyUploadedSection
                         .padding(.horizontal, Theme.spacingLG)
                         .opacity(appeared ? 1 : 0)
                         .offset(y: appeared ? 0 : 20)
-                        .animation(.easeOut(duration: 0.4).delay(0.45), value: appeared)
+                        .animation(.easeOut(duration: 0.4).delay(0.35), value: appeared)
                 }
                 .padding(.vertical, Theme.spacingLG)
             }
             .screenBackground()
             .navigationBarHidden(true)
             .onAppear {
-                viewModel.loadDashboard(context: modelContext)
-                // Wire badge VM to workout VM
+                viewModel.loadDashboard(context: modelContext, for: selectedDate)
                 workoutVM.badgeViewModel = badgeViewModel
-                // Check streak badges after dashboard recalculates streak
                 if let badgeVM = badgeViewModel {
                     badgeVM.recheckAllBadges(context: modelContext)
                     badgeVM.checkStreakBadges(currentStreak: viewModel.currentStreak, context: modelContext)
@@ -107,10 +98,10 @@ struct DashboardView: View {
                 }
             }
             .onChange(of: selectedDate) { _, _ in
-                viewModel.loadDashboard(context: modelContext)
+                viewModel.loadDashboard(context: modelContext, for: selectedDate)
             }
             .sheet(isPresented: $showCamera, onDismiss: {
-                viewModel.loadDashboard(context: modelContext)
+                viewModel.loadDashboard(context: modelContext, for: selectedDate)
             }) {
                 CameraScanView(nutritionViewModel: {
                     let vm = NutritionViewModel()
@@ -119,7 +110,7 @@ struct DashboardView: View {
                 }())
             }
             .sheet(isPresented: $showNutritionPlan, onDismiss: {
-                viewModel.loadDashboard(context: modelContext)
+                viewModel.loadDashboard(context: modelContext, for: selectedDate)
             }) {
                 NutritionPlanView()
             }
@@ -146,61 +137,6 @@ struct DashboardView: View {
         .buttonStyle(.plain)
     }
 
-    // MARK: - Water Card
-
-    private var waterCard: some View {
-        VStack(alignment: .leading, spacing: Theme.spacingSM) {
-            HStack {
-                Image("icon_water_drop")
-                    .pixelArt()
-                    .frame(width: 24, height: 24)
-                Text("Water")
-                    .font(.system(size: Theme.subheadlineSize, weight: .bold))
-                    .foregroundStyle(Color.appTextPrimary)
-                Spacer()
-                Text("\(viewModel.waterML) / \(viewModel.waterGoal) mL")
-                    .font(.system(size: Theme.captionSize, weight: .medium, design: .rounded))
-                    .foregroundStyle(Color.appTextSecondary)
-            }
-
-            // Water progress bar
-            GeometryReader { geo in
-                ZStack(alignment: .leading) {
-                    RoundedRectangle(cornerRadius: Theme.cornerRadiusSM)
-                        .fill(Color.appCardSecondary)
-                        .frame(height: 8)
-
-                    RoundedRectangle(cornerRadius: Theme.cornerRadiusSM)
-                        .fill(Color.appWaterColor)
-                        .frame(width: geo.size.width * min(Double(viewModel.waterML) / max(Double(viewModel.waterGoal), 1), 1.0), height: 8)
-                        .animation(.spring(response: 0.6), value: viewModel.waterML)
-                }
-            }
-            .frame(height: 8)
-
-            HStack(spacing: Theme.spacingSM) {
-                ForEach([250, 500, 750], id: \.self) { amount in
-                    Button {
-                        let entry = WaterEntry(amountML: amount)
-                        modelContext.insert(entry)
-                        try? modelContext.save()
-                        viewModel.loadDashboard(context: modelContext)
-                    } label: {
-                        Text("+\(amount)")
-                            .font(.system(size: Theme.captionSize, weight: .semibold, design: .rounded))
-                            .foregroundStyle(Color.appWaterColor)
-                            .padding(.horizontal, Theme.spacingMD)
-                            .padding(.vertical, Theme.spacingXS)
-                            .background(Color.appCardSecondary)
-                            .clipShape(Capsule())
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-        }
-        .cardStyle()
-    }
-
     // MARK: - Recently Uploaded
 
     private var recentlyUploadedSection: some View {
@@ -225,15 +161,85 @@ struct DashboardView: View {
                 .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusLG))
             } else {
                 ForEach(viewModel.todayEntries, id: \.id) { entry in
-                    NavigationLink {
-                        FoodEntryDetailView(entry: entry)
-                    } label: {
-                        foodEntryCard(entry)
+                    if entry.analysisStatus == "pending" || entry.analysisStatus == "analyzing" {
+                        shimmerFoodCard(entry)
+                    } else {
+                        NavigationLink {
+                            FoodEntryDetailView(entry: entry)
+                        } label: {
+                            foodEntryCard(entry)
+                        }
+                        .buttonStyle(.plain)
+                        .contextMenu {
+                            Button(role: .destructive) {
+                                deleteFoodEntry(entry)
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                        }
                     }
-                    .buttonStyle(.plain)
                 }
             }
         }
+    }
+
+    // MARK: - Delete Food Entry
+
+    private func deleteFoodEntry(_ entry: FoodEntry) {
+        modelContext.delete(entry)
+        try? modelContext.save()
+        viewModel.loadDashboard(context: modelContext, for: selectedDate)
+    }
+
+    // MARK: - Shimmer Food Card (Pending Analysis)
+
+    private func shimmerFoodCard(_ entry: FoodEntry) -> some View {
+        HStack(spacing: Theme.spacingMD) {
+            // Thumbnail
+            if let imageData = entry.imageData,
+               let uiImage = UIImage(data: imageData) {
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 100, height: 100)
+                    .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusMD))
+                    .opacity(0.7)
+            } else {
+                RoundedRectangle(cornerRadius: Theme.cornerRadiusMD)
+                    .fill(Color.appCardSecondary)
+                    .frame(width: 100, height: 100)
+                    .shimmer()
+            }
+
+            VStack(alignment: .leading, spacing: Theme.spacingSM) {
+                // Name placeholder
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(Color.appCardSecondary)
+                    .frame(width: 140, height: 16)
+                    .shimmer()
+
+                // Calories placeholder
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(Color.appCardSecondary)
+                    .frame(width: 100, height: 20)
+                    .shimmer()
+
+                // Macro placeholder
+                HStack(spacing: Theme.spacingLG) {
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(Color.appCardSecondary)
+                        .frame(width: 40, height: 14)
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(Color.appCardSecondary)
+                        .frame(width: 40, height: 14)
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(Color.appCardSecondary)
+                        .frame(width: 40, height: 14)
+                }
+                .shimmer()
+            }
+        }
+        .cardStyle()
     }
 
     // MARK: - Food Entry Card
@@ -293,5 +299,39 @@ struct DashboardView: View {
                 .font(.system(size: Theme.captionSize, weight: .medium))
                 .foregroundStyle(Color.appTextPrimary)
         }
+    }
+}
+
+// MARK: - Shimmer Modifier
+
+private struct ShimmerModifier: ViewModifier {
+    @State private var phase: CGFloat = 0
+
+    func body(content: Content) -> some View {
+        content
+            .overlay(
+                LinearGradient(
+                    colors: [
+                        Color.white.opacity(0),
+                        Color.white.opacity(0.15),
+                        Color.white.opacity(0)
+                    ],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+                .offset(x: phase)
+                .mask(content)
+            )
+            .onAppear {
+                withAnimation(.linear(duration: 1.5).repeatForever(autoreverses: false)) {
+                    phase = 300
+                }
+            }
+    }
+}
+
+extension View {
+    func shimmer() -> some View {
+        modifier(ShimmerModifier())
     }
 }

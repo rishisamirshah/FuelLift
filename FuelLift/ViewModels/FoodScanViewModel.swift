@@ -11,6 +11,9 @@ final class FoodScanViewModel: ObservableObject {
     @Published var selectedMealType: MealType = .snack
     @Published var foodDescription: String = ""
 
+    /// Called when a pending entry is created so the dashboard can show a shimmer card immediately.
+    var onPendingEntry: ((FoodEntry) -> Void)?
+
     func analyzeDescription() async {
         guard !foodDescription.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
 
@@ -82,6 +85,28 @@ final class FoodScanViewModel: ObservableObject {
             mealType: selectedMealType.rawValue,
             source: source
         )
+    }
+
+    /// Creates a pending FoodEntry with placeholder data and the captured image,
+    /// then fires the callback so the dashboard can show it immediately.
+    func createPendingEntry() -> FoodEntry? {
+        guard let image = capturedImage else { return nil }
+        let entry = FoodEntry(
+            name: "Analyzing...",
+            calories: 0,
+            proteinG: 0,
+            carbsG: 0,
+            fatG: 0,
+            servingSize: "",
+            mealType: selectedMealType.rawValue,
+            source: "ai_scan"
+        )
+        entry.analysisStatus = "pending"
+        if let imgData = image.jpegData(compressionQuality: 0.5) {
+            entry.imageData = imgData
+        }
+        onPendingEntry?(entry)
+        return entry
     }
 
     func reset() {

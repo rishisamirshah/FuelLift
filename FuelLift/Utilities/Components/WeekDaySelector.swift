@@ -4,31 +4,57 @@ struct WeekDaySelector: View {
     @Binding var selectedDate: Date
     var loggedDates: Set<Date> = []
 
-    private var weekDays: [DayItem] {
-        let calendar = Calendar.current
-        let today = Date()
-        guard let weekInterval = calendar.dateInterval(of: .weekOfYear, for: today) else { return [] }
+    private let totalDays = 21  // 3 weeks back from today
 
-        return (0..<7).compactMap { offset in
-            guard let date = calendar.date(byAdding: .day, value: offset, to: weekInterval.start) else { return nil }
+    private var days: [DayItem] {
+        let calendar = Calendar.current
+        let today = Date().startOfDay
+        return (0..<totalDays).compactMap { offset in
+            guard let date = calendar.date(byAdding: .day, value: -(totalDays - 1 - offset), to: today) else { return nil }
             let dayName = date.formatted(.dateTime.weekday(.abbreviated)).uppercased()
             let dayNumber = calendar.component(.day, from: date)
             let isLogged = loggedDates.contains(where: { calendar.isDate($0, inSameDayAs: date) })
             let isSelected = calendar.isDate(date, inSameDayAs: selectedDate)
             let isToday = calendar.isDateInToday(date)
-            return DayItem(date: date, dayName: dayName, dayNumber: dayNumber, isLogged: isLogged, isSelected: isSelected, isToday: isToday)
+            let isFirstOfMonth = dayNumber == 1 || offset == 0
+            let monthLabel = isFirstOfMonth ? date.formatted(.dateTime.month(.abbreviated)).uppercased() : nil
+            return DayItem(date: date, dayName: dayName, dayNumber: dayNumber, isLogged: isLogged, isSelected: isSelected, isToday: isToday, monthLabel: monthLabel)
         }
     }
 
     var body: some View {
-        HStack(spacing: Theme.spacingSM) {
-            ForEach(weekDays) { day in
-                DayBadge(day: day)
-                    .onTapGesture {
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            selectedDate = day.date
+        ScrollViewReader { proxy in
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: Theme.spacingSM) {
+                    ForEach(days) { day in
+                        VStack(spacing: 0) {
+                            if let month = day.monthLabel {
+                                Text(month)
+                                    .font(.system(size: 9, weight: .bold))
+                                    .foregroundStyle(Color.appAccent)
+                                    .frame(height: 14)
+                            } else {
+                                Spacer().frame(height: 14)
+                            }
+                            DayBadge(day: day)
+                                .onTapGesture {
+                                    withAnimation(.easeInOut(duration: 0.2)) {
+                                        selectedDate = day.date
+                                    }
+                                }
                         }
+                        .id(day.date.startOfDay)
                     }
+                }
+                .padding(.horizontal, Theme.spacingSM)
+            }
+            .onAppear {
+                proxy.scrollTo(selectedDate.startOfDay, anchor: .center)
+            }
+            .onChange(of: selectedDate) { _, newDate in
+                withAnimation {
+                    proxy.scrollTo(newDate.startOfDay, anchor: .center)
+                }
             }
         }
     }
@@ -44,6 +70,7 @@ private struct DayItem: Identifiable {
     let isLogged: Bool
     let isSelected: Bool
     let isToday: Bool
+    let monthLabel: String?
 }
 
 // MARK: - Day Badge
@@ -73,7 +100,7 @@ private struct DayBadge: View {
                     .foregroundStyle(day.isSelected ? .white : Color.appTextPrimary)
             }
         }
-        .frame(maxWidth: .infinity)
+        .frame(width: 44)
     }
 }
 

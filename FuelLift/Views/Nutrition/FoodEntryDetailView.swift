@@ -3,6 +3,8 @@ import SwiftUI
 struct FoodEntryDetailView: View {
     let entry: FoodEntry
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var modelContext
+    @State private var showFixIssue = false
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -53,6 +55,9 @@ struct FoodEntryDetailView: View {
                     }
                 }
             }
+        }
+        .sheet(isPresented: $showFixIssue) {
+            FixIssueSheet(entry: entry)
         }
     }
 
@@ -135,32 +140,48 @@ struct FoodEntryDetailView: View {
             ingredientsSection
 
             // AI feedback row
-            HStack(spacing: Theme.spacingMD) {
-                Image(systemName: "face.smiling")
-                    .font(.system(size: 20))
-                    .foregroundStyle(Color.appTextSecondary)
-                Text("How did FuelLift AI do?")
-                    .font(.system(size: Theme.bodySize, weight: .medium))
-                    .foregroundStyle(Color.appTextPrimary)
-                Spacer()
-                Button { } label: {
-                    Image(systemName: "hand.thumbsdown")
-                        .font(.system(size: 18))
-                        .foregroundStyle(Color.appTextSecondary)
-                }
-                Button { } label: {
-                    Image(systemName: "hand.thumbsup")
-                        .font(.system(size: 18))
-                        .foregroundStyle(Color.appTextSecondary)
-                }
-            }
-            .padding(Theme.spacingLG)
-            .background(Color.appCardBackground)
-            .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusMD))
+            aiFeedbackRow
         }
         .padding(Theme.spacingXL)
         .background(Color.appBackground)
         .clipShape(UnevenRoundedRectangle(topLeadingRadius: 24, topTrailingRadius: 24))
+    }
+
+    // MARK: - AI Feedback Row
+
+    private var aiFeedbackRow: some View {
+        HStack(spacing: Theme.spacingMD) {
+            Image(systemName: "face.smiling")
+                .font(.system(size: 20))
+                .foregroundStyle(Color.appTextSecondary)
+            Text("How did FuelLift AI do?")
+                .font(.system(size: Theme.bodySize, weight: .medium))
+                .foregroundStyle(Color.appTextPrimary)
+            Spacer()
+            Button {
+                entry.aiFeedback = entry.aiFeedback == "thumbs_down" ? "none" : "thumbs_down"
+                try? modelContext.save()
+                // Optionally show fix issue sheet on thumbs down
+                if entry.aiFeedback == "thumbs_down" {
+                    showFixIssue = true
+                }
+            } label: {
+                Image(systemName: entry.aiFeedback == "thumbs_down" ? "hand.thumbsdown.fill" : "hand.thumbsdown")
+                    .font(.system(size: 18))
+                    .foregroundStyle(entry.aiFeedback == "thumbs_down" ? Color.appFatColor : Color.appTextSecondary)
+            }
+            Button {
+                entry.aiFeedback = entry.aiFeedback == "thumbs_up" ? "none" : "thumbs_up"
+                try? modelContext.save()
+            } label: {
+                Image(systemName: entry.aiFeedback == "thumbs_up" ? "hand.thumbsup.fill" : "hand.thumbsup")
+                    .font(.system(size: 18))
+                    .foregroundStyle(entry.aiFeedback == "thumbs_up" ? Color.appCaloriesColor : Color.appTextSecondary)
+            }
+        }
+        .padding(Theme.spacingLG)
+        .background(Color.appCardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusMD))
     }
 
     // MARK: - Macro Card
@@ -234,7 +255,9 @@ struct FoodEntryDetailView: View {
 
     private var bottomBar: some View {
         HStack(spacing: Theme.spacingMD) {
-            Button { } label: {
+            Button {
+                showFixIssue = true
+            } label: {
                 HStack(spacing: Theme.spacingSM) {
                     Image("icon_wand_stars").pixelArt().frame(width: 24, height: 24)
                     Text("Fix Issue")

@@ -80,6 +80,46 @@ final class GeminiService {
         return try await makeRequest(apiKey: apiKey, body: body)
     }
 
+    // MARK: - Correct / Fix Issue
+
+    func correctFoodAnalysis(original: NutritionData, issue: String, image: UIImage? = nil) async throws -> NutritionData {
+        let apiKey = try resolveAPIKey()
+
+        let correctionPrompt = """
+        The user scanned a food item and the AI returned the following nutrition data:
+        Name: \(original.name)
+        Calories: \(original.calories)
+        Protein: \(original.proteinG)g, Carbs: \(original.carbsG)g, Fat: \(original.fatG)g
+        Serving size: \(original.servingSize)
+
+        The user says this is wrong. Their feedback: "\(issue)"
+
+        Please correct the nutrition data based on this feedback. \
+        Return JSON with these exact fields: \
+        name (string), calories (integer), protein_g (number), carbs_g (number), \
+        fat_g (number), serving_size (string), ingredients (array of objects with name and calories).
+        """
+
+        var parts: [[String: Any]] = []
+
+        if let image, let imageData = image.jpegData(compressionQuality: 0.6) {
+            parts.append([
+                "inlineData": [
+                    "mimeType": "image/jpeg",
+                    "data": imageData.base64EncodedString()
+                ]
+            ])
+        }
+        parts.append(["text": correctionPrompt])
+
+        let body: [String: Any] = [
+            "contents": [["parts": parts]],
+            "generationConfig": generationConfig
+        ]
+
+        return try await makeRequest(apiKey: apiKey, body: body)
+    }
+
     // MARK: - Private
 
     private var generationConfig: [String: Any] {

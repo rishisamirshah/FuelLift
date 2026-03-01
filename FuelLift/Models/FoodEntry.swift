@@ -17,6 +17,8 @@ final class FoodEntry {
     var source: String  // "ai_scan", "barcode", "manual", "recipe"
     var firestoreId: String?
     var ingredientsJSON: String?
+    var analysisStatus: String = "completed"  // "pending", "analyzing", "completed", "failed"
+    var aiFeedback: String = "none"           // "none", "thumbs_up", "thumbs_down"
 
     var ingredients: [NutritionData.Ingredient] {
         guard let data = ingredientsJSON?.data(using: .utf8),

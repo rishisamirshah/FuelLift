@@ -96,6 +96,7 @@ struct CameraScanView: View {
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, Theme.spacingHuge)
 
+                        // Instant Add button
                         Button {
                             showCamera = true
                         } label: {
@@ -134,7 +135,39 @@ struct CameraScanView: View {
             }
             .onChange(of: scanVM.capturedImage) { _, newImage in
                 if newImage != nil {
-                    Task { await scanVM.analyzePhoto() }
+                    // Create pending entry immediately and dismiss
+                    if let pendingEntry = scanVM.createPendingEntry() {
+                        modelContext.insert(pendingEntry)
+                        try? modelContext.save()
+
+                        // Dismiss camera so user sees shimmer card on dashboard
+                        dismiss()
+
+                        // Continue analysis in background
+                        let image = newImage!
+                        Task {
+                            do {
+                                let nutrition = try await GeminiService.shared.analyzeFoodPhoto(image)
+                                // Update the pending entry with real data
+                                pendingEntry.name = nutrition.name
+                                pendingEntry.calories = nutrition.calories
+                                pendingEntry.proteinG = nutrition.proteinG
+                                pendingEntry.carbsG = nutrition.carbsG
+                                pendingEntry.fatG = nutrition.fatG
+                                pendingEntry.servingSize = nutrition.servingSize
+                                pendingEntry.analysisStatus = "completed"
+                                if let ingredients = nutrition.ingredients,
+                                   let data = try? JSONEncoder().encode(ingredients) {
+                                    pendingEntry.ingredientsJSON = String(data: data, encoding: .utf8)
+                                }
+                                try? modelContext.save()
+                            } catch {
+                                pendingEntry.analysisStatus = "failed"
+                                pendingEntry.name = "Analysis failed"
+                                try? modelContext.save()
+                            }
+                        }
+                    }
                 }
             }
             .alert("Error", isPresented: $scanVM.showError) {
