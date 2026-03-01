@@ -74,6 +74,12 @@ struct RootView: View {
             let streak = dashVM.calculateStreak(context: modelContext)
             badgeViewModel.checkStreakBadges(currentStreak: streak, context: modelContext)
         }
-        .preferredColorScheme(profile?.darkModeEnabled == true ? .dark : nil)
+        .preferredColorScheme({
+            switch profile?.appearanceMode ?? "auto" {
+            case "dark": return .dark
+            case "light": return .light
+            default: return nil  // auto — follows system
+            }
+        }())
     }
 }

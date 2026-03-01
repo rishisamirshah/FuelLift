@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 // MARK: - Design Tokens
 
@@ -49,26 +50,62 @@ enum Theme {
     static let pixelStep: CGFloat = 4
 }
 
-// MARK: - Retro Dark Palette
+// MARK: - Adaptive Palette (Dark + Light)
 
 extension Color {
-    // Core backgrounds — intentional dark, not system adaptive
-    static let appBackground = Color(red: 0.03, green: 0.03, blue: 0.06)           // #08080F
-    static let appCardBackground = Color(red: 0.07, green: 0.07, blue: 0.12)       // #12121E
-    static let appCardSecondary = Color(red: 0.10, green: 0.10, blue: 0.16)        // #1A1A2A
-    static let appGroupedBackground = Color(red: 0.05, green: 0.05, blue: 0.09)    // #0D0D17
+    // Core backgrounds — dark: retro arcade, light: clean white
+    static let appBackground = Color(UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0.03, green: 0.03, blue: 0.06, alpha: 1)       // #08080F
+            : UIColor(red: 0.965, green: 0.965, blue: 0.975, alpha: 1)    // #F7F7F9
+    })
+    static let appCardBackground = Color(UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0.07, green: 0.07, blue: 0.12, alpha: 1)       // #12121E
+            : UIColor(red: 1.0, green: 1.0, blue: 1.0, alpha: 1)          // #FFFFFF
+    })
+    static let appCardSecondary = Color(UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0.10, green: 0.10, blue: 0.16, alpha: 1)       // #1A1A2A
+            : UIColor(red: 0.94, green: 0.94, blue: 0.96, alpha: 1)       // #F0F0F5
+    })
+    static let appGroupedBackground = Color(UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0.05, green: 0.05, blue: 0.09, alpha: 1)       // #0D0D17
+            : UIColor(red: 0.93, green: 0.93, blue: 0.95, alpha: 1)       // #EEEEF3
+    })
 
-    // Accent — hot arcade orange
+    // Accent — hot arcade orange (same in both modes)
     static let appAccent = Color(red: 1.0, green: 0.42, blue: 0.0)                 // #FF6B00
     static let appAccentBright = Color(red: 1.0, green: 0.55, blue: 0.15)          // #FF8C26
     static let appAccentDim = Color(red: 0.80, green: 0.33, blue: 0.0)             // #CC5500
 
-    // Macro colors — neon-tinted for dark backgrounds
-    static let appProteinColor = Color(red: 0.35, green: 0.65, blue: 1.0)          // #59A5FF
-    static let appCarbsColor = Color(red: 1.0, green: 0.75, blue: 0.20)            // #FFBF33
-    static let appFatColor = Color(red: 1.0, green: 0.30, blue: 0.35)              // #FF4D59
-    static let appCaloriesColor = Color(red: 0.40, green: 0.90, blue: 0.25)        // #66E640
-    static let appWaterColor = Color(red: 0.25, green: 0.85, blue: 0.90)           // #40D9E6
+    // Macro colors — vibrant in dark, slightly deeper in light for contrast
+    static let appProteinColor = Color(UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0.35, green: 0.65, blue: 1.0, alpha: 1)        // #59A5FF
+            : UIColor(red: 0.20, green: 0.50, blue: 0.90, alpha: 1)       // #3380E6
+    })
+    static let appCarbsColor = Color(UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 1.0, green: 0.75, blue: 0.20, alpha: 1)        // #FFBF33
+            : UIColor(red: 0.85, green: 0.62, blue: 0.05, alpha: 1)       // #D99E0D
+    })
+    static let appFatColor = Color(UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 1.0, green: 0.30, blue: 0.35, alpha: 1)        // #FF4D59
+            : UIColor(red: 0.88, green: 0.20, blue: 0.25, alpha: 1)       // #E03340
+    })
+    static let appCaloriesColor = Color(UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0.40, green: 0.90, blue: 0.25, alpha: 1)       // #66E640
+            : UIColor(red: 0.25, green: 0.70, blue: 0.15, alpha: 1)       // #40B326
+    })
+    static let appWaterColor = Color(UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0.25, green: 0.85, blue: 0.90, alpha: 1)       // #40D9E6
+            : UIColor(red: 0.15, green: 0.65, blue: 0.75, alpha: 1)       // #26A6BF
+    })
 
     // Status
     static let appStreakColor = Color(red: 1.0, green: 0.58, blue: 0.0)            // #FF9500
@@ -79,20 +116,40 @@ extension Color {
     static let appPRVolume = Color(red: 0.35, green: 0.78, blue: 0.35)
     static let appPRWeight = Color(red: 1.0, green: 0.80, blue: 0.20)
 
-    // Text — pure white hierarchy on dark
-    static let appTextPrimary = Color.white
-    static let appTextSecondary = Color.white.opacity(0.60)
-    static let appTextTertiary = Color.white.opacity(0.30)
+    // Text — white on dark, near-black on light
+    static let appTextPrimary = Color(UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor.white
+            : UIColor(red: 0.11, green: 0.11, blue: 0.18, alpha: 1)       // #1C1C2E
+    })
+    static let appTextSecondary = Color(UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor.white.withAlphaComponent(0.60)
+            : UIColor.black.withAlphaComponent(0.55)
+    })
+    static let appTextTertiary = Color(UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor.white.withAlphaComponent(0.30)
+            : UIColor.black.withAlphaComponent(0.25)
+    })
 
     // Workout
     static let appWorkoutGreen = Color(red: 0.30, green: 0.80, blue: 0.35)
 
     // Badge states
     static let appBadgeEarned = Color(red: 1.0, green: 0.42, blue: 0.0)
-    static let appBadgeLocked = Color.white.opacity(0.20)
+    static let appBadgeLocked = Color(UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor.white.withAlphaComponent(0.20)
+            : UIColor.black.withAlphaComponent(0.15)
+    })
 
     // Border / divider
-    static let appBorder = Color.white.opacity(0.08)
+    static let appBorder = Color(UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor.white.withAlphaComponent(0.08)
+            : UIColor.black.withAlphaComponent(0.08)
+    })
     static let appBorderAccent = Color(red: 1.0, green: 0.42, blue: 0.0).opacity(0.30)
 }
 

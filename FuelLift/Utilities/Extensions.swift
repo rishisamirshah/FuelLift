@@ -140,7 +140,7 @@ struct PixelBorder: Shape {
 // MARK: - View Modifiers
 
 extension View {
-    /// Primary card — dark background with subtle orange accent border and glow
+    /// Primary card — adaptive background with accent border (dark: glow, light: shadow)
     func cardStyle() -> some View {
         self
             .padding(Theme.spacingLG)
@@ -150,6 +150,7 @@ extension View {
                 RoundedRectangle(cornerRadius: Theme.cornerRadiusLG)
                     .strokeBorder(Color.appBorderAccent, lineWidth: Theme.borderWidth)
             )
+            .shadow(color: Color.black.opacity(0.04), radius: 4, y: 2)
     }
 
     /// Secondary card — lighter background, no accent border
@@ -162,6 +163,7 @@ extension View {
                 RoundedRectangle(cornerRadius: Theme.cornerRadiusMD)
                     .strokeBorder(Color.appBorder, lineWidth: Theme.borderWidth)
             )
+            .shadow(color: Color.black.opacity(0.03), radius: 3, y: 1)
     }
 
     /// Pixel-stepped card — retro corner shape with orange accent

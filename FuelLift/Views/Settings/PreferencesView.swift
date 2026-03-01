@@ -7,25 +7,29 @@ struct PreferencesView: View {
 
     private var profile: UserProfile? { profiles.first }
 
-    @State private var darkModeEnabled = false
+    @State private var appearanceMode = "auto"
     @State private var waterGoalML: Int = 2500
 
     var body: some View {
         ScrollView {
             VStack(spacing: Theme.spacingLG) {
-                // Dark Mode
+                // Appearance
                 VStack(spacing: 0) {
                     HStack(spacing: Theme.spacingMD) {
                         Image("icon_moon")
                             .pixelArt()
                             .frame(width: 24, height: 24)
-                        Text("Dark Mode")
+                        Text("Appearance")
                             .font(.system(size: Theme.bodySize, weight: .medium))
                             .foregroundStyle(Color.appTextPrimary)
                         Spacer()
-                        Toggle("", isOn: $darkModeEnabled)
-                            .labelsHidden()
-                            .tint(Color.appAccent)
+                        Picker("", selection: $appearanceMode) {
+                            Text("Auto").tag("auto")
+                            Text("Light").tag("light")
+                            Text("Dark").tag("dark")
+                        }
+                        .pickerStyle(.segmented)
+                        .frame(width: 180)
                     }
                     .padding(.horizontal, Theme.spacingLG)
                     .padding(.vertical, Theme.spacingMD)
@@ -92,12 +96,12 @@ struct PreferencesView: View {
         .navigationTitle("Preferences")
         .onAppear {
             if let profile {
-                darkModeEnabled = profile.darkModeEnabled
+                appearanceMode = profile.appearanceMode
                 waterGoalML = profile.waterGoalML
             }
         }
-        .onChange(of: darkModeEnabled) { _, newValue in
-            profile?.darkModeEnabled = newValue
+        .onChange(of: appearanceMode) { _, newValue in
+            profile?.appearanceMode = newValue
             try? modelContext.save()
         }
         .onChange(of: waterGoalML) { _, newValue in

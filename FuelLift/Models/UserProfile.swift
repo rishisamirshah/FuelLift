@@ -34,6 +34,7 @@ final class UserProfile {
     var darkModeEnabled: Bool
     var notificationsEnabled: Bool
     var healthKitEnabled: Bool
+    var appearanceMode: String  // "auto", "light", "dark"
 
     // Dashboard display preferences
     var showWaterTracker: Bool
@@ -81,6 +82,7 @@ final class UserProfile {
         self.waterGoalML = AppConstants.defaultWaterGoalML
         self.useMetricUnits = true
         self.darkModeEnabled = false
+        self.appearanceMode = "auto"
         self.notificationsEnabled = true
         self.healthKitEnabled = false
         self.showWaterTracker = true

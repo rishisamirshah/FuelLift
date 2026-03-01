@@ -82,19 +82,23 @@ struct SettingsView: View {
                         Image("icon_moon")
                             .pixelArt()
                             .frame(width: 24, height: 24)
-                        Text("Dark Mode")
+                        Text("Appearance")
                             .font(.system(size: Theme.bodySize, weight: .medium))
                             .foregroundStyle(Color.appTextPrimary)
                         Spacer()
-                        Toggle("", isOn: Binding(
-                            get: { profile?.darkModeEnabled ?? false },
+                        Picker("", selection: Binding(
+                            get: { profile?.appearanceMode ?? "auto" },
                             set: { newValue in
-                                profile?.darkModeEnabled = newValue
+                                profile?.appearanceMode = newValue
                                 try? modelContext.save()
                             }
-                        ))
-                        .labelsHidden()
-                        .tint(Color.appAccent)
+                        )) {
+                            Text("Auto").tag("auto")
+                            Text("Light").tag("light")
+                            Text("Dark").tag("dark")
+                        }
+                        .pickerStyle(.segmented)
+                        .frame(width: 180)
                     }
                     .padding(.horizontal, Theme.spacingLG)
                     .padding(.vertical, Theme.spacingMD)
