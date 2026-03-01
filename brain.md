@@ -296,6 +296,16 @@ BadgeViewModel checks conditions → awardBadge() → confetti + toast.
 - **Info.plist metadata** — Added all required keys: CFBundleIconName, UILaunchScreen, orientations, health descriptions, encryption compliance
 - **Per-target code signing** — Manual signing only on FuelLift target; SPM packages use automatic signing (fixes "conflicting provisioning settings")
 
+### Planned: Gemini Image Generation Integration
+- **Goal:** Let Claude Code generate app graphics (icons, splash screens, assets) programmatically via Google Gemini's image generation API (nano banana model)
+- **Approach:** Python script + Gemini API key
+  1. Get Gemini API key from Google AI Studio
+  2. Python script (`scripts/generate_image.py`) calls Gemini image generation endpoint
+  3. Claude Code invokes via Bash — takes prompt, saves PNG to specified path
+  4. Used for: app icon, onboarding illustrations, placeholder assets, marketing graphics
+- **Requirements:** Python installed, `GEMINI_API_KEY` environment variable or in Constants
+- **Status:** Not yet implemented — waiting on API key
+
 ### Deferred Features (Next Implementation Cycle)
 - **Workout Sharing** — Export routines as shareable links/text, import shared workouts from others
 - **Firebase Integration** — Re-enable Auth, Firestore sync, Storage for cloud data
