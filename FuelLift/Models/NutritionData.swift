@@ -7,6 +7,12 @@ struct NutritionData: Codable, Hashable {
     var carbsG: Double
     var fatG: Double
     var servingSize: String
+    var ingredients: [Ingredient]?
+
+    struct Ingredient: Codable, Hashable {
+        var name: String
+        var calories: Int
+    }
 
     enum CodingKeys: String, CodingKey {
         case name
@@ -15,5 +21,6 @@ struct NutritionData: Codable, Hashable {
         case carbsG = "carbs_g"
         case fatG = "fat_g"
         case servingSize = "serving_size"
+        case ingredients
     }
 }

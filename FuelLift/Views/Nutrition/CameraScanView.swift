@@ -47,6 +47,10 @@ struct CameraScanView: View {
                                 if let imgData = image.jpegData(compressionQuality: 0.5) {
                                     entry.imageData = imgData
                                 }
+                                if let ingredients = finalNutrition.ingredients,
+                                   let data = try? JSONEncoder().encode(ingredients) {
+                                    entry.ingredientsJSON = String(data: data, encoding: .utf8)
+                                }
                                 nutritionViewModel.addFoodEntry(entry, context: modelContext)
                                 dismiss()
                             }

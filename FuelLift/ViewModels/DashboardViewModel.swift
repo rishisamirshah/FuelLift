@@ -16,6 +16,7 @@ final class DashboardViewModel: ObservableObject {
     @Published var todayWorkout: Workout?
     @Published var currentStreak: Int = 0
     @Published var stepsToday: Int = 0
+    @Published var todayEntries: [FoodEntry] = []
 
     var calorieProgress: Double {
         guard calorieGoal > 0 else { return 0 }
@@ -35,6 +36,7 @@ final class DashboardViewModel: ObservableObject {
             predicate: #Predicate { $0.date >= today && $0.date < tomorrow }
         )
         if let entries = try? context.fetch(foodDescriptor) {
+            todayEntries = entries.sorted { $0.date > $1.date }
             caloriesEaten = entries.reduce(0) { $0 + $1.calories }
             proteinG = entries.reduce(0) { $0 + $1.proteinG }
             carbsG = entries.reduce(0) { $0 + $1.carbsG }

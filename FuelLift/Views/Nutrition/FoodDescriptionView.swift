@@ -40,6 +40,10 @@ struct FoodDescriptionView: View {
                                     mealType: mealType.rawValue,
                                     source: "ai_description"
                                 )
+                                if let ingredients = finalNutrition.ingredients,
+                                   let data = try? JSONEncoder().encode(ingredients) {
+                                    entry.ingredientsJSON = String(data: data, encoding: .utf8)
+                                }
                                 nutritionViewModel.addFoodEntry(entry, context: modelContext)
                                 dismiss()
                             }

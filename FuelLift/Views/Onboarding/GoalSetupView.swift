@@ -2,8 +2,17 @@ import SwiftUI
 import SwiftData
 
 struct GoalSetupView: View {
+    enum Mode {
+        case onboarding
+        case editing
+    }
+
+    var mode: Mode = .onboarding
+
     @EnvironmentObject var authViewModel: AuthViewModel
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
+    @Query private var profiles: [UserProfile]
     @State private var step = 0
 
     // Body info
@@ -84,7 +93,7 @@ struct GoalSetupView: View {
                                 .frame(maxWidth: .infinity)
                                 .padding(Theme.spacingMD)
                         } else {
-                            Text("Finish Setup")
+                            Text(mode == .editing ? "Save Goals" : "Finish Setup")
                                 .font(.headline)
                                 .foregroundStyle(.white)
                                 .frame(maxWidth: .infinity)
@@ -100,8 +109,20 @@ struct GoalSetupView: View {
             .padding(.bottom, Theme.spacingXXL)
         }
         .screenBackground()
-        .navigationTitle("Setup")
-        .navigationBarBackButtonHidden()
+        .navigationTitle(mode == .editing ? "Edit Goals" : "Setup")
+        .navigationBarBackButtonHidden(mode == .onboarding)
+        .onAppear {
+            if mode == .editing, let profile = profiles.first {
+                gender = profile.gender ?? "Male"
+                age = profile.age.map(String.init) ?? ""
+                heightCM = profile.heightCM.map { String(Int($0)) } ?? ""
+                weightKG = profile.weightKG.map { String(Int($0)) } ?? ""
+                activityLevel = profile.activityLevel ?? "Moderate"
+                goal = profile.goal ?? "Maintain"
+                calorieGoal = String(profile.calorieGoal)
+                proteinGoal = String(profile.proteinGoal)
+            }
+        }
     }
 
     // MARK: - Steps
@@ -308,6 +329,24 @@ struct GoalSetupView: View {
         let fat = cal / 4 / 9  // ~25% of cals from fat
         let carbs = (cal - protein * 4 - fat * 9) / 4
 
+        if mode == .editing, let existingProfile = profiles.first {
+            existingProfile.calorieGoal = cal
+            existingProfile.proteinGoal = protein
+            existingProfile.carbsGoal = carbs
+            existingProfile.fatGoal = fat
+            existingProfile.gender = gender
+            existingProfile.age = Int(age)
+            existingProfile.heightCM = Double(heightCM)
+            existingProfile.weightKG = Double(weightKG)
+            existingProfile.activityLevel = activityLevel
+            existingProfile.goal = goal
+            existingProfile.updatedAt = Date()
+            try? modelContext.save()
+            isSaving = false
+            dismiss()
+            return
+        }
+
         let profileData: [String: Any] = [
             "displayName": AuthService.shared.currentUser?.displayName ?? "",
             "email": AuthService.shared.currentUser?.email ?? "",
@@ -342,6 +381,8 @@ struct GoalSetupView: View {
             localProfile.age = Int(age)
             localProfile.heightCM = Double(heightCM)
             localProfile.weightKG = Double(weightKG)
+            localProfile.activityLevel = activityLevel
+            localProfile.goal = goal
             modelContext.insert(localProfile)
             try modelContext.save()
 

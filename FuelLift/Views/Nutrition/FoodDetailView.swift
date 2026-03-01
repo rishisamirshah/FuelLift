@@ -64,7 +64,8 @@ struct FoodDetailView: View {
                     proteinG: Double(protein) ?? 0,
                     carbsG: Double(carbs) ?? 0,
                     fatG: Double(fat) ?? 0,
-                    servingSize: servingSize
+                    servingSize: servingSize,
+                    ingredients: nutrition.ingredients
                 )
                 onSave(finalNutrition, mealType)
             } label: {

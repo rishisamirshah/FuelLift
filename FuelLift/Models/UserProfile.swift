@@ -24,6 +24,7 @@ final class UserProfile {
     var gender: String?
     var activityLevel: String?
     var weightGoalKG: Double?
+    var goal: String?
 
     // Preferences
     var useMetricUnits: Bool

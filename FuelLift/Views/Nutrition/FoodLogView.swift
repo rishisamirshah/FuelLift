@@ -209,25 +209,41 @@ struct FoodLogView: View {
     }
 
     private func foodRow(_ entry: FoodEntry) -> some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(entry.name)
-                    .font(.system(size: Theme.bodySize, weight: .medium))
-                    .foregroundStyle(Color.appTextPrimary)
-                Text(entry.servingSize)
-                    .font(.system(size: Theme.miniSize))
-                    .foregroundStyle(Color.appTextTertiary)
-            }
-            Spacer()
-            VStack(alignment: .trailing, spacing: 2) {
-                Text("\(entry.calories) kcal")
-                    .font(.system(size: Theme.bodySize, weight: .bold, design: .rounded))
-                    .foregroundStyle(Color.appTextPrimary)
-                Text("P:\(entry.proteinG.oneDecimal) C:\(entry.carbsG.oneDecimal) F:\(entry.fatG.oneDecimal)")
+        NavigationLink {
+            FoodEntryDetailView(entry: entry)
+        } label: {
+            HStack(spacing: Theme.spacingMD) {
+                // Thumbnail
+                if let imageData = entry.imageData,
+                   let uiImage = UIImage(data: imageData) {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 56, height: 56)
+                        .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusSM))
+                }
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(entry.name)
+                        .lineLimit(1)
+                        .font(.system(size: Theme.bodySize, weight: .medium))
+                        .foregroundStyle(Color.appTextPrimary)
+                    HStack(spacing: Theme.spacingSM) {
+                        Text("\(entry.calories) kcal")
+                            .font(.system(size: Theme.captionSize, weight: .bold, design: .rounded))
+                            .foregroundStyle(Color.appTextPrimary)
+                        Text("P:\(entry.proteinG.oneDecimal) C:\(entry.carbsG.oneDecimal) F:\(entry.fatG.oneDecimal)")
+                            .font(.system(size: Theme.miniSize))
+                            .foregroundStyle(Color.appTextTertiary)
+                    }
+                }
+                Spacer()
+                Text(entry.date.formatted(date: .omitted, time: .shortened))
                     .font(.system(size: Theme.miniSize))
                     .foregroundStyle(Color.appTextTertiary)
             }
         }
+        .buttonStyle(.plain)
         .padding(.horizontal, Theme.spacingLG)
         .padding(.vertical, Theme.spacingSM)
         .swipeActions(edge: .trailing) {

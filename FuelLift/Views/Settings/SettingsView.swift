@@ -174,7 +174,7 @@ struct SettingsView: View {
                     divider()
 
                     settingsRow(icon: "target", title: "Edit Nutrition Goals") {
-                        GoalSetupView()
+                        GoalSetupView(mode: .editing)
                     }
 
                     divider()

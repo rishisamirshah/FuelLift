@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 
 final class ClaudeService {
     static let shared = ClaudeService()
@@ -159,9 +160,90 @@ final class ClaudeService {
         let body: [String: Any] = [
             "model": AppConstants.anthropicModel,
             "max_tokens": 1024,
-            "system": "You are a nutrition expert. Given a food description, estimate the nutrition. Respond ONLY with valid JSON in this exact format, no other text: {\"name\":\"...\",\"calories\":0,\"proteinG\":0.0,\"carbsG\":0.0,\"fatG\":0.0,\"servingSize\":\"...\"}",
+            "system": "You are a nutrition expert. Given a food description, estimate the nutrition and break down each ingredient with its estimated calories. Respond ONLY with valid JSON in this exact format, no other text: {\"name\":\"...\",\"calories\":0,\"protein_g\":0.0,\"carbs_g\":0.0,\"fat_g\":0.0,\"serving_size\":\"...\",\"ingredients\":[{\"name\":\"...\",\"calories\":0}]}",
             "messages": [
                 ["role": "user", "content": text]
+            ]
+        ]
+
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw ClaudeError.invalidResponse
+        }
+
+        guard httpResponse.statusCode == 200 else {
+            if let errorJSON = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+               let errorMsg = (errorJSON["error"] as? [String: Any])?["message"] as? String {
+                throw ClaudeError.apiError(errorMsg)
+            }
+            throw ClaudeError.apiError("HTTP \(httpResponse.statusCode)")
+        }
+
+        guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let content = json["content"] as? [[String: Any]],
+              let firstBlock = content.first,
+              let responseText = firstBlock["text"] as? String else {
+            throw ClaudeError.invalidResponse
+        }
+
+        let jsonString = responseText
+            .replacingOccurrences(of: "```json", with: "")
+            .replacingOccurrences(of: "```", with: "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard let jsonData = jsonString.data(using: .utf8) else {
+            throw ClaudeError.invalidResponse
+        }
+
+        return try JSONDecoder().decode(NutritionData.self, from: jsonData)
+    }
+
+    // MARK: - Analyze Food Photo
+
+    func analyzeFoodPhoto(_ image: UIImage) async throws -> NutritionData {
+        let apiKey = AppConstants.anthropicAPIKey
+        guard !apiKey.isEmpty else { throw ClaudeError.noAPIKey }
+
+        guard let url = URL(string: AppConstants.anthropicBaseURL) else {
+            throw ClaudeError.invalidResponse
+        }
+
+        guard let imageData = image.jpegData(compressionQuality: 0.7) else {
+            throw ClaudeError.invalidResponse
+        }
+        let base64String = imageData.base64EncodedString()
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
+        request.setValue("2023-06-01", forHTTPHeaderField: "anthropic-version")
+
+        let body: [String: Any] = [
+            "model": AppConstants.anthropicModel,
+            "max_tokens": 1024,
+            "system": "You are a nutrition expert. Analyze the food in the image and estimate its nutritional content. Respond ONLY with valid JSON, no other text.",
+            "messages": [
+                [
+                    "role": "user",
+                    "content": [
+                        [
+                            "type": "image",
+                            "source": [
+                                "type": "base64",
+                                "media_type": "image/jpeg",
+                                "data": base64String
+                            ]
+                        ],
+                        [
+                            "type": "text",
+                            "text": "Identify this food and estimate its nutrition. Break down each visible ingredient with its estimated calories. Respond ONLY with JSON in this format: {\"name\":\"...\",\"calories\":0,\"protein_g\":0.0,\"carbs_g\":0.0,\"fat_g\":0.0,\"serving_size\":\"...\",\"ingredients\":[{\"name\":\"...\",\"calories\":0}]}"
+                        ]
+                    ]
+                ]
             ]
         ]
 

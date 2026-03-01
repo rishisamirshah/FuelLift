@@ -35,7 +35,7 @@ final class FoodScanViewModel: ObservableObject {
         errorMessage = nil
 
         do {
-            let nutrition = try await OpenAIService.shared.analyzeFoodPhoto(image)
+            let nutrition = try await ClaudeService.shared.analyzeFoodPhoto(image)
             scannedNutrition = nutrition
         } catch {
             errorMessage = error.localizedDescription

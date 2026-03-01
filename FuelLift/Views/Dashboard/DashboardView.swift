@@ -103,7 +103,9 @@ struct DashboardView: View {
             .onChange(of: selectedDate) { _, _ in
                 viewModel.loadDashboard(context: modelContext)
             }
-            .sheet(isPresented: $showCamera) {
+            .sheet(isPresented: $showCamera, onDismiss: {
+                viewModel.loadDashboard(context: modelContext)
+            }) {
                 CameraScanView(nutritionViewModel: NutritionViewModel())
             }
             .fullScreenCover(isPresented: $showActiveWorkout) {
@@ -193,7 +195,7 @@ struct DashboardView: View {
             Text("Recently uploaded")
                 .sectionHeaderStyle()
 
-            if viewModel.caloriesEaten == 0 {
+            if viewModel.todayEntries.isEmpty {
                 VStack(spacing: Theme.spacingMD) {
                     Image(systemName: "fork.knife.circle")
                         .font(.system(size: 40))
@@ -209,18 +211,76 @@ struct DashboardView: View {
                 .background(Color.appCardBackground)
                 .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusLG))
             } else {
-                VStack(spacing: Theme.spacingSM) {
-                    HStack {
-                        Image(systemName: "flame.fill")
-                            .foregroundStyle(Color.appCaloriesColor)
-                        Text("\(viewModel.caloriesEaten) kcal logged today")
-                            .font(.system(size: Theme.bodySize, weight: .medium))
-                            .foregroundStyle(Color.appTextPrimary)
-                        Spacer()
+                ForEach(viewModel.todayEntries, id: \.id) { entry in
+                    NavigationLink {
+                        FoodEntryDetailView(entry: entry)
+                    } label: {
+                        foodEntryCard(entry)
                     }
+                    .buttonStyle(.plain)
                 }
-                .cardStyle()
             }
+        }
+    }
+
+    // MARK: - Food Entry Card
+
+    private func foodEntryCard(_ entry: FoodEntry) -> some View {
+        HStack(spacing: Theme.spacingMD) {
+            // Thumbnail
+            if let imageData = entry.imageData,
+               let uiImage = UIImage(data: imageData) {
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 100, height: 100)
+                    .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusMD))
+            }
+
+            VStack(alignment: .leading, spacing: Theme.spacingSM) {
+                // Name + time
+                HStack {
+                    Text(entry.name)
+                        .lineLimit(1)
+                        .font(.system(size: Theme.bodySize, weight: .medium))
+                        .foregroundStyle(Color.appTextPrimary)
+                    Spacer()
+                    Text(entry.date.formatted(date: .omitted, time: .shortened))
+                        .font(.system(size: Theme.captionSize))
+                        .foregroundStyle(Color.appTextSecondary)
+                }
+
+                // Calories
+                HStack(spacing: Theme.spacingXS) {
+                    Image(systemName: "flame.fill")
+                        .font(.system(size: 14))
+                        .foregroundStyle(Color.appCaloriesColor)
+                    Text("\(entry.calories) calories")
+                        .font(.system(size: Theme.subheadlineSize, weight: .bold))
+                        .foregroundStyle(Color.appTextPrimary)
+                }
+
+                // Macro pills
+                HStack(spacing: Theme.spacingLG) {
+                    macroLabel(icon: "fork.knife", value: "\(Int(entry.proteinG))g", color: Color.appProteinColor)
+                    macroLabel(icon: "leaf.fill", value: "\(Int(entry.carbsG))g", color: Color.appCarbsColor)
+                    macroLabel(icon: "drop.fill", value: "\(Int(entry.fatG))g", color: Color.appFatColor)
+                }
+            }
+        }
+        .padding(Theme.spacingLG)
+        .background(Color.appCardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusLG))
+    }
+
+    private func macroLabel(icon: String, value: String, color: Color) -> some View {
+        HStack(spacing: Theme.spacingXS) {
+            Image(systemName: icon)
+                .font(.system(size: 12))
+                .foregroundStyle(color)
+            Text(value)
+                .font(.system(size: Theme.captionSize, weight: .medium))
+                .foregroundStyle(Color.appTextPrimary)
         }
     }
 }

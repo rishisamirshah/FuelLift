@@ -16,6 +16,15 @@ final class FoodEntry {
     var barcode: String?
     var source: String  // "ai_scan", "barcode", "manual", "recipe"
     var firestoreId: String?
+    var ingredientsJSON: String?
+
+    var ingredients: [NutritionData.Ingredient] {
+        guard let data = ingredientsJSON?.data(using: .utf8),
+              let items = try? JSONDecoder().decode([NutritionData.Ingredient].self, from: data) else {
+            return []
+        }
+        return items
+    }
 
     init(
         name: String,
@@ -47,7 +56,8 @@ final class FoodEntry {
             proteinG: proteinG,
             carbsG: carbsG,
             fatG: fatG,
-            servingSize: servingSize
+            servingSize: servingSize,
+            ingredients: ingredients.isEmpty ? nil : ingredients
         )
     }
 
