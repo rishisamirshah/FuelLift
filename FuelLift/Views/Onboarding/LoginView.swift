@@ -14,6 +14,7 @@ struct LoginView: View {
                     Image("logo_fuellift")
                         .resizable()
                         .renderingMode(.original)
+                        .interpolation(.none)
                         .aspectRatio(contentMode: .fit)
                         .frame(width: 80, height: 80)
 

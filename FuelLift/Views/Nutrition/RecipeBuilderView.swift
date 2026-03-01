@@ -61,7 +61,7 @@ struct RecipeBuilderView: View {
                         Label {
                             Text("Add Ingredient")
                         } icon: {
-                            Image("icon_plus").resizable().renderingMode(.original).frame(width: 20, height: 20)
+                            Image("icon_plus").resizable().renderingMode(.original).interpolation(.none).aspectRatio(contentMode: .fit).frame(width: 24, height: 24)
                         }
                     }
                 }

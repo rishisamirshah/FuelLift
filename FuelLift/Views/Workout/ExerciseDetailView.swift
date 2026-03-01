@@ -77,6 +77,7 @@ struct ExerciseDetailView: View {
             if hasLocalExerciseImage {
                 Image(localExerciseImageName)
                     .resizable()
+                    .renderingMode(.original)
                     .interpolation(.none)
                     .aspectRatio(contentMode: .fit)
                     .frame(maxWidth: .infinity, maxHeight: 250)
@@ -116,7 +117,9 @@ struct ExerciseDetailView: View {
                     Image("icon_dumbbell")
                         .resizable()
                         .renderingMode(.original)
-                        .frame(width: 20, height: 20)
+                        .interpolation(.none)
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 24, height: 24)
                 }
             }
             .font(.system(size: Theme.captionSize))
@@ -154,6 +157,8 @@ struct ExerciseDetailView: View {
             Image("icon_dumbbell")
                 .resizable()
                 .renderingMode(.original)
+                .interpolation(.none)
+                .aspectRatio(contentMode: .fit)
                 .frame(width: 48, height: 48)
             Text("No image available")
                 .font(.system(size: Theme.captionSize))

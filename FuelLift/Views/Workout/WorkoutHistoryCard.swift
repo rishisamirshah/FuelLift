@@ -43,7 +43,9 @@ struct WorkoutHistoryCard: View {
                     Image("icon_clock")
                         .resizable()
                         .renderingMode(.original)
-                        .frame(width: 20, height: 20)
+                        .interpolation(.none)
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 24, height: 24)
                 }
 
                 Label {
@@ -52,7 +54,9 @@ struct WorkoutHistoryCard: View {
                     Image("icon_scale")
                         .resizable()
                         .renderingMode(.original)
-                        .frame(width: 20, height: 20)
+                        .interpolation(.none)
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 24, height: 24)
                 }
 
                 let prCount = exerciseGroups.flatMap(\.sets).filter(\.isPersonalRecord).count
@@ -63,7 +67,9 @@ struct WorkoutHistoryCard: View {
                         Image("icon_trophy")
                             .resizable()
                             .renderingMode(.original)
-                            .frame(width: 20, height: 20)
+                            .interpolation(.none)
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 24, height: 24)
                     }
                     .foregroundStyle(Color.appPRWeight)
                 } else {
@@ -73,7 +79,9 @@ struct WorkoutHistoryCard: View {
                         Image("icon_trophy")
                             .resizable()
                             .renderingMode(.original)
-                            .frame(width: 20, height: 20)
+                            .interpolation(.none)
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 24, height: 24)
                     }
                 }
             }

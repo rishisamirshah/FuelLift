@@ -45,7 +45,9 @@ struct ProgressDashboardView: View {
                                 Image("icon_medal")
                                     .resizable()
                                     .renderingMode(.original)
-                                    .frame(width: 44, height: 44)
+                                    .interpolation(.none)
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 48, height: 48)
 
                                 Text("\(earnedBadgeCount)")
                                     .font(.system(size: 28, weight: .bold, design: .rounded))
@@ -209,7 +211,9 @@ struct ProgressDashboardView: View {
                 Image("icon_photo_frame")
                     .resizable()
                     .renderingMode(.original)
-                    .frame(width: 36, height: 36)
+                    .interpolation(.none)
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 40, height: 40)
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Want to add a photo to track your progress?")
@@ -221,7 +225,9 @@ struct ProgressDashboardView: View {
                         Image("icon_plus")
                             .resizable()
                             .renderingMode(.original)
-                            .frame(width: 12, height: 12)
+                            .interpolation(.none)
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 16, height: 16)
                         Text("Upload a Photo")
                             .font(.system(size: Theme.captionSize, weight: .semibold))
                     }
@@ -238,7 +244,9 @@ struct ProgressDashboardView: View {
             Image(pixelIcon)
                 .resizable()
                 .renderingMode(.original)
-                .frame(width: 20, height: 20)
+                .interpolation(.none)
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 24, height: 24)
             Text(title)
                 .font(.system(size: Theme.bodySize, weight: .medium))
                 .foregroundStyle(Color.appTextPrimary)
@@ -246,7 +254,9 @@ struct ProgressDashboardView: View {
             Image("icon_chevron_right")
                 .resizable()
                 .renderingMode(.original)
-                .frame(width: 12, height: 12)
+                .interpolation(.none)
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 16, height: 16)
         }
         .cardStyle()
     }

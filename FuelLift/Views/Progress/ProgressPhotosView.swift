@@ -30,7 +30,9 @@ struct ProgressPhotosView: View {
                         Image("icon_photo_frame")
                             .resizable()
                             .renderingMode(.original)
-                            .frame(width: 36, height: 36)
+                            .interpolation(.none)
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 40, height: 40)
 
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Want to add a photo to track your progress?")
@@ -44,7 +46,9 @@ struct ProgressPhotosView: View {
                                     Image("icon_plus")
                                         .resizable()
                                         .renderingMode(.original)
-                                        .frame(width: 12, height: 12)
+                                        .interpolation(.none)
+                                        .aspectRatio(contentMode: .fit)
+                                        .frame(width: 16, height: 16)
                                     Text("Upload a Photo")
                                         .font(.system(size: Theme.captionSize, weight: .semibold))
                                 }
@@ -62,7 +66,9 @@ struct ProgressPhotosView: View {
                         Image("icon_photo_frame")
                             .resizable()
                             .renderingMode(.original)
-                            .frame(width: 48, height: 48)
+                            .interpolation(.none)
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 52, height: 52)
                         Text("No progress photos yet")
                             .font(.system(size: Theme.captionSize))
                             .foregroundStyle(Color.appTextSecondary)

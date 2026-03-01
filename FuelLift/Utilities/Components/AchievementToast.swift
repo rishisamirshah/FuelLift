@@ -19,7 +19,8 @@ struct AchievementToast: View {
                         .resizable()
                         .renderingMode(.original)
                         .interpolation(.none)
-                        .frame(width: 24, height: 24)
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 28, height: 28)
                 } else {
                     Image(systemName: badge.iconName)
                         .resizable()

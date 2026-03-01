@@ -30,6 +30,8 @@ struct BadgeUnlockedOverlay: View {
                         // Custom pixel art badge
                         Image(imgName)
                             .resizable()
+                            .renderingMode(.original)
+                            .interpolation(.none)
                             .aspectRatio(contentMode: .fit)
                             .frame(width: 160, height: 160)
                     } else {

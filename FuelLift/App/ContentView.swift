@@ -21,7 +21,7 @@ struct ContentView: View {
     }
 
     var body: some View {
-        ZStack(alignment: .bottom) {
+        VStack(spacing: 0) {
             // Content area
             Group {
                 switch selectedTab {
@@ -32,50 +32,42 @@ struct ContentView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .padding(.bottom, 56)
+            .clipped()
 
             // Custom tab bar
             HStack {
                 ForEach(Tab.allCases, id: \.self) { tab in
                     Button {
-                        withAnimation(.easeInOut(duration: 0.15)) {
-                            selectedTab = tab
-                        }
+                        selectedTab = tab
                     } label: {
-                        VStack(spacing: 3) {
+                        VStack(spacing: 4) {
                             Image(tab.iconName)
                                 .resizable()
-                                .renderingMode(.template)
                                 .interpolation(.none)
                                 .aspectRatio(contentMode: .fit)
-                                .frame(width: 22, height: 22)
+                                .frame(width: 24, height: 24)
+                                .foregroundStyle(selectedTab == tab ? Color.appAccent : Color.appTextTertiary)
 
                             Text(tab.rawValue)
-                                .font(.system(size: 10, weight: .medium))
+                                .font(.system(size: 10, weight: selectedTab == tab ? .semibold : .regular))
+                                .foregroundStyle(selectedTab == tab ? Color.appAccent : Color.appTextTertiary)
                         }
-                        .foregroundStyle(selectedTab == tab ? Color.appAccent : Color.appTextTertiary)
                         .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.plain)
                 }
             }
-            .padding(.top, 8)
+            .padding(.top, 10)
             .padding(.bottom, 28)
-            .background(
-                Color.appCardBackground
-                    .shadow(color: .black.opacity(0.3), radius: 8, y: -2)
-                    .ignoresSafeArea(edges: .bottom)
-            )
-
-            // FAB
+            .background(Color.appCardBackground)
+        }
+        .overlay(alignment: .bottomTrailing) {
             FloatingActionButton {
                 showAddMeal = true
             }
             .padding(.trailing, Theme.spacingXL)
-            .padding(.bottom, 68)
-            .frame(maxWidth: .infinity, alignment: .trailing)
+            .padding(.bottom, 90)
         }
-        .ignoresSafeArea(edges: .bottom)
         .sheet(isPresented: $showAddMeal) {
             NavigationStack {
                 FoodLogView()

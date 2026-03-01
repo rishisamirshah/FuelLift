@@ -23,6 +23,7 @@ struct BadgeDetailView: View {
                         // Custom pixel art badge — no background circle
                         Image(imgName)
                             .resizable()
+                            .interpolation(.none)
                             .aspectRatio(contentMode: .fit)
                             .frame(width: 140, height: 140)
                     } else {

@@ -16,91 +16,84 @@ struct DashboardView: View {
 
     var body: some View {
         NavigationStack {
-            ZStack(alignment: .bottomTrailing) {
-                ScrollView {
-                    VStack(spacing: Theme.spacingXXL) {
-                        // Header with streak
-                        HStack {
-                            Image("logo_fuellift")
-                                .resizable()
-                                .renderingMode(.original)
-                                .scaledToFit()
-                                .frame(height: 40)
-                            Spacer()
-                            if profile?.showStreakBadge ?? true, viewModel.currentStreak > 0 {
-                                StreakBadge(count: viewModel.currentStreak, style: .compact)
+            ScrollView {
+                VStack(spacing: Theme.spacingXXL) {
+                    // Header with streak
+                    HStack {
+                        Image("logo_fuellift")
+                            .resizable()
+                            .renderingMode(.original)
+                            .interpolation(.none)
+                            .aspectRatio(contentMode: .fit)
+                            .frame(height: 32)
+                        Spacer()
+                        if profile?.showStreakBadge ?? true, viewModel.currentStreak > 0 {
+                            StreakBadge(count: viewModel.currentStreak, style: .compact)
+                        }
+                    }
+                    .padding(.horizontal, Theme.spacingLG)
+
+                    // Week day selector
+                    WeekDaySelector(selectedDate: $selectedDate)
+                        .padding(.horizontal, Theme.spacingSM)
+
+                    // Calorie ring card
+                    CalorieSummaryCard(viewModel: viewModel, showMacros: profile?.showMacrosBreakdown ?? true)
+                        .padding(.horizontal, Theme.spacingLG)
+                        .opacity(appeared ? 1 : 0)
+                        .offset(y: appeared ? 0 : 20)
+                        .animation(.easeOut(duration: 0.4).delay(0.05), value: appeared)
+
+                    // Quick actions
+                    if profile?.showQuickActions ?? true {
+                        VStack(spacing: Theme.spacingMD) {
+                            HStack(spacing: Theme.spacingMD) {
+                                quickAction(iconName: "icon_camera", label: "Scan Food") {
+                                    showCamera = true
+                                }
+                                quickAction(iconName: "icon_dumbbell", label: "Start Workout") {
+                                    workoutVM.startWorkout()
+                                    showActiveWorkout = true
+                                }
+                            }
+                            quickAction(iconName: "icon_wand_stars", label: "AI Nutrition Plan") {
+                                showNutritionPlan = true
                             }
                         }
                         .padding(.horizontal, Theme.spacingLG)
-
-                        // Week day selector
-                        WeekDaySelector(selectedDate: $selectedDate)
-                            .padding(.horizontal, Theme.spacingSM)
-
-                        // Calorie ring card
-                        CalorieSummaryCard(viewModel: viewModel, showMacros: profile?.showMacrosBreakdown ?? true)
-                            .padding(.horizontal, Theme.spacingLG)
-                            .opacity(appeared ? 1 : 0)
-                            .offset(y: appeared ? 0 : 20)
-                            .animation(.easeOut(duration: 0.4).delay(0.05), value: appeared)
-
-                        // Quick actions
-                        if profile?.showQuickActions ?? true {
-                            VStack(spacing: Theme.spacingMD) {
-                                HStack(spacing: Theme.spacingMD) {
-                                    quickAction(iconName: "icon_camera", label: "Scan Food") {
-                                        showCamera = true
-                                    }
-                                    quickAction(iconName: "icon_dumbbell", label: "Start Workout") {
-                                        workoutVM.startWorkout()
-                                        showActiveWorkout = true
-                                    }
-                                }
-                                quickAction(iconName: "icon_wand_stars", label: "AI Nutrition Plan") {
-                                    showNutritionPlan = true
-                                }
-                            }
-                            .padding(.horizontal, Theme.spacingLG)
-                            .opacity(appeared ? 1 : 0)
-                            .offset(y: appeared ? 0 : 20)
-                            .animation(.easeOut(duration: 0.4).delay(0.15), value: appeared)
-                        }
-
-                        // Water tracker
-                        if profile?.showWaterTracker ?? true {
-                            waterCard
-                                .padding(.horizontal, Theme.spacingLG)
-                                .opacity(appeared ? 1 : 0)
-                                .offset(y: appeared ? 0 : 20)
-                                .animation(.easeOut(duration: 0.4).delay(0.25), value: appeared)
-                        }
-
-                        // Today's workout
-                        if profile?.showWorkoutSummary ?? true {
-                            WorkoutSummaryCard(workout: viewModel.todayWorkout)
-                                .padding(.horizontal, Theme.spacingLG)
-                                .opacity(appeared ? 1 : 0)
-                                .offset(y: appeared ? 0 : 20)
-                                .animation(.easeOut(duration: 0.4).delay(0.35), value: appeared)
-                        }
-
-                        // Recently uploaded section
-                        recentlyUploadedSection
-                            .padding(.horizontal, Theme.spacingLG)
-                            .opacity(appeared ? 1 : 0)
-                            .offset(y: appeared ? 0 : 20)
-                            .animation(.easeOut(duration: 0.4).delay(0.45), value: appeared)
+                        .opacity(appeared ? 1 : 0)
+                        .offset(y: appeared ? 0 : 20)
+                        .animation(.easeOut(duration: 0.4).delay(0.15), value: appeared)
                     }
-                    .padding(.vertical, Theme.spacingLG)
-                }
-                .screenBackground()
 
-                // Floating action button
-                FloatingActionButton {
-                    showCamera = true
+                    // Water tracker
+                    if profile?.showWaterTracker ?? true {
+                        waterCard
+                            .padding(.horizontal, Theme.spacingLG)
+                            .opacity(appeared ? 1 : 0)
+                            .offset(y: appeared ? 0 : 20)
+                            .animation(.easeOut(duration: 0.4).delay(0.25), value: appeared)
+                    }
+
+                    // Today's workout
+                    if profile?.showWorkoutSummary ?? true {
+                        WorkoutSummaryCard(workout: viewModel.todayWorkout)
+                            .padding(.horizontal, Theme.spacingLG)
+                            .opacity(appeared ? 1 : 0)
+                            .offset(y: appeared ? 0 : 20)
+                            .animation(.easeOut(duration: 0.4).delay(0.35), value: appeared)
+                    }
+
+                    // Recently uploaded section
+                    recentlyUploadedSection
+                        .padding(.horizontal, Theme.spacingLG)
+                        .opacity(appeared ? 1 : 0)
+                        .offset(y: appeared ? 0 : 20)
+                        .animation(.easeOut(duration: 0.4).delay(0.45), value: appeared)
                 }
-                .padding(Theme.spacingXL)
+                .padding(.vertical, Theme.spacingLG)
             }
+            .screenBackground()
             .navigationBarHidden(true)
             .onAppear {
                 viewModel.loadDashboard(context: modelContext)
@@ -135,7 +128,9 @@ struct DashboardView: View {
                 Image(iconName)
                     .resizable()
                     .renderingMode(.original)
-                    .frame(width: 20, height: 20)
+                    .interpolation(.none)
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 28, height: 28)
                 Text(label)
                     .font(.system(size: Theme.bodySize, weight: .semibold))
                     .foregroundStyle(Color.appTextPrimary)
@@ -156,7 +151,9 @@ struct DashboardView: View {
                 Image("icon_water_drop")
                     .resizable()
                     .renderingMode(.original)
-                    .frame(width: 20, height: 20)
+                    .interpolation(.none)
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 24, height: 24)
                 Text("Water")
                     .font(.system(size: Theme.subheadlineSize, weight: .bold))
                     .foregroundStyle(Color.appTextPrimary)
@@ -216,6 +213,8 @@ struct DashboardView: View {
                     Image("icon_fork_knife")
                         .resizable()
                         .renderingMode(.original)
+                        .interpolation(.none)
+                        .aspectRatio(contentMode: .fit)
                         .frame(width: 40, height: 40)
 
                     Text("Tap + to add your first meal of the day")
@@ -272,7 +271,9 @@ struct DashboardView: View {
                     Image("icon_fire_streak")
                         .resizable()
                         .renderingMode(.original)
-                        .frame(width: 16, height: 16)
+                        .interpolation(.none)
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 20, height: 20)
                     Text("\(entry.calories) calories")
                         .font(.system(size: Theme.subheadlineSize, weight: .bold))
                         .foregroundStyle(Color.appTextPrimary)
@@ -296,7 +297,9 @@ struct DashboardView: View {
             Image(iconName)
                 .resizable()
                 .renderingMode(.original)
-                .frame(width: 14, height: 14)
+                .interpolation(.none)
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 18, height: 18)
             Text(value)
                 .font(.system(size: Theme.captionSize, weight: .medium))
                 .foregroundStyle(Color.appTextPrimary)

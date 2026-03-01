@@ -95,6 +95,8 @@ struct WorkoutPlannerView: View {
                                 Image("icon_checkmark_circle")
                                     .resizable()
                                     .renderingMode(.original)
+                                    .interpolation(.none)
+                                    .aspectRatio(contentMode: .fit)
                                     .frame(width: 24, height: 24)
                             }
                         }
@@ -154,6 +156,8 @@ struct WorkoutPlannerView: View {
                                 Image("icon_checkmark_circle")
                                     .resizable()
                                     .renderingMode(.original)
+                                    .interpolation(.none)
+                                    .aspectRatio(contentMode: .fit)
                                     .frame(width: 24, height: 24)
                             }
                         }
@@ -420,6 +424,8 @@ struct WorkoutPlannerView: View {
             Image("icon_checkmark_circle")
                 .resizable()
                 .renderingMode(.original)
+                .interpolation(.none)
+                .aspectRatio(contentMode: .fit)
                 .frame(width: 64, height: 64)
 
             Text("Plan Saved!")
@@ -545,6 +551,8 @@ struct WorkoutPlannerView: View {
                             Image("icon_wand_stars")
                                 .resizable()
                                 .renderingMode(.original)
+                                .interpolation(.none)
+                                .aspectRatio(contentMode: .fit)
                                 .frame(width: 24, height: 24)
                             Text("Generate Plan")
                         }
@@ -631,6 +639,8 @@ struct WorkoutPlannerView: View {
             Image(name)
                 .resizable()
                 .renderingMode(.original)
+                .interpolation(.none)
+                .aspectRatio(contentMode: .fit)
                 .frame(width: size, height: size)
         } else {
             Image(systemName: name)

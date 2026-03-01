@@ -39,7 +39,7 @@ struct MealHistoryView: View {
                                 .foregroundStyle(Color.appTextSecondary)
                         }
                         Spacer()
-                        Image("icon_plus_circle").resizable().renderingMode(.original)
+                        Image("icon_plus_circle").resizable().renderingMode(.original).interpolation(.none).aspectRatio(contentMode: .fit)
                             .frame(width: 24, height: 24)
                     }
                 }

@@ -55,7 +55,9 @@ struct WorkoutListView: View {
                                     Image("icon_wand_stars")
                                         .resizable()
                                         .renderingMode(.original)
-                                        .frame(width: 20, height: 20)
+                                        .interpolation(.none)
+                                        .aspectRatio(contentMode: .fit)
+                                        .frame(width: 24, height: 24)
                                     Text("AI Plan")
                                 }
                                 .font(.system(size: Theme.captionSize, weight: .semibold))

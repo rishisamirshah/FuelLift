@@ -32,6 +32,8 @@ struct WorkoutCompletionView: View {
                     Image("icon_trophy")
                         .resizable()
                         .renderingMode(.original)
+                        .interpolation(.none)
+                        .aspectRatio(contentMode: .fit)
                         .frame(width: 72, height: 72)
                 }
                 .scaleEffect(trophyScale)
@@ -77,7 +79,9 @@ struct WorkoutCompletionView: View {
                                 Image("icon_trophy")
                                     .resizable()
                                     .renderingMode(.original)
-                                    .frame(width: 20, height: 20)
+                                    .interpolation(.none)
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 24, height: 24)
 
                                 Text(exercise)
                                     .font(.system(size: Theme.bodySize, weight: .semibold))
@@ -185,7 +189,9 @@ struct WorkoutCompletionView: View {
             Image(iconName)
                 .resizable()
                 .renderingMode(.original)
-                .frame(width: 24, height: 24)
+                .interpolation(.none)
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 28, height: 28)
 
             Text(value)
                 .font(.system(size: Theme.headlineSize, weight: .bold))

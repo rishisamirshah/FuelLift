@@ -190,7 +190,9 @@ struct GoalSetupView: View {
                                 Image("icon_checkmark_circle")
                                     .resizable()
                                     .renderingMode(.original)
-                                    .frame(width: 24, height: 24)
+                                    .interpolation(.none)
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 28, height: 28)
                             }
                         }
                         .padding(Theme.spacingLG)
@@ -239,7 +241,9 @@ struct GoalSetupView: View {
                         Image("icon_wand_stars")
                             .resizable()
                             .renderingMode(.original)
-                            .frame(width: 20, height: 20)
+                            .interpolation(.none)
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 24, height: 24)
                     }
                     Text("AI Calculate")
                         .font(.system(size: Theme.bodySize, weight: .semibold))

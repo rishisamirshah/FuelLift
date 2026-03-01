@@ -22,8 +22,11 @@ struct FloatingActionButton: View {
                 Image(pixelIcon)
                     .resizable()
                     .renderingMode(.original)
-                    .frame(width: size * 0.38, height: size * 0.38)
+                    .interpolation(.none)
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: size * 0.5, height: size * 0.5)
             }
+            .clipped()
         }
         .buttonStyle(FABButtonStyle())
     }

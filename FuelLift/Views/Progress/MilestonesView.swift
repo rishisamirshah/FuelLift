@@ -27,7 +27,9 @@ struct MilestonesView: View {
                         Image("icon_medal")
                             .resizable()
                             .renderingMode(.original)
-                            .frame(width: 44, height: 44)
+                            .interpolation(.none)
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 48, height: 48)
 
                         Text("\(earnedCount)")
                             .font(.system(size: 28, weight: .bold, design: .rounded))

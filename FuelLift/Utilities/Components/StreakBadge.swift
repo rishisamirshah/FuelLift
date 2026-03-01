@@ -25,7 +25,9 @@ struct StreakBadge: View {
             Image("icon_fire_streak")
                 .resizable()
                 .renderingMode(.original)
-                .frame(width: 16, height: 16)
+                .interpolation(.none)
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 20, height: 20)
                 .scaleEffect(isPulsing ? 1.15 : 1.0)
 
             Text("\(count)")
@@ -48,7 +50,9 @@ struct StreakBadge: View {
             Image("icon_fire_streak")
                 .resizable()
                 .renderingMode(.original)
-                .frame(width: 48, height: 48)
+                .interpolation(.none)
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 56, height: 56)
                 .scaleEffect(isPulsing ? 1.1 : 1.0)
 
             Text("\(count)")

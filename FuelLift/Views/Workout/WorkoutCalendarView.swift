@@ -45,7 +45,9 @@ struct WorkoutCalendarView: View {
                     Image("icon_chevron_right")
                         .resizable()
                         .renderingMode(.original)
-                        .frame(width: 20, height: 20)
+                        .interpolation(.none)
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 24, height: 24)
                         .scaleEffect(x: -1, y: 1)
                 }
 
@@ -65,7 +67,9 @@ struct WorkoutCalendarView: View {
                     Image("icon_chevron_right")
                         .resizable()
                         .renderingMode(.original)
-                        .frame(width: 20, height: 20)
+                        .interpolation(.none)
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 24, height: 24)
                 }
             }
             .padding(.horizontal, Theme.spacingSM)
@@ -121,9 +125,11 @@ struct WorkoutCalendarView: View {
                 Image("icon_checkmark_circle")
                     .resizable()
                     .renderingMode(.original)
-                    .frame(width: 14, height: 14)
+                    .interpolation(.none)
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 18, height: 18)
             } else {
-                Color.clear.frame(height: 14)
+                Color.clear.frame(height: 18)
             }
         }
         .frame(height: 54)

@@ -9,7 +9,9 @@ struct WorkoutSummaryCard: View {
                 Image("icon_dumbbell")
                     .resizable()
                     .renderingMode(.original)
-                    .frame(width: 20, height: 20)
+                    .interpolation(.none)
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 24, height: 24)
                 Text("Today's Workout")
                     .font(.system(size: Theme.subheadlineSize, weight: .bold))
                     .foregroundStyle(Color.appTextPrimary)
@@ -18,7 +20,9 @@ struct WorkoutSummaryCard: View {
                     Image("icon_checkmark_circle")
                         .resizable()
                         .renderingMode(.original)
-                        .frame(width: 20, height: 20)
+                        .interpolation(.none)
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 24, height: 24)
                 }
             }
 
@@ -50,7 +54,9 @@ struct WorkoutSummaryCard: View {
                     Image("icon_arrow_right_circle")
                         .resizable()
                         .renderingMode(.original)
-                        .frame(width: 20, height: 20)
+                        .interpolation(.none)
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 24, height: 24)
                 }
             }
         }
@@ -62,7 +68,9 @@ struct WorkoutSummaryCard: View {
             Image(iconName)
                 .resizable()
                 .renderingMode(.original)
-                .frame(width: 14, height: 14)
+                .interpolation(.none)
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 18, height: 18)
             Text(value)
                 .font(.system(size: Theme.captionSize, weight: .medium))
                 .foregroundStyle(Color.appTextSecondary)

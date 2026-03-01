@@ -18,6 +18,8 @@ struct BadgeGridItem: View {
                         // Earned badge — custom image
                         Image(imageName)
                             .resizable()
+                            .renderingMode(.original)
+                            .interpolation(.none)
                             .aspectRatio(contentMode: .fit)
                             .frame(width: Theme.badgeIconSize, height: Theme.badgeIconSize)
                     } else if let category {
@@ -47,7 +49,9 @@ struct BadgeGridItem: View {
                             Image("icon_star")
                                 .resizable()
                                 .renderingMode(.original)
-                                .frame(width: 28, height: 28)
+                                .interpolation(.none)
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 32, height: 32)
                                 .opacity(0.5)
                         )
                 }

@@ -29,7 +29,9 @@ struct WeightChartView: View {
                         Image("icon_flag")
                             .resizable()
                             .renderingMode(.original)
-                            .frame(width: 12, height: 12)
+                            .interpolation(.none)
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 16, height: 16)
                         Text("\(goalPercent)% of goal")
                             .font(.system(size: Theme.captionSize, weight: .semibold))
                     }

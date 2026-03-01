@@ -36,7 +36,9 @@ struct BMICard: View {
                 Image("icon_info")
                     .resizable()
                     .renderingMode(.original)
-                    .frame(width: 20, height: 20)
+                    .interpolation(.none)
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 24, height: 24)
             }
 
             // BMI value + category
