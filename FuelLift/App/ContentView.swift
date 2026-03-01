@@ -21,68 +21,61 @@ struct ContentView: View {
     }
 
     var body: some View {
-        ZStack(alignment: .bottomTrailing) {
-            TabView(selection: $selectedTab) {
-                DashboardView()
-                    .tabItem {
-                        Label {
-                            Text(Tab.home.rawValue)
-                        } icon: {
-                            Image(Tab.home.iconName)
-                                .resizable()
-                                .renderingMode(.original)
-                                .frame(width: 25, height: 25)
-                        }
-                    }
-                    .tag(Tab.home)
-
-                ProgressDashboardView()
-                    .tabItem {
-                        Label {
-                            Text(Tab.progress.rawValue)
-                        } icon: {
-                            Image(Tab.progress.iconName)
-                                .resizable()
-                                .renderingMode(.original)
-                                .frame(width: 25, height: 25)
-                        }
-                    }
-                    .tag(Tab.progress)
-
-                WorkoutListView()
-                    .tabItem {
-                        Label {
-                            Text(Tab.workout.rawValue)
-                        } icon: {
-                            Image(Tab.workout.iconName)
-                                .resizable()
-                                .renderingMode(.original)
-                                .frame(width: 25, height: 25)
-                        }
-                    }
-                    .tag(Tab.workout)
-
-                SettingsView()
-                    .tabItem {
-                        Label {
-                            Text(Tab.profile.rawValue)
-                        } icon: {
-                            Image(Tab.profile.iconName)
-                                .resizable()
-                                .renderingMode(.original)
-                                .frame(width: 25, height: 25)
-                        }
-                    }
-                    .tag(Tab.profile)
+        ZStack(alignment: .bottom) {
+            // Content area
+            Group {
+                switch selectedTab {
+                case .home: DashboardView()
+                case .progress: ProgressDashboardView()
+                case .workout: WorkoutListView()
+                case .profile: SettingsView()
+                }
             }
-            .tint(.orange)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .padding(.bottom, 56)
 
+            // Custom tab bar
+            HStack {
+                ForEach(Tab.allCases, id: \.self) { tab in
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.15)) {
+                            selectedTab = tab
+                        }
+                    } label: {
+                        VStack(spacing: 3) {
+                            Image(tab.iconName)
+                                .resizable()
+                                .renderingMode(.template)
+                                .interpolation(.none)
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 22, height: 22)
+
+                            Text(tab.rawValue)
+                                .font(.system(size: 10, weight: .medium))
+                        }
+                        .foregroundStyle(selectedTab == tab ? Color.appAccent : Color.appTextTertiary)
+                        .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.top, 8)
+            .padding(.bottom, 28)
+            .background(
+                Color.appCardBackground
+                    .shadow(color: .black.opacity(0.3), radius: 8, y: -2)
+                    .ignoresSafeArea(edges: .bottom)
+            )
+
+            // FAB
             FloatingActionButton {
                 showAddMeal = true
             }
             .padding(.trailing, Theme.spacingXL)
-            .padding(.bottom, 60)
+            .padding(.bottom, 68)
+            .frame(maxWidth: .infinity, alignment: .trailing)
         }
+        .ignoresSafeArea(edges: .bottom)
         .sheet(isPresented: $showAddMeal) {
             NavigationStack {
                 FoodLogView()
