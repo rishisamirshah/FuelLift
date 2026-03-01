@@ -9,12 +9,13 @@ struct NutritionPlanView: View {
     // Body info
     @State private var gender = "Male"
     @State private var age = ""
-    @State private var heightCM = ""
-    @State private var weightKG = ""
+    @State private var heightFeet = ""
+    @State private var heightInches = ""
+    @State private var weightLbs = ""
 
     // Goal
     @State private var goal = "Maintain"
-    @State private var targetWeight = ""
+    @State private var targetWeightLbs = ""
 
     // Activity
     @State private var activityLevel = "Moderate"
@@ -96,12 +97,14 @@ struct NutritionPlanView: View {
                 }
                 .pickerStyle(.segmented)
 
+                ThemedField(label: "Age", text: $age, placeholder: "25", keyboard: .numberPad)
+
                 HStack(spacing: Theme.spacingLG) {
-                    ThemedField(label: "Age", text: $age, placeholder: "25", keyboard: .numberPad)
-                    ThemedField(label: "Height (cm)", text: $heightCM, placeholder: "175", keyboard: .decimalPad)
+                    ThemedField(label: "Height (ft)", text: $heightFeet, placeholder: "5", keyboard: .numberPad)
+                    ThemedField(label: "Height (in)", text: $heightInches, placeholder: "9", keyboard: .numberPad)
                 }
 
-                ThemedField(label: "Weight (kg)", text: $weightKG, placeholder: "75", keyboard: .decimalPad)
+                ThemedField(label: "Weight (lbs)", text: $weightLbs, placeholder: "165", keyboard: .decimalPad)
             }
             .cardStyle()
             .padding(.horizontal, Theme.spacingLG)
@@ -160,7 +163,7 @@ struct NutritionPlanView: View {
                 .sectionHeaderStyle()
                 .padding(.horizontal, Theme.spacingLG)
 
-            ThemedField(label: "Target Weight (kg)", text: $targetWeight, placeholder: "70", keyboard: .decimalPad)
+            ThemedField(label: "Target Weight (lbs)", text: $targetWeightLbs, placeholder: "155", keyboard: .decimalPad)
                 .cardStyle()
                 .padding(.horizontal, Theme.spacingLG)
         }
@@ -346,13 +349,21 @@ struct NutritionPlanView: View {
         guard let profile else { return }
         gender = profile.gender ?? "Male"
         age = profile.age.map(String.init) ?? ""
-        heightCM = profile.heightCM.map { String(Int($0)) } ?? ""
-        weightKG = profile.weightKG.map { String(Int($0)) } ?? ""
+        if let cm = profile.heightCM {
+            let totalInches = cm / 2.54
+            heightFeet = String(Int(totalInches) / 12)
+            heightInches = String(Int(totalInches) % 12)
+        }
+        if let kg = profile.weightKG {
+            weightLbs = String(Int(kg * 2.20462))
+        }
         activityLevel = profile.activityLevel ?? "Moderate"
         goal = profile.goal ?? "Maintain"
         dietaryPreference = profile.dietaryPreference ?? "Standard"
         workoutsPerWeek = profile.workoutsPerWeek ?? 3
-        targetWeight = profile.targetWeightKG.map { String(Int($0)) } ?? ""
+        if let targetKG = profile.targetWeightKG {
+            targetWeightLbs = String(Int(targetKG * 2.20462))
+        }
         calorieGoal = String(profile.calorieGoal)
         proteinGoal = String(profile.proteinGoal)
         carbsGoal = String(profile.carbsGoal)
@@ -368,18 +379,33 @@ struct NutritionPlanView: View {
         }
     }
 
+    private var heightInCM: Double {
+        let feet = Double(heightFeet) ?? 5
+        let inches = Double(heightInches) ?? 9
+        return (feet * 12 + inches) * 2.54
+    }
+
+    private var weightInKG: Double {
+        (Double(weightLbs) ?? 165) / 2.20462
+    }
+
+    private var targetWeightInKG: Double? {
+        guard let lbs = Double(targetWeightLbs), !targetWeightLbs.isEmpty else { return nil }
+        return lbs / 2.20462
+    }
+
     private func calculateWithAI() async {
         isCalculating = true
         do {
             let result = try await ClaudeService.shared.calculateNutritionGoals(
                 gender: gender,
                 age: Int(age) ?? 25,
-                heightCM: Double(heightCM) ?? 175,
-                weightKG: Double(weightKG) ?? 75,
+                heightCM: heightInCM,
+                weightKG: weightInKG,
                 activityLevel: activityLevel,
                 goal: goal,
                 dietaryPreference: dietaryPreference,
-                targetWeightKG: Double(targetWeight),
+                targetWeightKG: targetWeightInKG,
                 workoutsPerWeek: workoutsPerWeek
             )
             calorieGoal = String(result.calories)
@@ -406,13 +432,13 @@ struct NutritionPlanView: View {
         profile.fatGoal = Int(fatGoal) ?? AppConstants.defaultFatGoal
         profile.gender = gender
         profile.age = Int(age)
-        profile.heightCM = Double(heightCM)
-        profile.weightKG = Double(weightKG)
+        profile.heightCM = heightInCM
+        profile.weightKG = weightInKG
         profile.activityLevel = activityLevel
         profile.goal = goal
         profile.dietaryPreference = dietaryPreference
         profile.workoutsPerWeek = workoutsPerWeek
-        profile.targetWeightKG = Double(targetWeight)
+        profile.targetWeightKG = targetWeightInKG
         profile.updatedAt = Date()
 
         try? modelContext.save()
