@@ -1,6 +1,6 @@
 # FuelLift Brain - Complete Project Context
 
-> Last updated: 2026-02-28 (v3 — CI/CD + TestFlight live)
+> Last updated: 2026-02-28 (v4 — AI Nutrition Plan feature)
 > Auto-maintained by "Update all" task
 
 ---
@@ -29,9 +29,9 @@ FuelLift/
 │   └── ContentView.swift   # 4-tab bar + FAB overlay
 ├── Models/                 # SwiftData @Model + structs (11 files)
 ├── ViewModels/             # State managers (9 files)
-├── Views/                  # SwiftUI views (46 files)
+├── Views/                  # SwiftUI views (47 files)
 │   ├── Dashboard/          # 3 files
-│   ├── Nutrition/          # 7 files
+│   ├── Nutrition/          # 10 files
 │   ├── Workout/            # 9 files
 │   ├── Progress/           # 12 files
 │   ├── Social/             # 5 files
@@ -94,6 +94,7 @@ FuelLift/
 ### UserProfile
 - Goals: calorieGoal (2000), proteinGoal (150g), carbsGoal (250g), fatGoal (65g), waterGoalML (2500)
 - Body: heightCM, weightKG, weightGoalKG (optional), age, gender, activityLevel
+- Nutrition Plan: dietaryPreference (String?), workoutsPerWeek (Int?), targetWeightKG (Double?)
 - Prefs: useMetricUnits, darkModeEnabled, notificationsEnabled, healthKitEnabled
 - Streaks: currentStreak, longestStreak, lastLogDate
 - Onboarding: hasCompletedOnboarding; Profile: displayName, email, firestoreId
@@ -157,7 +158,7 @@ FuelLift/
 | StorageService | Firebase Storage | Disabled | Photo uploads |
 | HealthKitService | HealthKit | Active | Read steps/calories, write macros/weight/workouts |
 | OpenAIService | OpenAI GPT-4o | Active* | Food photo → NutritionData (needs API key) |
-| ClaudeService | Anthropic Claude | Active | Workout plans, food description analysis, plan refinement, calorie calculation |
+| ClaudeService | Anthropic Claude | Active | Workout plans, food photo/description analysis, plan refinement, nutrition goal calculator (enhanced: dietary pref, target weight, workouts/week) |
 | ExerciseAPIService | wger.de | Active | Exercise images (ID map + search fallback, cached) |
 | BarcodeService | Open Food Facts | Active | Barcode → NutritionData |
 | NotificationService | UNNotifications | Active | Meal/workout reminders |
@@ -167,20 +168,22 @@ All Firebase services guard with `FirebaseApp.app() != nil`.
 
 ---
 
-## Views (51 files)
+## Views (52 files)
 
 ### Dashboard (3)
-- **DashboardView** — StreakBadge, WeekDaySelector, CalorieRing, MacroRings, quick actions, water, workout summary, recently uploaded, FAB
+- **DashboardView** — StreakBadge, WeekDaySelector, CalorieRing, MacroRings, quick actions (Scan Food, Start Workout, AI Nutrition Plan), water, workout summary, recently uploaded, FAB
 - **CalorieSummaryCard** — CalorieRing (120pt) + 3 MacroRings (56pt)
 - **WorkoutSummaryCard** — Dark card: name, duration, sets, volume
 
-### Nutrition (8)
+### Nutrition (10)
 - **FoodLogView** — Date picker, summary, water tracker, meal sections, FAB, menu: camera/barcode/describe/manual
-- **FoodDescriptionView** (NEW) — Text input → Claude AI → FoodDetailView → save with source "ai_description"
-- **CameraScanView** — Camera → OpenAI → FoodDetailView
+- **NutritionPlanView** — In-depth AI nutrition questionnaire: body stats, goal cards, target weight, activity/workouts stepper, dietary preference pills (FlowLayout), AI Generate button, all 4 editable macros, reset to defaults, sticky save. Opened from Dashboard quick action + Settings.
+- **FoodDescriptionView** — Text input → Claude AI → FoodDetailView → save with source "ai_description"
+- **CameraScanView** — Camera → Claude Vision → FoodDetailView
 - **BarcodeScanView** — AVFoundation barcode scanner
 - **FoodDetailView** — Nutrition editor, **ManualFoodEntryView** — Manual form
 - **MealHistoryView** — Past foods for re-log, **RecipeBuilderView** — Multi-ingredient recipes
+- **FoodEntryDetailView** — Detail view for logged food entries
 
 ### Workout (9)
 - **WorkoutListView** — Green CTA, template grid, history, calendar toggle
@@ -205,8 +208,8 @@ All Firebase services guard with `FirebaseApp.app() != nil`.
 - **BMICard** (NEW) — BMI gauge (green/yellow/red), **WeightEditorView** (NEW) — Weight picker + weight goal setting + plan prompt
 
 ### Social (5) — GroupsListView, GroupDetailView, LeaderboardView (gold/silver/bronze), FriendProfileView, WorkoutShareView
-### Settings (4) — SettingsView (profile header, grouped sections), ProfileEditView, NotificationSettingsView, UnitsSettingsView
-### Onboarding (3) — LoginView (dark, Apple Sign-In), OnboardingView (carousel), GoalSetupView (3-step wizard + AI Calculate button)
+### Settings (4) — SettingsView (profile header, grouped sections, "Edit Nutrition Goals" → NutritionPlanView), ProfileEditView, NotificationSettingsView, UnitsSettingsView
+### Onboarding (3) — LoginView (dark, Apple Sign-In), OnboardingView (carousel), GoalSetupView (3-step wizard + AI Calculate, used for onboarding only)
 
 ### Shared Components (9)
 - **ProgressRing** — Circular ring + CalorieRing/MacroRing variants
@@ -265,7 +268,7 @@ BadgeViewModel checks conditions → awardBadge() → confetti + toast.
 - **Auth:** Bypassed — isAuthenticated = true on init.
 - **Local data:** SwiftData fully functional.
 - **OpenAI:** Requires OPENAI_API_KEY.
-- **Claude AI:** Anthropic API integrated for: workout planner, food description analysis, plan refinement (multi-turn), AI calorie calculator (key in Constants.swift).
+- **Claude AI:** Anthropic API integrated for: workout planner, food photo/description analysis, plan refinement (multi-turn), AI nutrition plan calculator with dietary preference + target weight + workout frequency (key in Constants.swift).
 - **HealthKit:** Active (requires device support).
 - **UI:** Premium Cal AI + Strong aesthetic. System-adaptive light/dark with in-app dark mode toggle. All Theme design tokens.
 - **Build:** Compiles cleanly (0 errors). CI/CD fully operational — push to `main` auto-deploys to TestFlight.
@@ -277,21 +280,21 @@ BadgeViewModel checks conditions → awardBadge() → confetti + toast.
 - Unused credential variable (AuthService)
 - "All interface orientations must be supported unless the app requires full screen" (build warning, non-blocking)
 
+### Recently Implemented (v4 — AI Nutrition Plan)
+- **NutritionPlanView** — In-depth single-page questionnaire replacing GoalSetupView for editing: body stats, goal cards, target weight, activity level + workouts/week stepper, dietary preference pills (Standard/High Protein/Low Carb/Keto/Vegetarian/Vegan), AI Generate button, all 4 editable macro fields, reset to defaults, sticky save button
+- **Dashboard quick action** — "AI Nutrition Plan" button added as full-width third action below Scan Food + Start Workout
+- **Enhanced ClaudeService prompt** — calculateNutritionGoals() now accepts dietaryPreference, targetWeightKG, workoutsPerWeek; uses Mifflin-St Jeor + dietary-specific macro ratios
+- **UserProfile new fields** — dietaryPreference (String?), workoutsPerWeek (Int?), targetWeightKG (Double?)
+- **Settings redirect** — "Edit Nutrition Goals" now opens NutritionPlanView instead of GoalSetupView
+- **FlowLayout** — Custom SwiftUI Layout for wrapping dietary preference pills
+- **GoalSetupView preserved** — Still used for onboarding wizard (unchanged)
+
 ### Recently Implemented (v3 — CI/CD)
 - **TestFlight pipeline** — Fully automated: push to main → GitHub Actions → Fastlane → TestFlight (~15 min)
 - **One-time cert setup workflow** — `setup-certificates.yml` generates Match certs without needing a Mac locally
 - **App icon asset catalog** — Created Assets.xcassets with placeholder AppIcon (single-size 1024x1024)
 - **Info.plist metadata** — Added all required keys: CFBundleIconName, UILaunchScreen, orientations, health descriptions, encryption compliance
 - **Per-target code signing** — Manual signing only on FuelLift target; SPM packages use automatic signing (fixes "conflicting provisioning settings")
-
-### Recently Implemented (v2)
-- **UserProfile auto-creation** — RootView creates default profile on launch when auth bypassed (fixes all toggle bugs)
-- **Exercise image ID map** — ExerciseAPIService has static wger ID map for 29 exercises, direct lookup + search fallback
-- **Badge gradient visuals** — BadgeCategory has per-category gradient colors; BadgeGridItem shows gradient circles for earned badges
-- **Text food description** — FoodDescriptionView → Claude AI → NutritionData → FoodDetailView
-- **Weight goal setting** — WeightEditorView has goal section; ProgressDashboardView reads profile.weightGoalKG
-- **AI plan refinement** — WorkoutPlannerView has refinement TextField; multi-turn conversation history
-- **AI calorie calculator** — GoalSetupView has "AI Calculate" button on step 3 with reasoning disclosure
 
 ### Deferred Features (Next Implementation Cycle)
 - **Workout Sharing** — Export routines as shareable links/text, import shared workouts from others
@@ -310,9 +313,9 @@ BadgeViewModel checks conditions → awardBadge() → confetti + toast.
 | App | 3 |
 | Models | 11 |
 | ViewModels | 10 |
-| Views | 49 |
+| Views | 50 |
 | Components | 9 |
 | Services | 10 |
 | Utilities | 4 |
 | Resources | 5 |
-| **Total Swift** | **93** |
+| **Total Swift** | **94** |
