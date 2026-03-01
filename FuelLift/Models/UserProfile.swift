@@ -34,7 +34,7 @@ final class UserProfile {
     var darkModeEnabled: Bool
     var notificationsEnabled: Bool
     var healthKitEnabled: Bool
-    var appearanceMode: String  // "auto", "light", "dark"
+    var appearanceMode: String = "auto"  // "auto", "light", "dark"
 
     // Dashboard display preferences
     var showWaterTracker: Bool

@@ -18,7 +18,7 @@ from google import genai
 from google.genai import types
 
 # API key: env var takes priority, fallback to hardcoded
-API_KEY = os.environ.get("GEMINI_API_KEY", "AIzaSyDU0fmt04TDjAM_BkVUoXGkbY4jNJpWA_0")
+API_KEY = os.environ.get("GEMINI_API_KEY", "")
 
 # FuelLift style prefix — baked into every prompt for consistent aesthetic
 # Matches reference: solid filled chunky pixel art, orange with darker orange shading,

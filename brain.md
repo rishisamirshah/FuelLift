@@ -1,13 +1,13 @@
 # FuelLift Brain - Complete Project Context
 
-> Last updated: 2026-02-28 (v6 — Retro-Futuristic Dark UI + Badge System)
+> Last updated: 2026-03-01 (v7 — Gemini Vision + Light Mode + Appearance Setting)
 > Auto-maintained by "Update all" task
 
 ---
 
 ## Project Overview
 
-**FuelLift** is an iOS fitness + nutrition tracking app combining calorie/macro logging (like Cal-AI) with strength training (like Strong). Built with SwiftUI, SwiftData, Firebase, HealthKit, and OpenAI. Retro-futuristic pixel art aesthetic — dark arcade theme with orange accents and 8-bit sprites.
+**FuelLift** is an iOS fitness + nutrition tracking app combining calorie/macro logging (like Cal-AI) with strength training (like Strong). Built with SwiftUI, SwiftData, Firebase, HealthKit, and AI services (Gemini + Claude). Retro-futuristic pixel art aesthetic — dark arcade theme with orange accents and 8-bit sprites, with adaptive light mode support.
 
 - **Bundle ID:** com.fuellift.app
 - **Min iOS:** 17.0 | **Swift:** 5.9 | **Xcode:** 16.2
@@ -37,7 +37,7 @@ FuelLift/
 │   ├── Social/             # 5 files
 │   ├── Settings/           # 5 files (added PreferencesView)
 │   └── Onboarding/         # 3 files
-├── Services/               # Singletons (8 files)
+├── Services/               # Singletons (9 files — added GeminiService)
 ├── Utilities/              # Theme, Extensions, Constants, ImagePicker
 │   └── Components/         # 9 shared UI components
 └── Resources/              # Info.plist, Entitlements, Assets.xcassets (123 images)
@@ -45,7 +45,7 @@ FuelLift/
 
 ---
 
-## Design System (Theme.swift) — Retro-Futuristic Dark
+## Design System (Theme.swift) — Adaptive Dark/Light
 
 ### Spacing: XS(4) / SM(8) / MD(12) / LG(16) / XL(20) / XXL(24) / Huge(32)
 ### Corner Radius: SM(8) / MD(12) / LG(16—cards) / XL(20) / Full(100—pills)
@@ -54,23 +54,42 @@ FuelLift/
 ### Glow: glowRadius(8) / glowRadiusLG(16) / glowOpacity(0.35)
 ### Borders: borderWidth(1) / borderWidthThick(2) / pixelStep(4)
 
-### Color Palette — Intentional Dark (NOT system-adaptive)
+### Color Palette — Adaptive via UIColor dynamic provider
+All colors adapt automatically based on color scheme (dark/light).
+
+**Dark Mode:**
 - **Backgrounds:** appBackground (#08080F deep black), appCardBackground (#12121E), appCardSecondary (#1A1A2A), appGroupedBackground (#0D0D17)
-- **Accent:** appAccent (#FF6B00 hot orange), appAccentBright (#FF8C26), appAccentDim (#CC5500)
 - **Text:** appTextPrimary (white), appTextSecondary (white 60%), appTextTertiary (white 30%)
 - **Macros (neon-tinted):** appProteinColor (#59A5FF), appCarbsColor (#FFBF33), appFatColor (#FF4D59), appCaloriesColor (#66E640)
-- **Other:** appWaterColor (#40D9E6), appStreakColor (#FF9500), appPRColor (#00CCE6), appWorkoutGreen
-- **Borders:** appBorder (white 8%), appBorderAccent (orange 30%)
-- **Badge States:** appBadgeEarned (#FF6B00), appBadgeLocked (white 20%)
+- **Borders:** appBorder (white 8%), appBadgeLocked (white 20%)
+
+**Light Mode:**
+- **Backgrounds:** appBackground (#F7F7F9 light gray), appCardBackground (#FFFFFF white), appCardSecondary (#F0F0F5), appGroupedBackground (#EEEEF3)
+- **Text:** appTextPrimary (#1C1C2E near-black), appTextSecondary (black 55%), appTextTertiary (black 25%)
+- **Macros (deeper):** appProteinColor (#3380E6), appCarbsColor (#D99E0D), appFatColor (#E03340), appCaloriesColor (#40B326)
+- **Borders:** appBorder (black 8%), appBadgeLocked (black 15%)
+
+**Same in both modes:**
+- **Accent:** appAccent (#FF6B00 hot orange), appAccentBright (#FF8C26), appAccentDim (#CC5500)
+- **Status:** appStreakColor (#FF9500), appPRColor (#00CCE6), appWorkoutGreen
+- **Badge:** appBadgeEarned (#FF6B00), appBorderAccent (orange 30%)
+
+### Appearance Modes
+- **Auto** (default) — follows system setting
+- **Light** — forces light mode
+- **Dark** — forces dark mode
+- Controlled via `UserProfile.appearanceMode` ("auto" | "light" | "dark")
+- Applied in `RootView` via `.preferredColorScheme()`
+- Settings UI: segmented picker (Auto / Light / Dark) in both SettingsView and PreferencesView
 
 ### View Modifiers (Extensions.swift)
-- `.cardStyle()` — padding(LG) + appCardBackground + cornerRadiusLG + orange accent border
-- `.secondaryCardStyle()` — padding(LG) + appCardSecondary + cornerRadiusMD + subtle border
+- `.cardStyle()` — padding(LG) + appCardBackground + cornerRadiusLG + orange accent border + subtle shadow
+- `.secondaryCardStyle()` — padding(LG) + appCardSecondary + cornerRadiusMD + subtle border + shadow
 - `.pixelCardStyle()` — pixel-stepped corners (PixelBorder shape) + orange accent
 - `.pixelButtonStyle()` — full-width retro button with gradient orange border
 - `.primaryButtonStyle()` — filled orange button with glow shadow
-- `.sectionHeaderStyle()` — font 20pt bold + white + leading
-- `.screenBackground()` — deep dark appBackground
+- `.sectionHeaderStyle()` — font 20pt bold + appTextPrimary + leading
+- `.screenBackground()` — appBackground (adaptive)
 - `.accentGlow(radius:)` — orange shadow glow effect
 - `.scanlineOverlay(opacity:)` — CRT horizontal lines for retro atmosphere
 - `.pixelDivider()` — thin line with subtle accent
@@ -114,7 +133,8 @@ FuelLift/
 - Goals: calorieGoal (2000), proteinGoal (150g), carbsGoal (250g), fatGoal (65g), waterGoalML (2500)
 - Body: heightCM, weightKG, weightGoalKG (optional), age, gender, activityLevel
 - Nutrition Plan: dietaryPreference (String?), workoutsPerWeek (Int?), targetWeightKG (Double?)
-- Prefs: useMetricUnits, darkModeEnabled, notificationsEnabled, healthKitEnabled
+- Prefs: useMetricUnits, darkModeEnabled (legacy), notificationsEnabled, healthKitEnabled
+- **Appearance:** appearanceMode (String, default "auto") — "auto", "light", "dark"
 - Dashboard toggles: showStreakBadge, showQuickActions, showMacrosBreakdown, showWaterTracker, showWorkoutSummary
 - Streaks: currentStreak, longestStreak, lastLogDate
 - Onboarding: hasCompletedOnboarding; Profile: displayName, email, firestoreId
@@ -155,10 +175,34 @@ FuelLift/
 | NutritionViewModel | ObservableObject | selectedDate, todayEntries, todayWater, totals, badgeViewModel | addFoodEntry() (checks meal+streak badges) |
 | WorkoutViewModel | ObservableObject | activeWorkout, exerciseGroups, elapsedSeconds, newPRs, badgeViewModel | startWorkout(), finishWorkout() (checks workout+PR badges) |
 | ProgressViewModel | ObservableObject | weightHistory, calorieHistory, exercisePRs | loadData() |
-| FoodScanViewModel | ObservableObject | capturedImage, scannedNutrition | analyzePhoto(), analyzeDescription() |
-| WorkoutPlannerViewModel | ObservableObject | selectedGoal, generatedPlan | generatePlan(), savePlan(), refinePlan() |
+| FoodScanViewModel | ObservableObject | capturedImage, scannedNutrition | analyzePhoto(), analyzeDescription() — **uses GeminiService** |
+| WorkoutPlannerViewModel | ObservableObject | selectedGoal, generatedPlan | generatePlan(), savePlan(), refinePlan() — **uses ClaudeService** |
 | ExerciseLibraryViewModel | ObservableObject | exercises, searchText | filteredExercises |
 | SocialViewModel | ObservableObject | groups, friends | — Firebase dependent |
+
+---
+
+## AI Services
+
+### GeminiService (Food Scanning — NEW)
+- **File:** `Services/GeminiService.swift`
+- **Singleton:** `GeminiService.shared`
+- **Model:** `gemini-2.5-flash` (stable, text+vision)
+- **API:** REST direct (no SDK), API key as query param
+- **Methods:** `analyzeFoodPhoto(_:)`, `analyzeFoodDescription(_:)` → `NutritionData`
+- **Features:** `responseMimeType: "application/json"` + `responseSchema` for clean JSON, 30s timeout, fallback Int/Double decoding, safety filter detection
+- **API Key:** `GEMINI_API_KEY` via Info.plist → `AppConstants.geminiAPIKey`
+
+### ClaudeService (Workout Plans & Nutrition Goals)
+- **File:** `Services/ClaudeService.swift`
+- **Singleton:** `ClaudeService.shared`
+- **Model:** `claude-sonnet-4-6`
+- **API:** Anthropic REST API with `x-api-key` header
+- **Methods:** `generateWorkoutPlan()`, `refineWorkoutPlan()`, `calculateNutritionGoals()` (food scanning removed — moved to Gemini)
+- **API Key:** `ANTHROPIC_API_KEY` via Info.plist → `AppConstants.anthropicAPIKey`
+
+### API Key Chain (for both services)
+GitHub Secrets → testflight.yml env → Fastfile xcargs → project.yml build settings → Info.plist → Bundle.main.infoDictionary → Constants.swift
 
 ---
 
@@ -200,6 +244,7 @@ FuelLift/
 - **Runner:** macos-14, Xcode 16.2
 - **Flow:** Checkout → XcodeGen → Ruby/Fastlane → GoogleService-Info.plist (placeholder) → SPM resolve → Fastlane beta lane
 - **Signing:** Manual code signing on FuelLift target only; SPM packages use automatic
+- **Secrets:** ANTHROPIC_API_KEY, OPENAI_API_KEY, GEMINI_API_KEY, DEVELOPMENT_TEAM, MATCH_*, ASC_*
 - **App Icon:** Pixel art lifter character, 1024x1024 PNG (single-size format)
 
 ---
@@ -209,9 +254,11 @@ FuelLift/
 - **Firebase:** Disabled. All services guard with `FirebaseApp.app() != nil`.
 - **Auth:** Bypassed — isAuthenticated = true on init.
 - **Local data:** SwiftData fully functional.
-- **Claude AI:** Active — workout plans, food analysis, nutrition goals (key in Constants.swift).
+- **Gemini AI:** Active — food photo scanning, food description analysis (key: GEMINI_API_KEY in Constants.swift).
+- **Claude AI:** Active — workout plans, nutrition goals (key: ANTHROPIC_API_KEY in Constants.swift).
 - **HealthKit:** Active (requires device support).
-- **UI:** Retro-futuristic dark arcade — deep black backgrounds (#08080F), hot orange accents (#FF6B00), neon macro colors, pixel-stepped borders, CRT scanline overlay, glow effects. 123 custom pixel art assets. `.pixelArt()` helper on all asset images.
+- **UI:** Retro-futuristic adaptive — dark arcade (#08080F) or clean light (#F7F7F9), hot orange accents (#FF6B00), neon macro colors, pixel-stepped borders, CRT scanline overlay, glow effects. 123 custom pixel art assets. `.pixelArt()` helper on all asset images.
+- **Appearance:** Auto/Light/Dark via segmented picker in Settings. Colors adapt using UIColor dynamic provider.
 - **Build:** Compiles cleanly (0 errors). CI/CD fully operational.
 - **TestFlight:** Live, internal testing.
 
@@ -220,7 +267,15 @@ FuelLift/
 - Unused StorageReference (StorageService)
 - "All interface orientations must be supported" (build warning, non-blocking)
 
-### Recently Implemented (v6 — Retro-Futuristic Dark UI + Badge System)
+### Recently Implemented (v7 — Gemini Vision + Light Mode)
+- **Gemini Vision food scanning** — GeminiService.swift replaces Claude for food photo/description analysis
+- **JSON mode** — responseMimeType + responseSchema for reliable Gemini JSON output
+- **Light mode support** — all Theme colors adaptive via UIColor dynamic provider
+- **Appearance setting** — Auto/Light/Dark segmented picker replaces broken dark mode toggle
+- **UserProfile.appearanceMode** — new property (default "auto"), applied in RootView.preferredColorScheme
+- **Card shadows** — subtle shadow on cardStyle/secondaryCardStyle for light mode depth
+
+### Previously Implemented (v6 — Retro-Futuristic Dark UI + Badge System)
 - **Dark design system overhaul** — replaced system-adaptive colors with intentional dark palette
 - **New color tokens** — neon macro colors, border/glow tokens, accent variants
 - **New view modifiers** — pixelButtonStyle, primaryButtonStyle, accentGlow, scanlineOverlay, pixelCardStyle, PixelBorder shape, ScanlinePattern
@@ -230,8 +285,7 @@ FuelLift/
 - **Tappable badges** — MilestonesView badges link to BadgeDetailView, locked badges show greyed-out image + lock overlay
 - **Settings fixes** — NavigationStack added (fixes navigation), PreferencesView (dark mode, units, water goal), nutrition goals in ProfileEditView, "Reset AI Plan" rename
 - **Exercise library expansion** — 18 new exercises (45 total), image mapping fixes
-- **Notification defaults** — dinner time 6:00 PM
-- **16 skills installed** to .claude/commands/ (design, docs, dev, communication)
+- **Exercise images in workout views** — thumbnails in ExercisePickerView (40x40) and ActiveWorkoutView (32x32)
 
 ### Previously Implemented (v5 — Pixel Art Visual Overhaul)
 - 122 pixel art assets via Gemini Nano Banana, background removal, content cropping
@@ -251,7 +305,6 @@ FuelLift/
 - **Superset/Dropset Support** — SupersetGroupView exists but not integrated
 - **Rest Timer Customization** — Needs user-configurable duration
 - **Workout Sharing** — Export/import routines
-- **Light mode support** — Currently dark-only by design
 
 ---
 
@@ -264,9 +317,9 @@ FuelLift/
 | ViewModels | 10 |
 | Views | 51 |
 | Components | 9 |
-| Services | 10 |
+| Services | 11 (added GeminiService) |
 | Utilities | 4 |
 | Resources | 5 |
 | Scripts | 3 (generate_image, remove_backgrounds, crop_images) |
 | Asset Images | 123 |
-| **Total Swift** | **95** |
+| **Total Swift** | **96** |
