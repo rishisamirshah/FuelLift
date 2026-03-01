@@ -9,9 +9,12 @@ struct MenuItem: Identifiable, Hashable {
     let proteinG: Double
     let carbsG: Double
     let fatG: Double
-    let imageURL: URL?                  // Spoonacular CDN image
+    let imageURL: URL?                  // Spoonacular CDN image or search-based URL
     let badges: [String]                // "vegetarian", "vegan", etc.
     let source: MenuItemSource
+    let imageSearchQuery: String?       // For image lookup
+    let healthScore: Int?               // 0-100 health rating from Gemini
+    let description: String?            // Item description
 
     enum MenuItemSource: String, Hashable {
         case spoonacular
@@ -19,6 +22,6 @@ struct MenuItem: Identifiable, Hashable {
     }
 
     var macroSummary: String {
-        "\(proteinG.oneDecimal)P  \(carbsG.oneDecimal)C  \(fatG.oneDecimal)F"
+        "\(Int(proteinG))P  \(Int(carbsG))C  \(Int(fatG))F"
     }
 }

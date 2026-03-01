@@ -69,6 +69,13 @@ final class UserProfile {
     // Onboarding
     var hasCompletedOnboarding: Bool
 
+    // FuelFinder Survey
+    var hasFuelFinderSurvey: Bool = false
+    var fuelFinderDietType: String = ""
+    var fuelFinderCuisinePreferences: String = "[]"
+    var fuelFinderProteinPreferences: String = "[]"
+    var fuelFinderAllergies: String = "[]"
+
     init(
         id: String,
         displayName: String = "",
@@ -109,5 +116,22 @@ final class UserProfile {
         self.currentStreak = 0
         self.longestStreak = 0
         self.hasCompletedOnboarding = false
+    }
+
+    // MARK: - FuelFinder Survey Helpers
+
+    var cuisinePreferencesArray: [String] {
+        get { (try? JSONDecoder().decode([String].self, from: Data(fuelFinderCuisinePreferences.utf8))) ?? [] }
+        set { fuelFinderCuisinePreferences = (try? String(data: JSONEncoder().encode(newValue), encoding: .utf8)) ?? "[]" }
+    }
+
+    var proteinPreferencesArray: [String] {
+        get { (try? JSONDecoder().decode([String].self, from: Data(fuelFinderProteinPreferences.utf8))) ?? [] }
+        set { fuelFinderProteinPreferences = (try? String(data: JSONEncoder().encode(newValue), encoding: .utf8)) ?? "[]" }
+    }
+
+    var allergiesArray: [String] {
+        get { (try? JSONDecoder().decode([String].self, from: Data(fuelFinderAllergies.utf8))) ?? [] }
+        set { fuelFinderAllergies = (try? String(data: JSONEncoder().encode(newValue), encoding: .utf8)) ?? "[]" }
     }
 }

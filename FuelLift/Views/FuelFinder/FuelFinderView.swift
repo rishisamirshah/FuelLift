@@ -12,27 +12,57 @@ struct FuelFinderView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: Theme.spacingLG) {
-                    if locationService.authorizationStatus == .notDetermined ||
-                       locationService.authorizationStatus == .denied ||
-                       locationService.authorizationStatus == .restricted {
-                        locationPromptCard
-                    } else if viewModel.isLoadingRestaurants {
-                        shimmerCards
-                    } else if let error = viewModel.errorMessage, viewModel.restaurants.isEmpty {
-                        errorCard(error)
-                    } else {
-                        restaurantList
+            VStack(spacing: 0) {
+                // View mode picker + reset button
+                if profile?.hasFuelFinderSurvey == true {
+                    HStack {
+                        Picker("View", selection: $viewModel.viewMode) {
+                            ForEach(FuelFinderViewModel.ViewMode.allCases, id: \.self) { mode in
+                                Text(mode.rawValue).tag(mode)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+
+                        Button {
+                            viewModel.showResetAlert = true
+                        } label: {
+                            Image(systemName: "gearshape")
+                                .font(.system(size: 16))
+                                .foregroundStyle(Color.appTextSecondary)
+                                .padding(8)
+                                .background(Color.appCardSecondary)
+                                .clipShape(Circle())
+                        }
                     }
+                    .padding(.horizontal, Theme.spacingLG)
+                    .padding(.vertical, Theme.spacingSM)
+                } else {
+                    // No survey yet — just show mode picker
+                    Picker("View", selection: $viewModel.viewMode) {
+                        ForEach(FuelFinderViewModel.ViewMode.allCases, id: \.self) { mode in
+                            Text(mode.rawValue).tag(mode)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    .padding(.horizontal, Theme.spacingLG)
+                    .padding(.vertical, Theme.spacingSM)
                 }
-                .padding(.horizontal, Theme.spacingLG)
-                .padding(.bottom, Theme.spacingHuge)
+
+                // Content
+                if viewModel.viewMode == .list {
+                    listContent
+                } else {
+                    FuelFinderMapView(viewModel: viewModel, profile: profile)
+                }
             }
             .screenBackground()
             .navigationTitle("FuelFinder")
             .searchable(text: $viewModel.searchText, prompt: "Search restaurants...")
+            .onChange(of: viewModel.searchText) { _, _ in
+                viewModel.searchRestaurants()
+            }
             .onAppear {
+                viewModel.checkSurvey(profile: profile)
                 if locationService.currentLocation != nil && viewModel.restaurants.isEmpty {
                     Task { await viewModel.loadRestaurants() }
                 }
@@ -45,6 +75,39 @@ struct FuelFinderView: View {
             .refreshable {
                 await viewModel.loadRestaurants()
             }
+            .fullScreenCover(isPresented: $viewModel.showSurvey) {
+                FuelFinderSurveyView()
+            }
+            .alert("Reset Preferences", isPresented: $viewModel.showResetAlert) {
+                Button("Reset", role: .destructive) {
+                    viewModel.resetSurvey(profile: profile, context: modelContext)
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("This will reset your dietary preferences and show the survey again next time you open FuelFinder.")
+            }
+        }
+    }
+
+    // MARK: - List Content
+
+    private var listContent: some View {
+        ScrollView {
+            VStack(spacing: Theme.spacingLG) {
+                if locationService.authorizationStatus == .notDetermined ||
+                   locationService.authorizationStatus == .denied ||
+                   locationService.authorizationStatus == .restricted {
+                    locationPromptCard
+                } else if viewModel.isLoadingRestaurants {
+                    shimmerCards
+                } else if let error = viewModel.errorMessage, viewModel.restaurants.isEmpty {
+                    errorCard(error)
+                } else {
+                    restaurantList
+                }
+            }
+            .padding(.horizontal, Theme.spacingLG)
+            .padding(.bottom, Theme.spacingHuge)
         }
     }
 
@@ -80,7 +143,7 @@ struct FuelFinderView: View {
 
     private var shimmerCards: some View {
         VStack(spacing: Theme.spacingMD) {
-            ForEach(0..<4, id: \.self) { _ in
+            ForEach(0..<6, id: \.self) { _ in
                 RoundedRectangle(cornerRadius: Theme.cornerRadiusLG)
                     .fill(Color.appCardBackground)
                     .frame(height: 120)
@@ -117,7 +180,7 @@ struct FuelFinderView: View {
 
     private var restaurantList: some View {
         LazyVStack(spacing: Theme.spacingMD) {
-            ForEach(viewModel.filteredRestaurants) { restaurant in
+            ForEach(viewModel.restaurants) { restaurant in
                 NavigationLink {
                     RestaurantDetailView(
                         restaurant: restaurant,

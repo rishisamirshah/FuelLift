@@ -109,7 +109,10 @@ final class SpoonacularService {
                 fatG: fatG,
                 imageURL: imageURL,
                 badges: badges,
-                source: .spoonacular
+                source: .spoonacular,
+                imageSearchQuery: nil,
+                healthScore: nil,
+                description: nil
             )
         }
     }

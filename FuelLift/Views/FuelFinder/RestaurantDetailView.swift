@@ -182,12 +182,25 @@ struct RestaurantDetailView: View {
     private var menuSection: some View {
         VStack(spacing: Theme.spacingMD) {
             if viewModel.isLoadingMenu {
-                ForEach(0..<5, id: \.self) { _ in
-                    RoundedRectangle(cornerRadius: Theme.cornerRadiusMD)
-                        .fill(Color.appCardBackground)
-                        .frame(height: 100)
-                        .shimmering()
+                VStack(spacing: Theme.spacingLG) {
+                    ProgressView()
+                        .scaleEffect(1.5)
+                        .tint(Color.appAccent)
+
+                    Text("Researching \(restaurant.name)...")
+                        .font(.system(size: Theme.bodySize, weight: .semibold))
+                        .foregroundStyle(Color.appTextPrimary)
+
+                    Text("Finding the best menu items for you")
+                        .font(.system(size: Theme.captionSize))
+                        .foregroundStyle(Color.appTextSecondary)
+
+                    Text("This may take up to 2 minutes for accurate results")
+                        .font(.system(size: Theme.miniSize))
+                        .foregroundStyle(Color.appTextTertiary)
                 }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, Theme.spacingHuge)
             } else if viewModel.displayedItems.isEmpty {
                 VStack(spacing: Theme.spacingSM) {
                     Image(systemName: "menucard")

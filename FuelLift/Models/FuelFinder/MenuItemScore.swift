@@ -27,22 +27,22 @@ struct MenuItemScore: Hashable {
         let rationale: String
 
         switch goal {
-        case "weight_loss":
+        case "weight_loss", "Lose Fat", "lose_fat":
             // Prioritize: low calorie (40pts) + high protein density (40pts) + low fat (20pts)
             let calScore = max(0, 40 - max(0, (item.calories - 400)) / 10)
             let proteinDensity = item.calories > 0 ? (item.proteinG * 4.0) / Double(item.calories) : 0
             let proteinScore = Int(min(40, proteinDensity * 100))
             let fatScore = max(0, 20 - Int(item.fatG) / 2)
             score = min(100, calScore + proteinScore + fatScore)
-            rationale = "\(item.calories) cal, \(item.proteinG.oneDecimal)g protein — \(proteinDensity > 0.3 ? "high" : "moderate") protein density"
+            rationale = "\(item.calories) cal, \(Int(item.proteinG))g protein — \(proteinDensity > 0.3 ? "high" : "moderate") protein density"
 
-        case "muscle_gain":
+        case "muscle_gain", "Build Muscle", "build_muscle":
             // Prioritize: high protein (50pts) + sufficient calories (30pts) + carbs (20pts)
             let proteinScore = min(50, Int(item.proteinG) * 2)
             let calScore = min(30, item.calories / 20)
             let carbScore = min(20, Int(item.carbsG) / 3)
             score = min(100, proteinScore + calScore + carbScore)
-            rationale = "\(item.proteinG.oneDecimal)g protein, \(item.calories) cal — \(item.proteinG >= 30 ? "great" : "moderate") for muscle building"
+            rationale = "\(Int(item.proteinG))g protein, \(item.calories) cal — \(item.proteinG >= 30 ? "great" : "moderate") for muscle building"
 
         default: // "maintenance"
             // Balanced deviation from 1/3 daily macro targets

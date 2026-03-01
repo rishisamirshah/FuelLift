@@ -70,7 +70,7 @@ struct MenuItemCard: View {
             Text(letter)
                 .font(.system(size: Theme.miniSize, weight: .bold))
                 .foregroundStyle(color)
-            Text(value.oneDecimal)
+            Text("\(Int(value))")
                 .font(.system(size: Theme.miniSize))
                 .foregroundStyle(Color.appTextSecondary)
         }

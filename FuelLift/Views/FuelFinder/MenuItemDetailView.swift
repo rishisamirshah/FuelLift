@@ -197,7 +197,7 @@ struct MenuItemDetailView: View {
                 .font(.system(size: 20))
                 .foregroundStyle(color)
 
-            Text(value.oneDecimal + "g")
+            Text("\(Int(value))g")
                 .font(.system(size: Theme.bodySize, weight: .bold))
                 .foregroundStyle(Color.appTextPrimary)
 
