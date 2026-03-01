@@ -13,6 +13,7 @@ struct DashboardView: View {
     @State private var selectedDate = Date()
     @StateObject private var workoutVM = WorkoutViewModel()
     @State private var appeared = false
+    @State private var capturedImage: UIImage?
 
     private var profile: UserProfile? { profiles.first }
 
@@ -76,7 +77,7 @@ struct DashboardView: View {
                             .animation(.easeOut(duration: 0.4).delay(0.25), value: appeared)
                     }
 
-                    // 6. Recently uploaded food list (always visible below all pages)
+                    // 6. Recently uploaded food list
                     recentlyUploadedSection
                         .padding(.horizontal, Theme.spacingLG)
                         .opacity(appeared ? 1 : 0)
@@ -101,20 +102,109 @@ struct DashboardView: View {
             .onChange(of: selectedDate) { _, _ in
                 viewModel.loadDashboard(context: modelContext, for: selectedDate)
             }
-            .onReceive(Timer.publish(every: 3, on: .main, in: .common).autoconnect()) { _ in
+            .onReceive(Timer.publish(every: 2, on: .main, in: .common).autoconnect()) { _ in
                 // Auto-refresh while entries are pending analysis
                 if viewModel.todayEntries.contains(where: { $0.analysisStatus == "pending" || $0.analysisStatus == "analyzing" }) {
                     viewModel.loadDashboard(context: modelContext, for: selectedDate)
                 }
             }
-            .sheet(isPresented: $showCamera, onDismiss: {
+            // CalAI-style camera scanner — opens directly
+            .fullScreenCover(isPresented: $showCamera) {
                 viewModel.loadDashboard(context: modelContext, for: selectedDate)
-            }) {
-                CameraScanView(nutritionViewModel: {
-                    let vm = NutritionViewModel()
-                    vm.badgeViewModel = badgeViewModel
-                    return vm
-                }())
+            } content: {
+                FoodScannerView(
+                    capturedImage: $capturedImage,
+                    onBarcodeScan: { barcode in
+                        // Create pending entry for barcode lookup
+                        let entry = FoodEntry(
+                            name: "Looking up...",
+                            calories: 0, proteinG: 0, carbsG: 0, fatG: 0,
+                            servingSize: "", mealType: "snack", source: "barcode"
+                        )
+                        entry.analysisStatus = "pending"
+                        entry.barcode = barcode
+                        modelContext.insert(entry)
+                        try? modelContext.save()
+                        viewModel.loadDashboard(context: modelContext, for: selectedDate)
+
+                        let context = modelContext
+                        Task.detached(priority: .userInitiated) {
+                            do {
+                                let nutrition = try await BarcodeService.shared.lookupBarcode(barcode)
+                                await MainActor.run {
+                                    entry.name = nutrition.name
+                                    entry.calories = nutrition.calories
+                                    entry.proteinG = nutrition.proteinG
+                                    entry.carbsG = nutrition.carbsG
+                                    entry.fatG = nutrition.fatG
+                                    entry.servingSize = nutrition.servingSize
+                                    entry.analysisStatus = "completed"
+                                    try? context.save()
+                                }
+                            } catch {
+                                await MainActor.run {
+                                    entry.analysisStatus = "failed"
+                                    entry.name = "Lookup failed"
+                                    try? context.save()
+                                }
+                            }
+                        }
+                    }
+                )
+                .ignoresSafeArea()
+            }
+            .onChange(of: capturedImage) { _, newImage in
+                guard let newImage else { return }
+                // Downscale, create pending entry, analyze in background
+                let scaled = Self.downscale(newImage, maxDimension: 1024)
+                let entry = FoodEntry(
+                    name: "Analyzing...",
+                    calories: 0,
+                    proteinG: 0,
+                    carbsG: 0,
+                    fatG: 0,
+                    servingSize: "",
+                    mealType: "snack",
+                    source: "ai_scan"
+                )
+                entry.analysisStatus = "pending"
+                if let imgData = newImage.jpegData(compressionQuality: 0.5) {
+                    entry.imageData = imgData
+                }
+                modelContext.insert(entry)
+                try? modelContext.save()
+                viewModel.loadDashboard(context: modelContext, for: selectedDate)
+
+                // Reset for next capture
+                capturedImage = nil
+
+                // Analyze in background
+                let context = modelContext
+                Task.detached(priority: .userInitiated) {
+                    do {
+                        let nutrition = try await GeminiService.shared.analyzeFoodPhoto(scaled)
+                        await MainActor.run {
+                            entry.name = nutrition.name
+                            entry.calories = nutrition.calories
+                            entry.proteinG = nutrition.proteinG
+                            entry.carbsG = nutrition.carbsG
+                            entry.fatG = nutrition.fatG
+                            entry.servingSize = nutrition.servingSize
+                            entry.analysisStatus = "completed"
+                            if let ingredients = nutrition.ingredients,
+                               let data = try? JSONEncoder().encode(ingredients) {
+                                entry.ingredientsJSON = String(data: data, encoding: .utf8)
+                            }
+                            try? context.save()
+                        }
+                    } catch {
+                        await MainActor.run {
+                            entry.analysisStatus = "failed"
+                            entry.name = "Analysis failed"
+                            try? context.save()
+                        }
+                    }
+                }
             }
             .sheet(isPresented: $showNutritionPlan, onDismiss: {
                 viewModel.loadDashboard(context: modelContext, for: selectedDate)
@@ -171,25 +261,83 @@ struct DashboardView: View {
                     if entry.analysisStatus == "pending" || entry.analysisStatus == "analyzing" {
                         shimmerFoodCard(entry)
                     } else {
-                        SwipeToDeleteCard {
-                            NavigationLink {
-                                FoodEntryDetailView(entry: entry)
-                            } label: {
-                                foodEntryCard(entry)
-                            }
-                            .buttonStyle(.plain)
-                        } onDelete: {
-                            deleteFoodEntry(entry)
-                        }
+                        foodEntryRow(entry)
                     }
                 }
             }
         }
     }
 
+    // MARK: - Food Entry Row with Swipe Delete
+
+    private func foodEntryRow(_ entry: FoodEntry) -> some View {
+        ZStack(alignment: .trailing) {
+            // Delete button behind
+            Button {
+                withAnimation(.easeInOut(duration: 0.25)) {
+                    deleteFoodEntry(entry)
+                }
+            } label: {
+                VStack {
+                    Image(systemName: "trash.fill")
+                        .font(.system(size: 20))
+                        .foregroundStyle(.white)
+                    Text("Delete")
+                        .font(.system(size: Theme.miniSize, weight: .medium))
+                        .foregroundStyle(.white)
+                }
+                .frame(width: 80)
+                .frame(maxHeight: .infinity)
+                .background(Color.appFatColor)
+                .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusLG))
+            }
+
+            NavigationLink {
+                FoodEntryDetailView(entry: entry)
+            } label: {
+                foodEntryCard(entry)
+            }
+            .buttonStyle(.plain)
+            .offset(x: swipeOffsets[entry.id] ?? 0)
+            .gesture(
+                DragGesture(minimumDistance: 30, coordinateSpace: .local)
+                    .onChanged { value in
+                        // Only respond to horizontal swipes
+                        let horizontal = abs(value.translation.width)
+                        let vertical = abs(value.translation.height)
+                        guard horizontal > vertical else { return }
+
+                        if value.translation.width < 0 {
+                            swipeOffsets[entry.id] = max(value.translation.width, -90)
+                        } else {
+                            swipeOffsets[entry.id] = 0
+                        }
+                    }
+                    .onEnded { value in
+                        let horizontal = abs(value.translation.width)
+                        let vertical = abs(value.translation.height)
+
+                        if horizontal > vertical && value.translation.width < -60 {
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                                swipeOffsets[entry.id] = -90
+                            }
+                        } else {
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                                swipeOffsets[entry.id] = 0
+                            }
+                        }
+                    }
+            )
+        }
+        .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusLG))
+    }
+
+    @State private var swipeOffsets: [String: CGFloat] = [:]
+
     // MARK: - Delete Food Entry
 
     private func deleteFoodEntry(_ entry: FoodEntry) {
+        swipeOffsets.removeValue(forKey: entry.id)
         modelContext.delete(entry)
         try? modelContext.save()
         viewModel.loadDashboard(context: modelContext, for: selectedDate)
@@ -304,80 +452,17 @@ struct DashboardView: View {
                 .foregroundStyle(Color.appTextPrimary)
         }
     }
-}
 
-// MARK: - Swipe to Delete Card
-
-private struct SwipeToDeleteCard<Content: View>: View {
-    let content: () -> Content
-    let onDelete: () -> Void
-
-    @State private var offset: CGFloat = 0
-    @State private var showDelete = false
-
-    private let deleteThreshold: CGFloat = -80
-    private let fullSwipeThreshold: CGFloat = -200
-
-    var body: some View {
-        ZStack(alignment: .trailing) {
-            // Delete background
-            HStack {
-                Spacer()
-                Button {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                        onDelete()
-                    }
-                } label: {
-                    Image(systemName: "trash.fill")
-                        .font(.system(size: 20))
-                        .foregroundStyle(.white)
-                        .frame(width: 70, height: .infinity)
-                }
-                .frame(width: 70)
-                .background(Color.appFatColor)
-                .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusLG))
-            }
-            .opacity(showDelete ? 1 : 0)
-
-            // Content
-            content()
-                .offset(x: offset)
-                .gesture(
-                    DragGesture(minimumDistance: 20)
-                        .onChanged { value in
-                            let translation = value.translation.width
-                            // Only allow left swipe
-                            if translation < 0 {
-                                offset = translation
-                                showDelete = translation < deleteThreshold
-                            }
-                        }
-                        .onEnded { value in
-                            let translation = value.translation.width
-                            if translation < fullSwipeThreshold {
-                                // Full swipe — delete immediately
-                                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                                    offset = -500
-                                }
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                                    onDelete()
-                                }
-                            } else if translation < deleteThreshold {
-                                // Partial swipe — show delete button
-                                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                                    offset = deleteThreshold
-                                }
-                            } else {
-                                // Snap back
-                                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                                    offset = 0
-                                    showDelete = false
-                                }
-                            }
-                        }
-                )
+    /// Downscale image to reduce upload size and avoid Gemini timeouts
+    private static func downscale(_ image: UIImage, maxDimension: CGFloat) -> UIImage {
+        let size = image.size
+        guard max(size.width, size.height) > maxDimension else { return image }
+        let scale = maxDimension / max(size.width, size.height)
+        let newSize = CGSize(width: size.width * scale, height: size.height * scale)
+        let renderer = UIGraphicsImageRenderer(size: newSize)
+        return renderer.image { _ in
+            image.draw(in: CGRect(origin: .zero, size: newSize))
         }
-        .clipped()
     }
 }
 

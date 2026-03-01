@@ -1,6 +1,6 @@
 # FuelLift Brain - Complete Project Context
 
-> Last updated: 2026-03-01 (v8 — Cal AI-Inspired Feature Overhaul)
+> Last updated: 2026-03-01 (v9 — FuelFinder + CalAI Camera Scanner)
 > Auto-maintained by "Update all" task
 
 ---
@@ -26,18 +26,25 @@ FuelLift/
 ├── App/                    # Entry points (3 files)
 │   ├── FuelLiftApp.swift   # @main, ModelContainer (9 models), RootView, BadgeViewModel init
 │   ├── AppDelegate.swift   # Notifications (Firebase disabled)
-│   └── ContentView.swift   # Custom 4-tab bar + FAB overlay + scanline CRT
-├── Models/                 # SwiftData @Model + structs (11 files)
-├── ViewModels/             # State managers (10 files)
-├── Views/                  # SwiftUI views (55 files)
-│   ├── Dashboard/          # 6 files (added DashboardPagerView, StepsBurnedPage, WaterPage)
-│   ├── Nutrition/          # 11 files (added FixIssueSheet)
+│   └── ContentView.swift   # Custom 5-tab bar + FAB overlay + scanline CRT
+├── Models/                 # SwiftData @Model + structs (14 files)
+│   └── FuelFinder/         # Restaurant, MenuItem, MenuItemScore (3 new)
+├── ViewModels/             # State managers (11 files)
+│   └── FuelFinderViewModel.swift (new)
+├── Views/                  # SwiftUI views (62 files)
+│   ├── Dashboard/          # 6 files
+│   ├── Nutrition/          # 12 files (added FoodScannerView)
+│   ├── FuelFinder/         # 5 files (NEW — RestaurantDetailView, FuelFinderView, RestaurantCard, MenuItemCard, MenuItemDetailView)
 │   ├── Workout/            # 10 files
 │   ├── Progress/           # 12 files
 │   ├── Social/             # 5 files
 │   ├── Settings/           # 5 files
 │   └── Onboarding/         # 3 files
-├── Services/               # Singletons (11 files)
+├── Services/               # Singletons (15 files)
+│   ├── GooglePlacesService.swift (new)
+│   ├── SpoonacularService.swift (new)
+│   ├── FuelFinderService.swift (new)
+│   └── LocationService.swift (new)
 ├── Utilities/              # Theme, Extensions, Constants, ImagePicker
 │   └── Components/         # 9 shared UI components
 └── Resources/              # Info.plist, Entitlements, Assets.xcassets (123 images)
@@ -113,19 +120,20 @@ All colors adapt automatically based on color scheme (dark/light).
 
 ## Tab Navigation
 
-4 tabs + Floating Action Button (custom VStack-based, NOT SwiftUI TabView):
+5 tabs + Floating Action Button (custom VStack-based, NOT SwiftUI TabView):
 
 | Tab | Icon Asset | Destination | Purpose |
 |-----|------------|-------------|---------|
 | Home | icon_house | DashboardView | Daily summary, calorie ring, macros, streak |
 | Progress | icon_chart_bar | ProgressDashboardView | Weight/calorie charts, milestones, badges |
+| FuelFinder | SF: mappin.and.ellipse | FuelFinderView | Nearby restaurants, menu nutrition, goal scoring |
 | Workout | icon_dumbbell | WorkoutListView | Templates, active workout, history |
 | Profile | icon_person | SettingsView | Profile, settings, social access |
 
 - **Tab bar design:** Dark bg, orange gradient top line, glowing 3px orange underline on selected tab, spring animation, icon scale 1.1x on select
 - **FAB:** Orange FloatingActionButton bottom-right with glow + ring border, opens FoodLogView sheet
 - **CRT overlay:** Scanline pattern on content area
-- Social tab removed — accessible from Profile
+- FuelFinder tab uses SF Symbol (useSFSymbol property on Tab enum)
 
 ---
 
@@ -163,11 +171,17 @@ All colors adapt automatically based on color scheme (dark/light).
 - key (String→BadgeKey), name, badgeDescription, iconName, category (String→BadgeCategory), requirement, earnedDate (Date?)
 - Computed: isEarned (earnedDate != nil)
 
+### FuelFinder Models (v9 — plain structs, not SwiftData)
+- **Restaurant** — id (placeId), name, address, coordinate (CLLocationCoordinate2D), distanceMeters, isOpen, photoReference, priceLevel, rating, userRatingsTotal, types. Computed: distanceText, priceLevelText. Hashable via id only.
+- **MenuItem** — id, name, restaurantChain, servingSize, calories, proteinG, carbsG, fatG, imageURL, badges, source (MenuItemSource: .spoonacular | .geminiEstimate)
+- **MenuItemScore** — score (0-100), label (GREAT/GOOD/FAIR/POOR), color. Static `calculate(item:profile:)` with three goal modes: weight_loss (low cal + high protein density), muscle_gain (high protein + sufficient cals), maintenance (balanced deviation).
+
 ### Supporting Types
 - **BadgeCategory** (enum) — streak, meals, workouts, strength, bodyProgress, social (displayName, gradientColors, gradient)
 - **BadgeKey** (enum) — 31 cases across 6 categories
 - **BadgeDefinition** (struct) — static all: 31 badge definitions with keys, names, icons, requirements, imageName
 - **PRType** (enum) — oneRM, volume, weight (label, color)
+- **ScanMode** (enum) — scanFood, barcode, foodLabel (rawValue + iconName SF Symbol)
 
 ---
 
@@ -184,11 +198,12 @@ All colors adapt automatically based on color scheme (dark/light).
 | FoodScanViewModel | ObservableObject | capturedImage, scannedNutrition, onPendingEntry | analyzePhoto(), analyzeDescription(), createPendingEntry() — **uses GeminiService** |
 | WorkoutPlannerViewModel | ObservableObject | selectedGoal, generatedPlan | generatePlan(), savePlan(), refinePlan() — **uses ClaudeService** |
 | ExerciseLibraryViewModel | ObservableObject | exercises, searchText | filteredExercises |
+| FuelFinderViewModel | ObservableObject | restaurants, selectedRestaurant, menuItems, scoredItems, isLoadingRestaurants, isLoadingMenu, searchText, selectedFilter (MenuFilter) | loadRestaurants(), selectRestaurant(), addToFoodLog() — **uses GooglePlaces, Spoonacular, Gemini, Location** |
 | SocialViewModel | ObservableObject | groups, friends | — Firebase dependent |
 
 ---
 
-## Dashboard (v8 Redesign)
+## Dashboard (v8/v9)
 
 ### Layout (DashboardView.swift)
 1. **Header** — logo + StreakBadge (if streak > 0)
@@ -199,21 +214,94 @@ All colors adapt automatically based on color scheme (dark/light).
    - Page 3: WaterPage (water ring + add buttons)
 4. **Quick Actions** — Scan Food, Start Workout, AI Nutrition Plan
 5. **WorkoutSummaryCard** — today's completed workout
-6. **Recently Uploaded** — food list with shimmer loading cards for pending entries, context menu delete
+6. **Recently Uploaded** — food list with shimmer cards for pending entries, swipe-to-delete
 
-### Instant Food Add Flow
-1. User opens camera → takes photo
-2. Pending FoodEntry created immediately (analysisStatus="pending", name="Analyzing...", zero macros)
-3. Camera sheet dismisses → dashboard shows shimmer card with food thumbnail
-4. Gemini analysis continues in background
-5. On completion → entry updated with real data, analysisStatus="completed", shimmer resolves to real card
-6. On failure → analysisStatus="failed", name="Analysis failed"
+### Swipe-to-Delete (v9)
+- Per-entry offset tracking via `@State private var swipeOffsets: [String: CGFloat]`
+- DragGesture with `minimumDistance: 30`, horizontal-priority detection (`abs(horizontal) > abs(vertical)`)
+- Reveals red delete button behind card at -90pt offset
+- Spring animation on snap/reset
+
+### Instant Food Add Flow (v9 — CalAI Camera)
+1. User taps "Scan Food" → FoodScannerView opens fullScreenCover
+2. Live AVCaptureSession preview with corner brackets, mode tabs, shutter button
+3. Three modes: Scan Food (photo capture), Barcode (AVCaptureMetadataOutput), Food Label (photo capture)
+4. Photo captured → dismiss → pending FoodEntry created (analysisStatus="pending")
+5. Dashboard shows shimmer card with food thumbnail
+6. Gemini analysis runs in background via Task.detached (survives view dismissal)
+7. On completion → entry updated, shimmer resolves to real card
+8. On failure → analysisStatus="failed", name="Analysis failed"
+9. Auto-refresh timer (2s) re-fetches while entries are pending
+10. Barcode mode → BarcodeService lookup in background, same shimmer flow
+
+---
+
+## FuelFinder (v9 — NEW)
+
+### Overview
+MenuFit-inspired feature: finds nearby restaurants via Google Places API, shows menu items with nutrition data from Spoonacular (Gemini AI fallback for unknown restaurants), scores meals against user's health goals, lets users add menu items to food log.
+
+### Services
+- **LocationService** — `@MainActor` ObservableObject wrapping CLLocationManager. `@Published currentLocation`, `authorizationStatus`. Uses `nonisolated` delegate + `Task { @MainActor in }` pattern.
+- **GooglePlacesService** — Singleton. POST to `/v1/places:searchNearby` with `X-Goog-Api-Key` + `X-Goog-FieldMask` headers. Parses displayName, location, openNow, photos, rating, priceLevel (enum string). `photoURL(reference:maxWidth:)` builds media URL.
+- **SpoonacularService** — Singleton. GET `/food/menuItems/search` with nutrition parsing. Handles 402 quota exceeded gracefully.
+- **FuelFinderService** — Orchestrator. Tries Spoonacular first, falls back to Gemini `estimateMenuWithGemini()` using responseSchema ARRAY of OBJECT. `scoreAndSort(items:profile:)` scores items against UserProfile goal.
+
+### Views
+- **FuelFinderView** — Main tab. NavigationStack with search bar, location prompt card, shimmer loading, restaurant list with NavigationLinks.
+- **RestaurantCard** — AsyncImage for photo, rating stars, distance, open/closed pill, price level.
+- **RestaurantDetailView** — Header photo, Map with pin, "Get Directions" button, filter pills (Best for You / All Items), menu list, "AI Estimated" disclaimer for Gemini items.
+- **MenuItemCard** — Food image, macros, score badge circle (0-100 colored by GREAT/GOOD/FAIR/POOR).
+- **MenuItemDetailView** — Full nutrition display, score rationale, meal type picker, "Add to Food Log" button → creates FoodEntry(source: "restaurant").
+
+### API Keys
+- `GOOGLE_PLACES_API_KEY` — separate from Gemini key, enabled on GCP project with Places API (New)
+- `SPOONACULAR_API_KEY` — free tier (150 req/day)
+- Both passed via: GitHub Secrets → Fastfile xcargs → project.yml → Info.plist → Constants.swift
+
+### Constants (added)
+- `googlePlacesAPIKey`, `googlePlacesBaseURL` ("https://places.googleapis.com/v1"), `googlePlacesNearbyRadiusMeters` (8000)
+- `spoonacularAPIKey`, `spoonacularBaseURL` ("https://api.spoonacular.com")
+
+### project.yml (added)
+- `GOOGLE_PLACES_API_KEY: $(GOOGLE_PLACES_API_KEY)`, `SPOONACULAR_API_KEY: $(SPOONACULAR_API_KEY)`
+- `NSLocationWhenInUseUsageDescription`
+
+---
+
+## CalAI-Style Camera Scanner (v9 — NEW)
+
+### FoodScannerView (Views/Nutrition/FoodScannerView.swift)
+Full-screen custom camera replacing UIImagePickerController. Matches CalAI's scanning UI:
+
+- **Live preview** — AVCaptureSession with CameraPreviewView (UIViewRepresentable wrapping AVCaptureVideoPreviewLayer)
+- **Corner brackets** — White CornerBracket shapes at four corners of scan area, pulsing animation
+- **Scan area** — Tall rectangle (width-40 x 50% height), centered at 38% vertical
+- **Top bar** — Close (X) button left, Help (?) button right, dark circle backgrounds
+- **Zoom toggle** — `.5x` / `1x` capsule pills, calls `device.videoZoomFactor`
+- **Mode tabs** — Three rounded rectangles with SF Symbol icons + labels:
+  - Scan Food (viewfinder icon) — captures photo for Gemini analysis
+  - Barcode (barcode icon) — AVCaptureMetadataOutput for EAN/UPC/Code128/QR
+  - Food label (doc.text icon) — captures photo of nutrition label
+- **Shutter button** — Large white circle with spring scale animation on tap
+- **Flash toggle** — Bottom-left, toggles device.torchMode
+- **Photo library** — Bottom-right, PhotosPicker for choosing from library
+- **Bottom gradient** — Black gradient overlay behind controls
+
+### CameraManager (@MainActor ObservableObject)
+- Manages AVCaptureSession, AVCapturePhotoOutput, AVCaptureMetadataOutput
+- `configure(mode:)` — sets up camera input + outputs, starts session on background queue
+- `capturePhoto()` — AVCapturePhotoSettings with flash support
+- `switchMode(_:)` — toggles barcode detection active/inactive
+- `setZoom(_:)` — clamped videoZoomFactor
+- `toggleFlash(_:)` — device.torchMode
+- `nonisolated` delegate methods with `Task { @MainActor in }` pattern
 
 ---
 
 ## AI Services
 
-### GeminiService (Food Scanning)
+### GeminiService (Food Scanning + FuelFinder Fallback)
 - **File:** `Services/GeminiService.swift`
 - **Singleton:** `GeminiService.shared`
 - **Model:** `gemini-2.5-flash` (stable, text+vision)
@@ -222,7 +310,8 @@ All colors adapt automatically based on color scheme (dark/light).
   - `analyzeFoodPhoto(_:)` → `NutritionData`
   - `analyzeFoodDescription(_:)` → `NutritionData`
   - `correctFoodAnalysis(original:issue:image:)` → `NutritionData` **(v8 — Fix Issue reprompt)**
-- **Features:** `responseMimeType: "application/json"` + `responseSchema` for clean JSON, 30s timeout, fallback Int/Double decoding, safety filter detection
+- **Features:** `responseMimeType: "application/json"` + `responseSchema` for clean JSON, 60s timeout, fallback Int/Double decoding, safety filter detection
+- **Image handling:** Images downscaled to 1024px max dimension before upload to avoid timeouts
 
 ### ClaudeService (Workout Plans & Nutrition Goals)
 - **File:** `Services/ClaudeService.swift`
@@ -232,7 +321,7 @@ All colors adapt automatically based on color scheme (dark/light).
 - **Methods:** `generateWorkoutPlan()`, `refineWorkoutPlan()`, `calculateNutritionGoals()`
 - **API Key:** `ANTHROPIC_API_KEY` via Info.plist → `AppConstants.anthropicAPIKey`
 
-### API Key Chain (for both services)
+### API Key Chain (for all services)
 GitHub Secrets → testflight.yml env → Fastfile xcargs → project.yml build settings → Info.plist → Bundle.main.infoDictionary → Constants.swift
 
 ---
@@ -307,7 +396,8 @@ GitHub Secrets → testflight.yml env → Fastfile xcargs → project.yml build 
 - **Runner:** macos-14, Xcode 16.2
 - **Flow:** Checkout → XcodeGen → Ruby/Fastlane → GoogleService-Info.plist (placeholder) → SPM resolve → Fastlane beta lane
 - **Signing:** Manual code signing on FuelLift target only; SPM packages use automatic
-- **Secrets:** ANTHROPIC_API_KEY, OPENAI_API_KEY, GEMINI_API_KEY, DEVELOPMENT_TEAM, MATCH_*, ASC_*
+- **Secrets:** ANTHROPIC_API_KEY, OPENAI_API_KEY, GEMINI_API_KEY, GOOGLE_PLACES_API_KEY, SPOONACULAR_API_KEY, DEVELOPMENT_TEAM, MATCH_*, ASC_*
+- **Fastfile xcargs:** passes all 6 API keys + DEVELOPMENT_TEAM to build
 - **App Icon:** Pixel art lifter character, 1024x1024 PNG (single-size format)
 
 ---
@@ -317,12 +407,15 @@ GitHub Secrets → testflight.yml env → Fastfile xcargs → project.yml build 
 - **Firebase:** Disabled. All services guard with `FirebaseApp.app() != nil`.
 - **Auth:** Bypassed — isAuthenticated = true on init.
 - **Local data:** SwiftData fully functional.
-- **Gemini AI:** Active — food photo scanning, food description analysis, Fix Issue reprompt (key: GEMINI_API_KEY).
+- **Gemini AI:** Active — food photo scanning, food description analysis, Fix Issue reprompt, FuelFinder menu fallback (key: GEMINI_API_KEY). 60s timeout, image downscaling to 1024px.
 - **Claude AI:** Active — workout plans, nutrition goals (key: ANTHROPIC_API_KEY).
+- **Google Places:** Active — nearby restaurant discovery (key: GOOGLE_PLACES_API_KEY). Places API (New) POST endpoint.
+- **Spoonacular:** Active — restaurant menu item nutrition (key: SPOONACULAR_API_KEY). Free tier 150 req/day.
 - **HealthKit:** Active — steps + active calories fetched for dashboard (requires device support).
+- **Location:** Active — CLLocationManager for FuelFinder tab (NSLocationWhenInUseUsageDescription).
 - **UI:** Retro-futuristic adaptive — dark arcade (#08080F) or clean light (#F7F7F9), hot orange accents (#FF6B00), neon macro colors, pixel-stepped borders, CRT scanline overlay, glow effects. 123 custom pixel art assets. `.pixelArt()` helper on all asset images.
 - **Appearance:** Auto/Light/Dark via visual card picker in Preferences. Colors adapt using UIColor dynamic provider.
-- **Build:** Compiles cleanly (0 errors). CI/CD fully operational.
+- **Build:** CI/CD fully operational.
 - **TestFlight:** Live, internal testing.
 
 ### Known Warnings
@@ -330,19 +423,24 @@ GitHub Secrets → testflight.yml env → Fastfile xcargs → project.yml build 
 - Unused StorageReference (StorageService)
 - "All interface orientations must be supported" (build warning, non-blocking)
 
-### Recently Implemented (v8 — Cal AI-Inspired Feature Overhaul)
-- **Swipeable 3-page dashboard** — TabView pager: Calories+Macros → Steps+Burned → Water tracker
-- **Scrollable 3-week calendar** — WeekDaySelector rewritten with ScrollViewReader, 21 days, month labels
-- **Instant food add** — camera dismisses immediately, shimmer placeholder card, background Gemini analysis
-- **Fix Issue AI reprompt** — FixIssueSheet with text description, calls correctFoodAnalysis(), updates entry
-- **AI feedback** — thumbs up/down on FoodEntryDetailView, persists to FoodEntry.aiFeedback
-- **Shimmer loading cards** — animated shimmer modifier for pending food entries on dashboard
-- **Context menu delete** — long-press food entry cards to delete from dashboard
-- **Preferences redesign** — visual appearance card picker (mini previews), 4 new feature toggles
-- **HealthKit dashboard integration** — steps + active calories burned fetched and displayed
-- **New model fields** — FoodEntry: analysisStatus, aiFeedback; UserProfile: enableBadgeCelebrations, enableLiveActivity, addBurnedCalories, rolloverCalories
-- **New files** — DashboardPagerView, StepsBurnedPage, WaterPage, FixIssueSheet
-- **New gradients** — stepsRing, burnedRing, waterRing
+### Recently Implemented (v9 — FuelFinder + CalAI Camera Scanner)
+- **FuelFinder tab** — 5th tab, nearby restaurant discovery with Google Places API
+- **Restaurant detail** — photo, map, directions, menu items with nutrition
+- **Menu scoring** — 0-100 score per item based on user's goal (lose fat/build muscle/maintain)
+- **Spoonacular integration** — menu item nutrition data with Gemini AI fallback for unknown restaurants
+- **CalAI-style camera scanner** — FoodScannerView with live AVCaptureSession preview, corner brackets, mode tabs (Scan Food/Barcode/Food label), zoom toggle, shutter button, flash, photo library
+- **Swipe-to-delete** — per-entry offset tracking on dashboard food cards with DragGesture
+- **Barcode scanning from dashboard** — barcode mode in scanner triggers BarcodeService lookup
+- **Image downscaling** — 1024px max dimension to prevent Gemini API timeouts
+- **Background analysis** — Task.detached survives view dismissal, 2s auto-refresh timer
+- **New models** — Restaurant, MenuItem, MenuItemScore (3 files in Models/FuelFinder/)
+- **New services** — LocationService, GooglePlacesService, SpoonacularService, FuelFinderService (4 files)
+- **New views** — FoodScannerView, FuelFinderView, RestaurantCard, RestaurantDetailView, MenuItemCard, MenuItemDetailView (6 files)
+- **New VM** — FuelFinderViewModel
+- **Modified** — ContentView (5th tab), Constants (4 new API configs), project.yml (2 keys + location permission), Fastfile (2 new xcargs), DashboardView (FoodScannerView + swipe-to-delete + barcode handler)
+
+### Previously Implemented (v8 — Cal AI-Inspired Feature Overhaul)
+- Swipeable 3-page dashboard, scrollable 3-week calendar, instant food add, Fix Issue AI reprompt, AI feedback, shimmer loading, preferences redesign, HealthKit integration
 
 ### Previously Implemented (v7 — Gemini Vision + Light Mode)
 - Gemini Vision food scanning, JSON mode, light mode support, appearance setting
@@ -368,13 +466,13 @@ GitHub Secrets → testflight.yml env → Fastfile xcargs → project.yml build 
 | Directory | Files |
 |-----------|-------|
 | App | 3 |
-| Models | 11 |
-| ViewModels | 10 |
-| Views | 55 (added 4 new) |
+| Models | 14 (added 3 FuelFinder) |
+| ViewModels | 11 (added FuelFinderViewModel) |
+| Views | 62 (added 6 FuelFinder + 1 FoodScannerView) |
 | Components | 9 |
-| Services | 11 |
+| Services | 15 (added 4 FuelFinder) |
 | Utilities | 4 |
 | Resources | 5 |
 | Scripts | 3 |
 | Asset Images | 123 |
-| **Total Swift** | **100** |
+| **Total Swift** | **115** |
