@@ -167,7 +167,7 @@ final class GeminiService {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.timeoutInterval = 30
+        request.timeoutInterval = 60
 
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
 

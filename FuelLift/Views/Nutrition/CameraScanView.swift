@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct CameraScanView: View {
     @ObservedObject var nutritionViewModel: NutritionViewModel
@@ -134,37 +135,47 @@ struct CameraScanView: View {
                     .ignoresSafeArea()
             }
             .onChange(of: scanVM.capturedImage) { _, newImage in
-                if newImage != nil {
+                if let newImage {
+                    // Downscale large images to avoid Gemini timeouts
+                    let analysisImage = Self.downscale(newImage, maxDimension: 1024)
+
                     // Create pending entry immediately and dismiss
                     if let pendingEntry = scanVM.createPendingEntry() {
                         modelContext.insert(pendingEntry)
                         try? modelContext.save()
 
+                        // Capture context before dismiss
+                        let context = modelContext
+                        let entryID = pendingEntry.id
+
                         // Dismiss camera so user sees shimmer card on dashboard
                         dismiss()
 
-                        // Continue analysis in background
-                        let image = newImage!
-                        Task {
+                        // Run analysis in a detached task so it survives view dismissal
+                        Task.detached(priority: .userInitiated) {
                             do {
-                                let nutrition = try await GeminiService.shared.analyzeFoodPhoto(image)
-                                // Update the pending entry with real data
-                                pendingEntry.name = nutrition.name
-                                pendingEntry.calories = nutrition.calories
-                                pendingEntry.proteinG = nutrition.proteinG
-                                pendingEntry.carbsG = nutrition.carbsG
-                                pendingEntry.fatG = nutrition.fatG
-                                pendingEntry.servingSize = nutrition.servingSize
-                                pendingEntry.analysisStatus = "completed"
-                                if let ingredients = nutrition.ingredients,
-                                   let data = try? JSONEncoder().encode(ingredients) {
-                                    pendingEntry.ingredientsJSON = String(data: data, encoding: .utf8)
+                                let nutrition = try await GeminiService.shared.analyzeFoodPhoto(analysisImage)
+                                await MainActor.run {
+                                    pendingEntry.name = nutrition.name
+                                    pendingEntry.calories = nutrition.calories
+                                    pendingEntry.proteinG = nutrition.proteinG
+                                    pendingEntry.carbsG = nutrition.carbsG
+                                    pendingEntry.fatG = nutrition.fatG
+                                    pendingEntry.servingSize = nutrition.servingSize
+                                    pendingEntry.analysisStatus = "completed"
+                                    if let ingredients = nutrition.ingredients,
+                                       let data = try? JSONEncoder().encode(ingredients) {
+                                        pendingEntry.ingredientsJSON = String(data: data, encoding: .utf8)
+                                    }
+                                    try? context.save()
                                 }
-                                try? modelContext.save()
                             } catch {
-                                pendingEntry.analysisStatus = "failed"
-                                pendingEntry.name = "Analysis failed"
-                                try? modelContext.save()
+                                print("[CameraScan] Analysis failed for \(entryID): \(error.localizedDescription)")
+                                await MainActor.run {
+                                    pendingEntry.analysisStatus = "failed"
+                                    pendingEntry.name = "Analysis failed"
+                                    try? context.save()
+                                }
                             }
                         }
                     }
@@ -175,6 +186,18 @@ struct CameraScanView: View {
             } message: {
                 Text(scanVM.errorMessage ?? "Unknown error")
             }
+        }
+    }
+
+    /// Downscale image to reduce upload size and avoid Gemini timeouts
+    private static func downscale(_ image: UIImage, maxDimension: CGFloat) -> UIImage {
+        let size = image.size
+        guard max(size.width, size.height) > maxDimension else { return image }
+        let scale = maxDimension / max(size.width, size.height)
+        let newSize = CGSize(width: size.width * scale, height: size.height * scale)
+        let renderer = UIGraphicsImageRenderer(size: newSize)
+        return renderer.image { _ in
+            image.draw(in: CGRect(origin: .zero, size: newSize))
         }
     }
 }

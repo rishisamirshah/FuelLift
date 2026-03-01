@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import Combine
 
 struct DashboardView: View {
     @Environment(\.modelContext) private var modelContext
@@ -100,6 +101,12 @@ struct DashboardView: View {
             .onChange(of: selectedDate) { _, _ in
                 viewModel.loadDashboard(context: modelContext, for: selectedDate)
             }
+            .onReceive(Timer.publish(every: 3, on: .main, in: .common).autoconnect()) { _ in
+                // Auto-refresh while entries are pending analysis
+                if viewModel.todayEntries.contains(where: { $0.analysisStatus == "pending" || $0.analysisStatus == "analyzing" }) {
+                    viewModel.loadDashboard(context: modelContext, for: selectedDate)
+                }
+            }
             .sheet(isPresented: $showCamera, onDismiss: {
                 viewModel.loadDashboard(context: modelContext, for: selectedDate)
             }) {
@@ -164,18 +171,15 @@ struct DashboardView: View {
                     if entry.analysisStatus == "pending" || entry.analysisStatus == "analyzing" {
                         shimmerFoodCard(entry)
                     } else {
-                        NavigationLink {
-                            FoodEntryDetailView(entry: entry)
-                        } label: {
-                            foodEntryCard(entry)
-                        }
-                        .buttonStyle(.plain)
-                        .contextMenu {
-                            Button(role: .destructive) {
-                                deleteFoodEntry(entry)
+                        SwipeToDeleteCard {
+                            NavigationLink {
+                                FoodEntryDetailView(entry: entry)
                             } label: {
-                                Label("Delete", systemImage: "trash")
+                                foodEntryCard(entry)
                             }
+                            .buttonStyle(.plain)
+                        } onDelete: {
+                            deleteFoodEntry(entry)
                         }
                     }
                 }
@@ -299,6 +303,81 @@ struct DashboardView: View {
                 .font(.system(size: Theme.captionSize, weight: .medium))
                 .foregroundStyle(Color.appTextPrimary)
         }
+    }
+}
+
+// MARK: - Swipe to Delete Card
+
+private struct SwipeToDeleteCard<Content: View>: View {
+    let content: () -> Content
+    let onDelete: () -> Void
+
+    @State private var offset: CGFloat = 0
+    @State private var showDelete = false
+
+    private let deleteThreshold: CGFloat = -80
+    private let fullSwipeThreshold: CGFloat = -200
+
+    var body: some View {
+        ZStack(alignment: .trailing) {
+            // Delete background
+            HStack {
+                Spacer()
+                Button {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                        onDelete()
+                    }
+                } label: {
+                    Image(systemName: "trash.fill")
+                        .font(.system(size: 20))
+                        .foregroundStyle(.white)
+                        .frame(width: 70, height: .infinity)
+                }
+                .frame(width: 70)
+                .background(Color.appFatColor)
+                .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusLG))
+            }
+            .opacity(showDelete ? 1 : 0)
+
+            // Content
+            content()
+                .offset(x: offset)
+                .gesture(
+                    DragGesture(minimumDistance: 20)
+                        .onChanged { value in
+                            let translation = value.translation.width
+                            // Only allow left swipe
+                            if translation < 0 {
+                                offset = translation
+                                showDelete = translation < deleteThreshold
+                            }
+                        }
+                        .onEnded { value in
+                            let translation = value.translation.width
+                            if translation < fullSwipeThreshold {
+                                // Full swipe — delete immediately
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                    offset = -500
+                                }
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                    onDelete()
+                                }
+                            } else if translation < deleteThreshold {
+                                // Partial swipe — show delete button
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                    offset = deleteThreshold
+                                }
+                            } else {
+                                // Snap back
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                    offset = 0
+                                    showDelete = false
+                                }
+                            }
+                        }
+                )
+        }
+        .clipped()
     }
 }
 
