@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct AchievementToast: View {
     let badge: Badge
@@ -6,13 +7,25 @@ struct AchievementToast: View {
 
     @State private var isVisible = false
 
+    private var definition: BadgeDefinition? {
+        BadgeDefinition.all.first { $0.key.rawValue == badge.key }
+    }
+
     var body: some View {
         if isVisible {
             HStack(spacing: Theme.spacingMD) {
-                Image(badge.imageName ?? badge.iconName)
-                    .resizable()
-                    .renderingMode(.original)
-                    .frame(width: 24, height: 24)
+                if let def = definition, def.hasCustomImage, let imgName = def.imageName {
+                    Image(imgName)
+                        .resizable()
+                        .renderingMode(.original)
+                        .interpolation(.none)
+                        .frame(width: 24, height: 24)
+                } else {
+                    Image(systemName: badge.iconName)
+                        .resizable()
+                        .frame(width: 24, height: 24)
+                        .foregroundStyle(Color.appBadgeEarned)
+                }
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Badge Earned")
