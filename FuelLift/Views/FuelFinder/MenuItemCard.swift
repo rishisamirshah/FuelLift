@@ -5,6 +5,7 @@ struct MenuItemCard: View {
     let score: MenuItemScore
     let profile: UserProfile?
     @State private var showDetail = false
+    @State private var generatedImage: UIImage?
 
     var body: some View {
         Button {
@@ -25,10 +26,24 @@ struct MenuItemCard: View {
                     }
                     .frame(width: 64, height: 64)
                     .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusSM))
+                } else if let generated = generatedImage {
+                    Image(uiImage: generated)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: 64, height: 64)
+                        .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusSM))
                 } else {
                     foodPlaceholder
                         .frame(width: 64, height: 64)
                         .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusSM))
+                        .task {
+                            // Check cache first, then generate in background
+                            if let cached = FoodImageGenerator.shared.cachedImage(for: item.name) {
+                                generatedImage = cached
+                            } else {
+                                generatedImage = await FoodImageGenerator.shared.generateIfNeeded(for: item.name)
+                            }
+                        }
                 }
 
                 // Info

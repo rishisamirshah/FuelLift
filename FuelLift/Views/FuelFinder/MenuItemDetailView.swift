@@ -9,6 +9,7 @@ struct MenuItemDetailView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var selectedMealType: MealType = .lunch
     @State private var showAddedConfirmation = false
+    @State private var generatedImage: UIImage?
 
     var body: some View {
         NavigationStack {
@@ -29,8 +30,22 @@ struct MenuItemDetailView: View {
                                 imagePlaceholder
                             }
                         }
+                    } else if let generated = generatedImage {
+                        Image(uiImage: generated)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(height: 200)
+                            .clipped()
+                            .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadiusLG))
                     } else {
                         imagePlaceholder
+                            .task {
+                                if let cached = FoodImageGenerator.shared.cachedImage(for: item.name) {
+                                    generatedImage = cached
+                                } else {
+                                    generatedImage = await FoodImageGenerator.shared.generateIfNeeded(for: item.name)
+                                }
+                            }
                     }
 
                     // Score section
