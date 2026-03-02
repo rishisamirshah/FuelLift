@@ -42,6 +42,9 @@ final class FuelFinderViewModel: ObservableObject {
     private let fuelFinderService = FuelFinderService.shared
     private var searchTask: Task<Void, Never>?
 
+    /// Weak reference to current profile for search ranking
+    var currentProfile: UserProfile?
+
     // MARK: - Computed
 
     var displayedItems: [(MenuItem, MenuItemScore)] {
@@ -59,7 +62,7 @@ final class FuelFinderViewModel: ObservableObject {
 
     // MARK: - Actions
 
-    func loadRestaurants() async {
+    func loadRestaurants(profile: UserProfile? = nil) async {
         guard let location = locationService.currentLocation else {
             locationService.requestLocation()
             return
@@ -69,9 +72,14 @@ final class FuelFinderViewModel: ObservableObject {
         errorMessage = nil
 
         do {
-            restaurants = try await fuelFinderService.fetchNearbyRestaurants(
+            var results = try await fuelFinderService.fetchNearbyRestaurants(
                 coordinate: location.coordinate
             )
+
+            // AI-rank restaurants based on user's fitness profile
+            results = await fuelFinderService.aiRankRestaurants(results, profile: profile)
+
+            restaurants = results
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -103,10 +111,17 @@ final class FuelFinderViewModel: ObservableObject {
             errorMessage = nil
 
             do {
-                restaurants = try await fuelFinderService.searchRestaurants(
+                var results = try await fuelFinderService.searchRestaurants(
                     query: query,
                     coordinate: location.coordinate
                 )
+
+                // AI-rank search results too
+                results = await fuelFinderService.aiRankRestaurants(results, profile: currentProfile)
+
+                if !Task.isCancelled {
+                    restaurants = results
+                }
             } catch {
                 if !Task.isCancelled {
                     errorMessage = error.localizedDescription
@@ -181,6 +196,9 @@ final class FuelFinderViewModel: ObservableObject {
         profile.fuelFinderAllergies = "[]"
         profile.updatedAt = Date()
         try? context.save()
+
+        // Immediately re-show survey
+        showSurvey = true
     }
 
     // MARK: - Map
@@ -193,7 +211,9 @@ final class FuelFinderViewModel: ObservableObject {
         showSearchThisArea = false
 
         do {
-            restaurants = try await fuelFinderService.fetchNearbyRestaurants(coordinate: center)
+            var results = try await fuelFinderService.fetchNearbyRestaurants(coordinate: center)
+            results = await fuelFinderService.aiRankRestaurants(results, profile: currentProfile)
+            restaurants = results
         } catch {
             errorMessage = error.localizedDescription
         }

@@ -112,7 +112,9 @@ final class SpoonacularService {
                 source: .spoonacular,
                 imageSearchQuery: nil,
                 healthScore: nil,
-                description: nil
+                description: nil,
+                userMatchScore: nil,
+                userMatchRationale: nil
             )
         }
     }

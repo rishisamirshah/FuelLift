@@ -62,18 +62,19 @@ struct FuelFinderView: View {
                 viewModel.searchRestaurants()
             }
             .onAppear {
+                viewModel.currentProfile = profile
                 viewModel.checkSurvey(profile: profile)
                 if locationService.currentLocation != nil && viewModel.restaurants.isEmpty {
-                    Task { await viewModel.loadRestaurants() }
+                    Task { await viewModel.loadRestaurants(profile: profile) }
                 }
             }
             .onChange(of: locationService.currentLocation) { _, newLocation in
                 if newLocation != nil && viewModel.restaurants.isEmpty {
-                    Task { await viewModel.loadRestaurants() }
+                    Task { await viewModel.loadRestaurants(profile: profile) }
                 }
             }
             .refreshable {
-                await viewModel.loadRestaurants()
+                await viewModel.loadRestaurants(profile: profile)
             }
             .fullScreenCover(isPresented: $viewModel.showSurvey) {
                 FuelFinderSurveyView()

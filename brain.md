@@ -1,6 +1,6 @@
 # FuelLift Brain - Complete Project Context
 
-> Last updated: 2026-03-01 (v10 — FuelFinder Overhaul: Survey, Map, Deep Research, Search)
+> Last updated: 2026-03-01 (v11 — AI Restaurant Ranking, AI Menu Scoring, 60+ Restaurants)
 > Auto-maintained by "Update all" task
 
 ---
@@ -175,8 +175,8 @@ All colors adapt automatically based on color scheme (dark/light).
 
 ### FuelFinder Models (v10 — plain structs, not SwiftData)
 - **Restaurant** — id (placeId), name, address, coordinate (CLLocationCoordinate2D), distanceMeters, isOpen, photoReference, priceLevel, rating, userRatingsTotal, types. Computed: distanceText, priceLevelText. Hashable via id only.
-- **MenuItem** — id, name, restaurantChain, servingSize, calories, proteinG, carbsG, fatG, imageURL, badges, source (MenuItemSource: .spoonacular | .geminiEstimate), **imageSearchQuery** (String?), **healthScore** (Int? 0-100), **description** (String?). `macroSummary` uses Int() — no decimals.
-- **MenuItemScore** — score (0-100), label (GREAT/GOOD/FAIR/POOR), color. Static `calculate(item:profile:)` with three goal modes. **v10 fix:** matches "Lose Fat"/"Build Muscle" in addition to "weight_loss"/"muscle_gain".
+- **MenuItem** — id, name, restaurantChain, servingSize, calories, proteinG, carbsG, fatG, imageURL, badges, source (MenuItemSource: .spoonacular | .geminiEstimate), **imageSearchQuery** (String?), **healthScore** (Int? 0-100), **description** (String?), **userMatchScore** (Int? 0-100, AI personalized), **userMatchRationale** (String?, AI explanation). `macroSummary` uses Int() — no decimals.
+- **MenuItemScore** — score (0-100), label (GREAT/GOOD/FAIR/POOR), color. **v11: AI-first scoring** — `fromAI(score:rationale:)` creates scores from Gemini-provided values. `calculate(item:profile:)` checks `item.userMatchScore` first (AI path), falls back to healthScore-based adjustments. Matches "Lose Fat"/"Build Muscle" in addition to "weight_loss"/"muscle_gain".
 
 ### Supporting Types
 - **BadgeCategory** (enum) — streak, meals, workouts, strength, bodyProgress, social (displayName, gradientColors, gradient)
@@ -200,7 +200,7 @@ All colors adapt automatically based on color scheme (dark/light).
 | FoodScanViewModel | ObservableObject | capturedImage, scannedNutrition, onPendingEntry | analyzePhoto(), analyzeDescription(), createPendingEntry() — **uses GeminiService** |
 | WorkoutPlannerViewModel | ObservableObject | selectedGoal, generatedPlan | generatePlan(), savePlan(), refinePlan() — **uses ClaudeService** |
 | ExerciseLibraryViewModel | ObservableObject | exercises, searchText | filteredExercises |
-| FuelFinderViewModel | ObservableObject | restaurants, selectedRestaurant, menuItems, scoredItems, isLoadingRestaurants, isLoadingMenu, searchText, selectedFilter (MenuFilter), **viewMode (list/map)**, **showSurvey**, **showResetAlert**, **mapCameraPosition**, **mapCenter**, **showSearchThisArea** | loadRestaurants(), **searchRestaurants()** (debounced 500ms text search), selectRestaurant(), addToFoodLog(), **checkSurvey()**, **resetSurvey()**, **searchThisArea()**, **onMapCameraChange()**, **initializeMapPosition()** — **uses GooglePlaces (nearby + text search), Gemini, Location** |
+| FuelFinderViewModel | ObservableObject | restaurants, selectedRestaurant, menuItems, scoredItems, isLoadingRestaurants, isLoadingMenu, searchText, selectedFilter (MenuFilter), **viewMode (list/map)**, **showSurvey**, **showResetAlert**, **mapCameraPosition**, **mapCenter**, **showSearchThisArea**, **currentProfile** | loadRestaurants(profile:) **(v11: AI-ranks restaurants via Gemini)**, **searchRestaurants()** (debounced 500ms text search + AI ranking), selectRestaurant(), addToFoodLog(), **checkSurvey()**, **resetSurvey()** (v11: immediately re-shows survey), **searchThisArea()** (v11: AI-ranks), **onMapCameraChange()**, **initializeMapPosition()** — **uses GooglePlaces (nearby + text search), Gemini AI ranking, Location** |
 | FuelFinderSurveyViewModel | ObservableObject | selectedDietType, selectedCuisines, selectedProteins, selectedAllergies, dietTypes, cuisineOptions, proteinOptions, allergyOptions | saveSurvey(profile:context:), loadExisting(profile:) — **(v10 NEW)** |
 | SocialViewModel | ObservableObject | groups, friends | — Firebase dependent |
 
@@ -242,7 +242,7 @@ All colors adapt automatically based on color scheme (dark/light).
 ## FuelFinder (v10 — Major Overhaul)
 
 ### Overview
-Finds nearby restaurants via Google Places API (merged DISTANCE + POPULARITY for ~40 results), shows personalized menu items with deep Gemini AI research (20 items, 120s timeout, user dietary preferences), scores meals against health goals, supports real text search, includes interactive map with restaurant pins.
+Finds nearby restaurants via Google Places API (**v11: 4 parallel searches — DISTANCE + POPULARITY + café/delivery + wider radius — for 60+ results**), **AI-ranks restaurants by fitness suitability via Gemini**, shows personalized menu items with deep Gemini AI research (20 items, 120s timeout, user dietary preferences, **per-item AI match score + rationale**), supports real text search, includes interactive map with restaurant pins.
 
 ### AI Dietary Survey (v10 NEW)
 - **FuelFinderSurveyView** — 4-step TabView wizard (same pattern as WorkoutPlannerView):
@@ -256,9 +256,9 @@ Finds nearby restaurants via Google Places API (merged DISTANCE + POPULARITY for
 
 ### Services
 - **LocationService** — `@MainActor` ObservableObject wrapping CLLocationManager. `@Published currentLocation`, `authorizationStatus`. Uses `nonisolated` delegate + `Task { @MainActor in }` pattern.
-- **GooglePlacesService** — Singleton. **v10: Dual nearby search** (DISTANCE + POPULARITY) merged/deduped for ~40 results. **Text Search API** via `searchRestaurantsByText()` (`POST /v1/places:searchText`). **Non-restaurant filter** (excludes movie_theater, bowling_alley, gas_station, etc.). **Quality sorting** by `rating * ln(reviews+1) * openBonus`. `photoURL(reference:maxWidth:)` builds media URL.
+- **GooglePlacesService** — Singleton. **v11: 4 parallel nearby searches** (DISTANCE + POPULARITY + cafe/meal_delivery/meal_takeaway + wider radius POPULARITY) merged/deduped for **60+ results**. **Text Search API** via `searchRestaurantsByText()` (`POST /v1/places:searchText`). **Non-restaurant filter** (excludes movie_theater, bowling_alley, gas_station, etc.). **Quality sorting** by `rating * ln(reviews+1) * openBonus`. `photoURL(reference:maxWidth:)` builds media URL.
 - **SpoonacularService** — Singleton. GET `/food/menuItems/search` for image enrichment. Handles 402 quota exceeded gracefully.
-- **FuelFinderService** — Orchestrator. **v10: Deep Gemini research as primary** (not Spoonacular fallback). 20 items, 120s timeout, personalized prompt (diet, cuisines, proteins, allergies, fitness goal). Returns imageSearchQuery, healthScore, description per item. Spoonacular used only for image URL enrichment.
+- **FuelFinderService** — Orchestrator. **v11: AI-first architecture.** `aiRankRestaurants()` sends restaurant list + user profile to Gemini for fitness-based ranking (fitness_score 0-100 per restaurant). **Deep Gemini research** as primary — 20 items, 120s timeout, personalized prompt with strict fitness nutritionist scoring (ice cream/junk → 0-25, grilled protein → 80-100). Returns userMatchScore (0-100), userMatchRationale, imageSearchQuery, healthScore, description per item. Spoonacular used only for image URL enrichment.
 
 ### Map Feature (v10 NEW)
 - **FuelFinderMapView** — SwiftUI Map with MapKit, restaurant Annotation pins, UserAnnotation for current location
@@ -432,7 +432,7 @@ GitHub Secrets → testflight.yml env → Fastfile xcargs → project.yml build 
 - **Local data:** SwiftData fully functional.
 - **Gemini AI:** Active — food photo scanning, food description analysis, Fix Issue reprompt, **FuelFinder deep menu research** (key: GEMINI_API_KEY). 60s timeout for food scan, **120s timeout for FuelFinder**. Image downscaling to 1024px.
 - **Claude AI:** Active — workout plans, nutrition goals (key: ANTHROPIC_API_KEY).
-- **Google Places:** Active — **nearby search (dual DISTANCE+POPULARITY)** + **text search API** (key: GOOGLE_PLACES_API_KEY). Places API (New) POST endpoints.
+- **Google Places:** Active — **nearby search (4 parallel calls: DISTANCE+POPULARITY+café/delivery+wider)** for 60+ results + **text search API** (key: GOOGLE_PLACES_API_KEY). Places API (New) POST endpoints.
 - **Spoonacular:** Active — image URL enrichment for FuelFinder (key: SPOONACULAR_API_KEY). Free tier 150 req/day.
 - **HealthKit:** Active — steps + active calories fetched for dashboard (requires device support).
 - **Location:** Active — CLLocationManager for FuelFinder tab (NSLocationWhenInUseUsageDescription).
@@ -446,22 +446,17 @@ GitHub Secrets → testflight.yml env → Fastfile xcargs → project.yml build 
 - Unused StorageReference (StorageService)
 - "All interface orientations must be supported" (build warning, non-blocking)
 
-### Recently Implemented (v10 — FuelFinder Overhaul: Survey, Map, Deep Research, Search)
-- **AI Dietary Survey** — 4-step wizard (diet type, cuisines, proteins, allergies) on first FuelFinder visit, saves to UserProfile
-- **Deep Gemini Menu Research** — 20 items per restaurant, 120s timeout, personalized to user survey + fitness goals, image search queries, health scores, descriptions
-- **Interactive Map** — FuelFinderMapView with restaurant annotation pins, user location, "Search This Area" floating button on pan
-- **List/Map Toggle** — Segmented picker switches between restaurant list and map views
-- **Real Text Search** — Google Places Text Search API (debounced 500ms) replaces client-side filtering
-- **More Restaurants** — Dual nearby search (DISTANCE + POPULARITY) merged/deduped for ~40 results
-- **Non-Restaurant Filter** — Excludes movie theaters, bowling alleys, gas stations, etc.
-- **Quality Sorting** — `rating * ln(reviews+1) * openBonus` instead of distance-only
-- **Integer Macros** — No decimal places on protein, carbs, fat displays throughout FuelFinder
-- **Goal String Bug Fix** — MenuItemScore now matches "Lose Fat"/"Build Muscle" (was only matching "weight_loss"/"muscle_gain")
-- **Reset Preferences** — Gear button at top of FuelFinder to reset dietary survey
-- **Research Loading State** — "Researching [name]..." progress view with "up to 2 minutes" message
-- **MenuItem enhancements** — Added imageSearchQuery, healthScore, description fields
-- **New files** — FuelFinderSurveyView, FuelFinderSurveyViewModel, FuelFinderMapView (3 files)
-- **Modified** — UserProfile (5 survey fields), MenuItem, MenuItemScore, GooglePlacesService, FuelFinderService, SpoonacularService, FuelFinderViewModel, FuelFinderView, RestaurantDetailView, MenuItemCard, MenuItemDetailView (11 files)
+### Recently Implemented (v11 — AI Restaurant Ranking, AI Menu Scoring, 60+ Restaurants)
+- **AI Restaurant Ranking** — `aiRankRestaurants()` sends restaurant list + user profile to Gemini, gets fitness_score per restaurant, re-sorts by AI fitness suitability. Applied in loadRestaurants(), searchRestaurants(), and searchThisArea().
+- **AI Menu Item Scoring** — Each menu item gets `userMatchScore` (0-100) and `userMatchRationale` from Gemini with strict fitness nutritionist rules (ice cream → 0-25, grilled chicken → 80-100). MenuItemScore.fromAI() creates scores directly from Gemini values.
+- **60+ Restaurants** — 4 parallel Google Places API calls (DISTANCE + POPULARITY + cafe/delivery/takeaway + wider radius) merged/deduped
+- **Survey Reset Fix** — Reset now immediately re-shows the survey (was only clearing data without re-prompting)
+- **MenuItem AI fields** — Added userMatchScore (Int?) and userMatchRationale (String?) to MenuItem model
+- **Strict Scoring Prompt** — Gemini prompt explicitly penalizes junk food for fitness users, rewards lean proteins and balanced meals
+- **All construction sites fixed** — FuelFinderService image merge, SpoonacularService, and deepGeminiResearch all pass the new MenuItem fields
+
+### Previously Implemented (v10 — FuelFinder Overhaul: Survey, Map, Deep Research, Search)
+- AI Dietary Survey (4-step wizard), Deep Gemini Menu Research (20 items, 120s, personalized), Interactive Map (pins + search this area), List/Map toggle, Real Text Search (Google Places), Non-restaurant filter, Quality sorting, Integer macros, Goal string bug fix, Reset Preferences, Research loading state, MenuItem enhancements (imageSearchQuery, healthScore, description)
 
 ### Previously Implemented (v9 — FuelFinder + CalAI Camera Scanner)
 - FuelFinder tab, restaurant detail, menu scoring, Spoonacular integration, CalAI camera scanner, swipe-to-delete, barcode scanning, image downscaling, background analysis

@@ -15,6 +15,8 @@ struct MenuItem: Identifiable, Hashable {
     let imageSearchQuery: String?       // For image lookup
     let healthScore: Int?               // 0-100 health rating from Gemini
     let description: String?            // Item description
+    let userMatchScore: Int?            // 0-100 AI personalized score for this user
+    let userMatchRationale: String?     // AI explanation of why this item matches/doesn't
 
     enum MenuItemSource: String, Hashable {
         case spoonacular

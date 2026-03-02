@@ -29,13 +29,130 @@ final class FuelFinderService {
         try await GooglePlacesService.shared.searchRestaurantsByText(query: query, coordinate: coordinate)
     }
 
-    // MARK: - Fetch Menu Items (Deep Gemini Research)
+    // MARK: - AI Restaurant Ranking
+
+    func aiRankRestaurants(_ restaurants: [Restaurant], profile: UserProfile?) async -> [Restaurant] {
+        guard let profile, profile.hasFuelFinderSurvey else { return restaurants }
+        guard restaurants.count > 1 else { return restaurants }
+
+        let apiKey = AppConstants.geminiAPIKey
+        guard !apiKey.isEmpty, !apiKey.contains("$(") else { return restaurants }
+
+        let dietType = profile.fuelFinderDietType.isEmpty ? "No preference" : profile.fuelFinderDietType
+        let goal = profile.goal ?? "maintenance"
+        let cuisines = profile.cuisinePreferencesArray
+        let allergies = profile.allergiesArray
+
+        // Build restaurant list string
+        let restaurantList = restaurants.prefix(40).enumerated().map { i, r in
+            "\(i + 1). \(r.name) (Rating: \(r.rating ?? 0), \(r.isOpen == true ? "Open" : "Closed"), \(r.types.prefix(3).joined(separator: ", ")))"
+        }.joined(separator: "\n")
+
+        let prompt = """
+        You are a fitness nutrition expert. A user needs restaurant recommendations.
+
+        USER PROFILE:
+        - Diet: \(dietType)
+        - Goal: \(goal)
+        - Daily targets: \(profile.calorieGoal) cal, \(profile.proteinGoal)g protein, \(profile.carbsGoal)g carbs, \(profile.fatGoal)g fat
+        - Preferred cuisines: \(cuisines.isEmpty ? "Any" : cuisines.joined(separator: ", "))
+        - Allergies: \(allergies.isEmpty ? "None" : allergies.joined(separator: ", "))
+
+        NEARBY RESTAURANTS:
+        \(restaurantList)
+
+        Rank these restaurants by how well they serve this user's fitness and dietary needs. \
+        A restaurant specializing in grilled proteins and salads should rank MUCH higher than a buffet or ice cream shop for someone building muscle. \
+        Fast food with few healthy options should rank lower. Restaurants with diverse healthy menus rank higher.
+
+        Return a JSON array of objects with:
+        - index (integer): the original restaurant number (1-based)
+        - fitness_score (integer 0-100): how well this restaurant serves the user's fitness goals
+
+        Return ALL restaurants, sorted by fitness_score descending. Be harsh — a burger joint should score 30-50 for weight loss, not 70+.
+        """
+
+        let body: [String: Any] = [
+            "contents": [["parts": [["text": prompt]]]],
+            "generationConfig": [
+                "responseMimeType": "application/json",
+                "responseSchema": [
+                    "type": "ARRAY",
+                    "items": [
+                        "type": "OBJECT",
+                        "properties": [
+                            "index": ["type": "INTEGER"],
+                            "fitness_score": ["type": "INTEGER"]
+                        ],
+                        "required": ["index", "fitness_score"]
+                    ]
+                ]
+            ]
+        ]
+
+        let urlString = "\(AppConstants.geminiBaseURL)/\(AppConstants.geminiModel):generateContent?key=\(apiKey)"
+        guard let url = URL(string: urlString) else { return restaurants }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.timeoutInterval = 30
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+
+        guard let (data, response) = try? await URLSession.shared.data(for: request),
+              let httpResponse = response as? HTTPURLResponse,
+              httpResponse.statusCode == 200 else {
+            return restaurants
+        }
+
+        guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let candidates = json["candidates"] as? [[String: Any]],
+              let firstCandidate = candidates.first,
+              let content = firstCandidate["content"] as? [String: Any],
+              let parts = content["parts"] as? [[String: Any]],
+              let firstPart = parts.first,
+              let responseText = firstPart["text"] as? String else {
+            return restaurants
+        }
+
+        let jsonString = responseText
+            .replacingOccurrences(of: "```json", with: "")
+            .replacingOccurrences(of: "```", with: "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard let jsonData = jsonString.data(using: .utf8),
+              let rankings = try? JSONSerialization.jsonObject(with: jsonData) as? [[String: Any]] else {
+            return restaurants
+        }
+
+        // Build index-to-score map
+        let capped = Array(restaurants.prefix(40))
+        var scoreMap: [Int: Int] = [:]
+        for ranking in rankings {
+            if let index = ranking["index"] as? Int,
+               let fitnessScore = ranking["fitness_score"] as? Int {
+                scoreMap[index - 1] = fitnessScore  // Convert to 0-based
+            }
+        }
+
+        // Sort restaurants by AI fitness score
+        var indexed = capped.enumerated().map { ($0.offset, $0.element) }
+        indexed.sort { a, b in
+            let aScore = scoreMap[a.0] ?? 50
+            let bScore = scoreMap[b.0] ?? 50
+            return aScore > bScore
+        }
+
+        return indexed.map { $0.1 }
+    }
+
+    // MARK: - Fetch Menu Items (Deep Gemini Research with AI Scoring)
 
     func fetchMenuItems(for restaurant: Restaurant, profile: UserProfile?) async throws -> [MenuItem] {
         // Try Spoonacular for image URLs (non-blocking enrichment)
         let spoonacularImages = await fetchSpoonacularImages(restaurantName: restaurant.name)
 
-        // Deep Gemini research - primary source for all menu data
+        // Deep Gemini research with personalized AI scoring
         let items = try await deepGeminiResearch(
             restaurant: restaurant,
             profile: profile
@@ -58,7 +175,9 @@ final class FuelFinderService {
                     source: item.source,
                     imageSearchQuery: item.imageSearchQuery,
                     healthScore: item.healthScore,
-                    description: item.description
+                    description: item.description,
+                    userMatchScore: item.userMatchScore,
+                    userMatchRationale: item.userMatchRationale
                 )
             }
             return item
@@ -91,7 +210,7 @@ final class FuelFinderService {
         }
     }
 
-    // MARK: - Deep Gemini Research
+    // MARK: - Deep Gemini Research with Personalized AI Scoring
 
     private func deepGeminiResearch(
         restaurant: Restaurant,
@@ -102,56 +221,73 @@ final class FuelFinderService {
             throw FuelFinderError.apiError("Gemini API key not configured")
         }
 
-        let dietInfo: String
-        let prefsInfo: String
-        let allergiesInfo: String
-        let goalInfo: String
-
+        let userContext: String
         if let profile, profile.hasFuelFinderSurvey {
-            dietInfo = "User's diet: \(profile.fuelFinderDietType.isEmpty ? "No preference" : profile.fuelFinderDietType)"
+            let dietType = profile.fuelFinderDietType.isEmpty ? "No preference" : profile.fuelFinderDietType
             let cuisines = profile.cuisinePreferencesArray
-            prefsInfo = cuisines.isEmpty ? "No cuisine preference" : "Preferred cuisines: \(cuisines.joined(separator: ", "))"
+            let proteins = profile.proteinPreferencesArray
             let allergies = profile.allergiesArray
-            allergiesInfo = allergies.isEmpty ? "No allergies" : "Allergies/restrictions: \(allergies.joined(separator: ", ")). Flag any items containing these."
             let goal = profile.goal ?? "maintenance"
-            let calGoal = profile.calorieGoal
-            goalInfo = "Fitness goal: \(goal), daily calorie target: \(calGoal) cal, protein: \(profile.proteinGoal)g, carbs: \(profile.carbsGoal)g, fat: \(profile.fatGoal)g"
+
+            userContext = """
+            USER PROFILE (use this to personalize recommendations):
+            - Diet type: \(dietType)
+            - Fitness goal: \(goal)
+            - Daily targets: \(profile.calorieGoal) cal, \(profile.proteinGoal)g protein, \(profile.carbsGoal)g carbs, \(profile.fatGoal)g fat
+            - Preferred cuisines: \(cuisines.isEmpty ? "Any" : cuisines.joined(separator: ", "))
+            - Preferred proteins: \(proteins.isEmpty ? "Any" : proteins.joined(separator: ", "))
+            - Allergies/restrictions: \(allergies.isEmpty ? "None" : allergies.joined(separator: ", "))
+
+            SCORING RULES for user_match_score:
+            - Score 90-100: Perfect match — hits protein/calorie targets, matches diet type, uses preferred proteins, no allergens
+            - Score 70-89: Good match — close to targets, healthy option even if not perfectly aligned
+            - Score 50-69: Okay — edible but doesn't strongly support their goals
+            - Score 30-49: Poor — too many calories, too little protein, or contains allergens
+            - Score 0-29: Terrible — desserts, sugary drinks, deep fried junk for someone trying to lose weight/gain muscle
+
+            CRITICAL: For someone building muscle or losing fat, ice cream, shakes, fries, and desserts should score 0-25. \
+            Grilled chicken, fish, salads with protein, lean meats should score 80-100. \
+            Be a STRICT fitness nutritionist. Do NOT recommend junk food as healthy.
+            """
         } else {
-            dietInfo = "No dietary preferences specified"
-            prefsInfo = "No cuisine preference"
-            allergiesInfo = "No allergies specified"
-            goalInfo = "General healthy eating"
+            userContext = """
+            No user profile available. Score items by general healthiness:
+            - Score 90-100: Very healthy (lean protein, vegetables, whole grains)
+            - Score 70-89: Healthy (balanced macros, not too caloric)
+            - Score 50-69: Average (typical restaurant food)
+            - Score 30-49: Unhealthy (high calorie, high fat, processed)
+            - Score 0-29: Very unhealthy (desserts, fried food, sugary drinks)
+            """
         }
 
         let prompt = """
-        You are an expert nutritionist and food researcher. Research the restaurant "\(restaurant.name)" \
-        located at "\(restaurant.address)".
+        You are an expert fitness nutritionist researching "\(restaurant.name)" at "\(restaurant.address)".
 
         This is a REAL restaurant. Research their actual menu thoroughly.
 
-        \(dietInfo)
-        \(prefsInfo)
-        \(allergiesInfo)
-        \(goalInfo)
+        \(userContext)
 
-        Return exactly 20 of their best and most popular menu items with accurate nutrition estimates. \
-        Prioritize items that match the user's dietary preferences and fitness goals. \
-        For each item provide a short descriptive image search query (e.g. "grilled chicken caesar salad restaurant plate") \
-        that could be used to find a representative photo of the dish.
+        Return exactly 20 menu items. Include their REAL menu items — popular dishes, signature items, healthy options. \
+        Do NOT make up fake items. For each item, provide:
+        1. Accurate nutrition estimates based on typical restaurant portions
+        2. A personalized user_match_score (0-100) based on the scoring rules above
+        3. A brief rationale explaining WHY this score — reference the user's specific goals
 
-        Return a JSON array of objects with these fields:
-        - name (string): the dish name
-        - description (string): 1-sentence description of the dish
+        Sort the items by user_match_score descending (best matches first).
+
+        Return a JSON array with these fields:
+        - name (string): the actual dish name from their menu
+        - description (string): 1-sentence description
         - calories (integer): estimated calories
         - protein_g (integer): grams of protein
         - carbs_g (integer): grams of carbs
         - fat_g (integer): grams of fat
-        - serving_size (string): serving size description
-        - badges (array of strings): dietary tags like "vegetarian", "vegan", "gluten-free", "high-protein", "low-carb", "keto-friendly"
-        - health_score (integer 0-100): overall healthiness rating
-        - image_search_query (string): descriptive search query for finding a photo of this dish
-
-        Be realistic and accurate. Use your knowledge of this restaurant's actual menu when possible.
+        - serving_size (string): serving size
+        - badges (array of strings): tags like "high-protein", "low-carb", "vegetarian", "vegan", "gluten-free", "keto-friendly"
+        - health_score (integer 0-100): objective healthiness regardless of user
+        - user_match_score (integer 0-100): how well this matches THIS specific user's goals
+        - user_match_rationale (string): 1 sentence explaining the score for this user
+        - image_search_query (string): descriptive query to find a photo of this dish
         """
 
         let body: [String: Any] = [
@@ -175,9 +311,11 @@ final class FuelFinderService {
                                 "items": ["type": "STRING"]
                             ],
                             "health_score": ["type": "INTEGER"],
+                            "user_match_score": ["type": "INTEGER"],
+                            "user_match_rationale": ["type": "STRING"],
                             "image_search_query": ["type": "STRING"]
                         ],
-                        "required": ["name", "description", "calories", "protein_g", "carbs_g", "fat_g", "serving_size", "health_score", "image_search_query"]
+                        "required": ["name", "description", "calories", "protein_g", "carbs_g", "fat_g", "serving_size", "health_score", "user_match_score", "user_match_rationale", "image_search_query"]
                     ]
                 ]
             ]
@@ -239,10 +377,11 @@ final class FuelFinderService {
             let servingSize = item["serving_size"] as? String
             let badges = (item["badges"] as? [String]) ?? []
             let healthScore = (item["health_score"] as? Int) ?? (item["health_score"] as? Double).map(Int.init)
+            let userMatchScore = (item["user_match_score"] as? Int) ?? (item["user_match_score"] as? Double).map(Int.init)
+            let userMatchRationale = item["user_match_rationale"] as? String
             let imageSearchQuery = item["image_search_query"] as? String
             let description = item["description"] as? String
 
-            // Generate a stable hash-based ID for Gemini items
             let idHash = abs("\(restaurant.name)-\(name)-\(index)".hashValue)
 
             return MenuItem(
@@ -259,7 +398,9 @@ final class FuelFinderService {
                 source: .geminiEstimate,
                 imageSearchQuery: imageSearchQuery,
                 healthScore: healthScore,
-                description: description
+                description: description,
+                userMatchScore: userMatchScore,
+                userMatchRationale: userMatchRationale
             )
         }
     }

@@ -28,13 +28,13 @@ final class GooglePlacesService {
         }
     }
 
-    // MARK: - Merged Nearby Search (DISTANCE + POPULARITY)
+    // MARK: - Merged Nearby Search (4 parallel calls for 60+ restaurants)
 
     func searchNearbyRestaurants(
         coordinate: CLLocationCoordinate2D,
         radius: Int = AppConstants.googlePlacesNearbyRadiusMeters
     ) async throws -> [Restaurant] {
-        // Run two searches in parallel: by distance and by popularity
+        // Run 4 searches in parallel to maximize restaurant count
         async let distanceResults = searchNearby(
             coordinate: coordinate,
             radius: radius,
@@ -45,15 +45,29 @@ final class GooglePlacesService {
             radius: radius,
             rankPreference: "POPULARITY"
         )
+        // Additional searches with broader food types
+        async let cafeResults = searchNearby(
+            coordinate: coordinate,
+            radius: radius,
+            rankPreference: "DISTANCE",
+            includedTypes: ["cafe", "meal_delivery", "meal_takeaway"]
+        )
+        async let widerResults = searchNearby(
+            coordinate: coordinate,
+            radius: min(radius * 2, 16000),
+            rankPreference: "POPULARITY"
+        )
 
         let byDistance = (try? await distanceResults) ?? []
         let byPopularity = (try? await popularityResults) ?? []
+        let byCafe = (try? await cafeResults) ?? []
+        let byWider = (try? await widerResults) ?? []
 
         // Merge and deduplicate by id
         var seen = Set<String>()
         var merged: [Restaurant] = []
 
-        for restaurant in byDistance + byPopularity {
+        for restaurant in byDistance + byPopularity + byCafe + byWider {
             if !seen.contains(restaurant.id) {
                 seen.insert(restaurant.id)
                 merged.append(restaurant)
@@ -162,7 +176,8 @@ final class GooglePlacesService {
     private func searchNearby(
         coordinate: CLLocationCoordinate2D,
         radius: Int,
-        rankPreference: String
+        rankPreference: String,
+        includedTypes: [String] = ["restaurant"]
     ) async throws -> [Restaurant] {
         let apiKey = try resolveAPIKey()
 
@@ -178,7 +193,7 @@ final class GooglePlacesService {
         request.timeoutInterval = 15
 
         var body: [String: Any] = [
-            "includedTypes": ["restaurant"],
+            "includedTypes": includedTypes,
             "maxResultCount": 20,
             "locationRestriction": [
                 "circle": [
