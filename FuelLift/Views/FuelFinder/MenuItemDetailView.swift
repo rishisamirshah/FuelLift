@@ -29,6 +29,8 @@ struct MenuItemDetailView: View {
                                 imagePlaceholder
                             }
                         }
+                    } else {
+                        imagePlaceholder
                     }
 
                     // Score section
@@ -212,11 +214,10 @@ struct MenuItemDetailView: View {
     private var imagePlaceholder: some View {
         ZStack {
             RoundedRectangle(cornerRadius: Theme.cornerRadiusLG)
-                .fill(Color.appCardSecondary)
+                .fill(FoodCategoryMapper.backgroundColor(for: item.name))
                 .frame(height: 160)
-            Image(systemName: "fork.knife")
-                .font(.system(size: 40))
-                .foregroundStyle(Color.appTextTertiary)
+            Text(FoodCategoryMapper.emoji(for: item.name))
+                .font(.system(size: 72))
         }
     }
 

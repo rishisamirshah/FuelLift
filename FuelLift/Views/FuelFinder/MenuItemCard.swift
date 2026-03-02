@@ -96,10 +96,9 @@ struct MenuItemCard: View {
 
     private var foodPlaceholder: some View {
         ZStack {
-            Color.appCardSecondary
-            Image(systemName: "fork.knife")
-                .font(.system(size: 20))
-                .foregroundStyle(Color.appTextTertiary)
+            FoodCategoryMapper.backgroundColor(for: item.name)
+            Text(FoodCategoryMapper.emoji(for: item.name))
+                .font(.system(size: 36))
         }
     }
 }
