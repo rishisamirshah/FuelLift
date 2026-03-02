@@ -50,6 +50,12 @@ enum AppConstants {
     static let googlePlacesBaseURL = "https://places.googleapis.com/v1"
     static let googlePlacesNearbyRadiusMeters: Int = 8000  // ~5 miles
 
+    // MARK: - Google Custom Search (Food Images)
+    static var googleCSEID: String {
+        Bundle.main.infoDictionary?["GOOGLE_CSE_ID"] as? String ?? ""
+    }
+    static let googleCSEBaseURL = "https://www.googleapis.com/customsearch/v1"
+
     // MARK: - Spoonacular
     static var spoonacularAPIKey: String {
         Bundle.main.infoDictionary?["SPOONACULAR_API_KEY"] as? String ?? ""

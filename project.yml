@@ -48,6 +48,7 @@ targets:
         GEMINI_API_KEY: $(GEMINI_API_KEY)
         GOOGLE_PLACES_API_KEY: $(GOOGLE_PLACES_API_KEY)
         SPOONACULAR_API_KEY: $(SPOONACULAR_API_KEY)
+        GOOGLE_CSE_ID: $(GOOGLE_CSE_ID)
         CFBundleIconName: AppIcon
         UILaunchScreen: {}
         UISupportedInterfaceOrientations:
