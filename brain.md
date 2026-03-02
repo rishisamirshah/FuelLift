@@ -257,7 +257,6 @@ Finds nearby restaurants via Google Places API (**v11: 4 parallel searches — D
 ### Services
 - **LocationService** — `@MainActor` ObservableObject wrapping CLLocationManager. `@Published currentLocation`, `authorizationStatus`. Uses `nonisolated` delegate + `Task { @MainActor in }` pattern.
 - **GooglePlacesService** — Singleton. **v11: 4 parallel nearby searches** (DISTANCE + POPULARITY + cafe/meal_delivery/meal_takeaway + wider radius POPULARITY) merged/deduped for **60+ results**. **Text Search API** via `searchRestaurantsByText()` (`POST /v1/places:searchText`). **Non-restaurant filter** (excludes movie_theater, bowling_alley, gas_station, etc.). **Quality sorting** by `rating * ln(reviews+1) * openBonus`. `photoURL(reference:maxWidth:)` builds media URL.
-- **ImageSearchService** — Singleton. **v11 NEW.** Fetches food images via Google Custom Search JSON API using Gemini's `imageSearchQuery`. In-memory cache, batch parallel search (max 10), rate-limited. Requires `GOOGLE_CSE_ID` (Programmable Search Engine ID) + existing Google API key.
 - **SpoonacularService** — Singleton. GET `/food/menuItems/search` for image enrichment. Handles 402 quota exceeded gracefully.
 - **FuelFinderService** — Orchestrator. **v11: AI-first architecture.** `aiRankRestaurants()` sends restaurant list + user profile to Gemini for fitness-based ranking (fitness_score 0-100 per restaurant). **Deep Gemini research** as primary — 20 items, 120s timeout, personalized prompt with strict fitness nutritionist scoring (ice cream/junk → 0-25, grilled protein → 80-100). Returns userMatchScore (0-100), userMatchRationale, imageSearchQuery, healthScore, description per item. Spoonacular used only for image URL enrichment.
 
@@ -280,7 +279,6 @@ Finds nearby restaurants via Google Places API (**v11: 4 parallel searches — D
 
 ### API Keys
 - `GOOGLE_PLACES_API_KEY` — separate from Gemini key, enabled on GCP project with Places API (New)
-- `GOOGLE_CSE_ID` — Programmable Search Engine ID for food image search (same GCP project). Create at https://programmablesearchengine.google.com/ with image search enabled.
 - `SPOONACULAR_API_KEY` — free tier (150 req/day)
 - Both passed via: GitHub Secrets → Fastfile xcargs → project.yml → Info.plist → Constants.swift
 
@@ -421,7 +419,7 @@ GitHub Secrets → testflight.yml env → Fastfile xcargs → project.yml build 
 - **Runner:** macos-14, Xcode 16.2
 - **Flow:** Checkout → XcodeGen → Ruby/Fastlane → GoogleService-Info.plist (placeholder) → SPM resolve → Fastlane beta lane
 - **Signing:** Manual code signing on FuelLift target only; SPM packages use automatic
-- **Secrets:** ANTHROPIC_API_KEY, OPENAI_API_KEY, GEMINI_API_KEY, GOOGLE_PLACES_API_KEY, GOOGLE_CSE_ID, SPOONACULAR_API_KEY, DEVELOPMENT_TEAM, MATCH_*, ASC_*
+- **Secrets:** ANTHROPIC_API_KEY, OPENAI_API_KEY, GEMINI_API_KEY, GOOGLE_PLACES_API_KEY, SPOONACULAR_API_KEY, DEVELOPMENT_TEAM, MATCH_*, ASC_*
 - **Fastfile xcargs:** passes all 6 API keys + DEVELOPMENT_TEAM to build
 - **App Icon:** Pixel art lifter character, 1024x1024 PNG (single-size format)
 
@@ -455,7 +453,6 @@ GitHub Secrets → testflight.yml env → Fastfile xcargs → project.yml build 
 - **Survey Reset Fix** — Reset now immediately re-shows the survey (was only clearing data without re-prompting)
 - **MenuItem AI fields** — Added userMatchScore (Int?) and userMatchRationale (String?) to MenuItem model
 - **Strict Scoring Prompt** — Gemini prompt explicitly penalizes junk food for fitness users, rewards lean proteins and balanced meals
-- **Google Custom Search food images** — New ImageSearchService fetches real food photos using Gemini's imageSearchQuery via Google CSE API (100 free/day). Falls back gracefully if CSE ID not configured.
 - **All construction sites fixed** — FuelFinderService image merge, SpoonacularService, and deepGeminiResearch all pass the new MenuItem fields
 
 ### Previously Implemented (v10 — FuelFinder Overhaul: Survey, Map, Deep Research, Search)
@@ -495,9 +492,9 @@ GitHub Secrets → testflight.yml env → Fastfile xcargs → project.yml build 
 | ViewModels | 12 (added FuelFinderSurveyViewModel) |
 | Views | 65 (added FuelFinderSurveyView, FuelFinderMapView) |
 | Components | 9 |
-| Services | 16 (added ImageSearchService) |
+| Services | 15 |
 | Utilities | 4 |
 | Resources | 5 |
 | Scripts | 3 |
 | Asset Images | 123 |
-| **Total Swift** | **119** |
+| **Total Swift** | **118** |

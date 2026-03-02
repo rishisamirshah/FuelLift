@@ -150,7 +150,7 @@ final class FuelFinderService {
 
     func fetchMenuItems(for restaurant: Restaurant, profile: UserProfile?) async throws -> [MenuItem] {
         // Try Spoonacular for image URLs (non-blocking enrichment)
-        async let spoonacularImagesTask = fetchSpoonacularImages(restaurantName: restaurant.name)
+        let spoonacularImages = await fetchSpoonacularImages(restaurantName: restaurant.name)
 
         // Deep Gemini research with personalized AI scoring
         let items = try await deepGeminiResearch(
@@ -158,10 +158,8 @@ final class FuelFinderService {
             profile: profile
         )
 
-        let spoonacularImages = await spoonacularImagesTask
-
         // Merge Spoonacular images onto Gemini results
-        var enrichedItems = items.map { item -> MenuItem in
+        return items.map { item in
             if item.imageURL == nil, let spoonURL = spoonacularImages[item.name.lowercased()] {
                 return MenuItem(
                     id: item.id,
@@ -184,11 +182,6 @@ final class FuelFinderService {
             }
             return item
         }
-
-        // Fetch food images via Google Custom Search for items still missing images
-        enrichedItems = await enrichWithGoogleImages(items: enrichedItems)
-
-        return enrichedItems
     }
 
     // MARK: - Score and Sort
@@ -198,48 +191,6 @@ final class FuelFinderService {
             (item, MenuItemScore.calculate(for: item, profile: profile))
         }
         .sorted { $0.1.score > $1.1.score }
-    }
-
-    // MARK: - Google Custom Search Image Enrichment
-
-    private func enrichWithGoogleImages(items: [MenuItem]) async -> [MenuItem] {
-        // Collect items that need images and have a search query
-        let needsImage = items.enumerated().filter { $0.element.imageURL == nil && $0.element.imageSearchQuery != nil }
-
-        guard !needsImage.isEmpty else { return items }
-
-        // Batch search for images (limited to top 10 items to save quota)
-        let queries = needsImage.prefix(10).compactMap { $0.element.imageSearchQuery }
-        let imageResults = await ImageSearchService.shared.batchSearchFoodImages(queries: queries)
-
-        guard !imageResults.isEmpty else { return items }
-
-        // Merge image URLs back onto items
-        return items.map { item in
-            if item.imageURL == nil,
-               let query = item.imageSearchQuery,
-               let imageURL = imageResults[query] {
-                return MenuItem(
-                    id: item.id,
-                    name: item.name,
-                    restaurantChain: item.restaurantChain,
-                    servingSize: item.servingSize,
-                    calories: item.calories,
-                    proteinG: item.proteinG,
-                    carbsG: item.carbsG,
-                    fatG: item.fatG,
-                    imageURL: imageURL,
-                    badges: item.badges,
-                    source: item.source,
-                    imageSearchQuery: item.imageSearchQuery,
-                    healthScore: item.healthScore,
-                    description: item.description,
-                    userMatchScore: item.userMatchScore,
-                    userMatchRationale: item.userMatchRationale
-                )
-            }
-            return item
-        }
     }
 
     // MARK: - Spoonacular Image Enrichment (non-blocking)
