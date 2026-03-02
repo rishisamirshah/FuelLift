@@ -48,6 +48,9 @@ struct FuelFinderView: View {
                     .padding(.vertical, Theme.spacingSM)
                 }
 
+                // Cuisine / mood filter pills
+                cuisineFilterPills
+
                 // Content
                 if viewModel.viewMode == .list {
                     listContent
@@ -167,7 +170,7 @@ struct FuelFinderView: View {
                 .multilineTextAlignment(.center)
 
             Button {
-                Task { await viewModel.loadRestaurants() }
+                Task { await viewModel.loadRestaurants(profile: profile) }
             } label: {
                 Text("Try Again")
                     .primaryButtonStyle()
@@ -177,21 +180,71 @@ struct FuelFinderView: View {
         .cardStyle()
     }
 
+    // MARK: - Cuisine Filter Pills
+
+    private var cuisineFilterPills: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: Theme.spacingSM) {
+                ForEach(FuelFinderViewModel.CuisineFilter.allCases, id: \.self) { filter in
+                    Button {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                            viewModel.selectedCuisineFilter = filter
+                        }
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: filter.icon)
+                                .font(.system(size: 11))
+                            Text(filter.rawValue)
+                                .font(.system(size: Theme.captionSize, weight: .semibold))
+                        }
+                        .foregroundStyle(viewModel.selectedCuisineFilter == filter ? .white : Color.appTextSecondary)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(viewModel.selectedCuisineFilter == filter ? Color.appAccent : Color.appCardSecondary)
+                        .clipShape(Capsule())
+                    }
+                }
+            }
+            .padding(.horizontal, Theme.spacingLG)
+            .padding(.vertical, Theme.spacingXS)
+        }
+    }
+
     // MARK: - Restaurant List
 
     private var restaurantList: some View {
         LazyVStack(spacing: Theme.spacingMD) {
-            ForEach(viewModel.restaurants) { restaurant in
-                NavigationLink {
-                    RestaurantDetailView(
-                        restaurant: restaurant,
-                        viewModel: viewModel,
-                        profile: profile
-                    )
-                } label: {
-                    RestaurantCard(restaurant: restaurant)
+            let displayed = viewModel.filteredRestaurants
+            if displayed.isEmpty && viewModel.selectedCuisineFilter != .all {
+                VStack(spacing: Theme.spacingSM) {
+                    Image(systemName: "magnifyingglass")
+                        .font(.system(size: 36))
+                        .foregroundStyle(Color.appTextTertiary)
+                    Text("No \(viewModel.selectedCuisineFilter.rawValue) restaurants found nearby")
+                        .font(.system(size: Theme.bodySize))
+                        .foregroundStyle(Color.appTextSecondary)
+                    Button {
+                        viewModel.selectedCuisineFilter = .all
+                    } label: {
+                        Text("Show All")
+                            .font(.system(size: Theme.captionSize, weight: .semibold))
+                            .foregroundStyle(Color.appAccent)
+                    }
                 }
-                .buttonStyle(.plain)
+                .padding(.vertical, Theme.spacingXXL)
+            } else {
+                ForEach(displayed) { restaurant in
+                    NavigationLink {
+                        RestaurantDetailView(
+                            restaurant: restaurant,
+                            viewModel: viewModel,
+                            profile: profile
+                        )
+                    } label: {
+                        RestaurantCard(restaurant: restaurant)
+                    }
+                    .buttonStyle(.plain)
+                }
             }
         }
     }
